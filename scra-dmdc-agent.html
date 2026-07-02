@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RMAS — SCRA Compliance Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #0F1923; --navy-mid: #162130; --slate: #1E2D3D; --slate-light: #243447;
+    --border: #2A3F54; --amber: #F59E0B; --amber-dim: rgba(245,158,11,0.12);
+    --teal: #0D9488; --teal-dim: rgba(13,148,136,0.12); --red: #EF4444;
+    --red-dim: rgba(239,68,68,0.12); --blue: #3B82F6; --blue-dim: rgba(59,130,246,0.12);
+    --purple: #8B5CF6; --purple-dim: rgba(139,92,246,0.12);
+    --text: #F1F5F9; --text-muted: #94A3B8; --text-dim: #64748B;
+    --mono: 'JetBrains Mono', monospace; --sans: 'Inter', sans-serif;
+  }
+  body { background: var(--navy); color: var(--text); font-family: var(--sans); font-size: 13px; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+  .header { background: var(--navy-mid); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-badge { background: var(--amber-dim); border: 1px solid var(--amber); color: var(--amber); font-family: var(--mono); font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 2px; letter-spacing: 0.08em; }
+  .header-title { font-size: 13px; font-weight: 600; }
+  .header-sub { font-size: 11px; color: var(--text-muted); }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .version-tag { font-family: var(--mono); font-size: 10px; color: var(--text-dim); }
+  .ai-badge { background: var(--purple-dim); border: 1px solid var(--purple); color: var(--purple); font-family: var(--mono); font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 2px; letter-spacing: 0.06em; }
+  .tabs { background: var(--navy-mid); border-bottom: 1px solid var(--border); display: flex; padding: 0 16px; flex-shrink: 0; }
+  .tab { padding: 8px 16px; font-size: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+  .tab.ai-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+  .panel { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+  .panel:last-child { border-right: none; }
+  .panel-header { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; background: var(--slate); }
+  .panel-title { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: var(--text-muted); text-transform: uppercase; }
+  .panel-body { padding: 14px; overflow-y: auto; flex: 1; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
+  .field input, .field select, .field textarea { width: 100%; background: var(--slate); border: 1px solid var(--border); border-radius: 3px; color: var(--text); font-family: var(--mono); font-size: 12px; padding: 7px 10px; outline: none; transition: border-color 0.15s; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--amber); }
+  .field textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+  .field select option { background: var(--slate); }
+  .account-item { background: var(--slate); border: 1px solid var(--border); border-radius: 3px; padding: 8px 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .account-id { font-family: var(--mono); font-size: 11px; }
+  .account-type { font-size: 10px; color: var(--text-muted); }
+  .account-rate { font-family: var(--mono); font-size: 11px; color: var(--amber); }
+  .scenario-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+  .scenario-btn { background: var(--slate); border: 1px solid var(--border); border-radius: 3px; color: var(--text-muted); font-size: 11px; font-weight: 500; padding: 7px 8px; cursor: pointer; text-align: center; transition: all 0.15s; }
+  .scenario-btn:hover { border-color: var(--amber); color: var(--text); }
+  .scenario-btn.selected { background: var(--amber-dim); border-color: var(--amber); color: var(--amber); }
+  .run-btn { width: 100%; background: var(--amber); border: none; border-radius: 3px; color: var(--navy); font-family: var(--sans); font-size: 12px; font-weight: 700; padding: 9px; cursor: pointer; letter-spacing: 0.04em; transition: all 0.15s; margin-top: 4px; }
+  .run-btn:hover { background: #FBBF24; }
+  .run-btn:disabled { background: var(--border); color: var(--text-dim); cursor: not-allowed; }
+  .run-btn.purple { background: var(--purple); color: white; }
+  .run-btn.purple:hover { background: #7C3AED; }
+  .step-card { border-bottom: 1px solid var(--border); padding: 14px 16px; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .step-num { background: var(--slate-light); border: 1px solid var(--border); border-radius: 2px; font-family: var(--mono); font-size: 10px; color: var(--text-dim); padding: 1px 5px; flex-shrink: 0; }
+  .step-name { font-size: 12px; font-weight: 600; flex: 1; }
+  .step-status { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 2px; white-space: nowrap; }
+  .status-running { background: var(--blue-dim); color: var(--blue); }
+  .status-ok { background: var(--teal-dim); color: var(--teal); }
+  .status-hold { background: var(--amber-dim); color: var(--amber); }
+  .status-error { background: var(--red-dim); color: var(--red); }
+  .status-escalate { background: var(--blue-dim); color: var(--blue); }
+  .status-ai { background: var(--purple-dim); color: var(--purple); }
+  .step-body { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  .step-detail { background: var(--slate); border: 1px solid var(--border); border-radius: 3px; padding: 10px 12px; margin-top: 8px; font-family: var(--mono); font-size: 11px; line-height: 1.7; white-space: pre-wrap; }
+  .ai-output { background: var(--slate); border: 1px solid var(--purple); border-radius: 3px; padding: 12px 14px; margin-top: 8px; font-size: 12px; line-height: 1.7; color: var(--text); }
+  .ai-output-header { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: var(--purple); text-transform: uppercase; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
+  .ai-label { background: var(--purple-dim); border: 1px solid var(--purple); color: var(--purple); font-family: var(--mono); font-size: 9px; padding: 1px 5px; border-radius: 2px; }
+  .certificate { background: var(--slate); border: 1px solid var(--teal); border-radius: 3px; padding: 12px 14px; margin-top: 8px; font-family: var(--mono); font-size: 11px; line-height: 1.8; }
+  .cert-header { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: var(--teal); text-transform: uppercase; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .cert-row { display: flex; gap: 8px; }
+  .cert-key { color: var(--text-muted); min-width: 140px; }
+  .gate-hold { background: var(--amber-dim); border: 1px solid var(--amber); border-radius: 3px; padding: 12px 14px; margin-top: 8px; }
+  .gate-hold-title { font-size: 11px; font-weight: 700; color: var(--amber); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+  .gate-hold-body { font-size: 12px; color: var(--text); line-height: 1.6; }
+  .gate-clear { background: var(--teal-dim); border: 1px solid var(--teal); border-radius: 3px; padding: 12px 14px; margin-top: 8px; }
+  .gate-clear-title { font-size: 11px; font-weight: 700; color: var(--teal); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+  .sweep-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .sweep-table th { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: var(--text-muted); text-transform: uppercase; text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  .sweep-table td { font-family: var(--mono); font-size: 11px; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  .sweep-table tr:last-child td { border-bottom: none; }
+  .eligible { color: var(--amber); }
+  .ineligible { color: var(--text-dim); }
+  .audit-log { font-family: var(--mono); font-size: 11px; }
+  .log-entry { padding: 8px 0; border-bottom: 1px solid var(--border); animation: fadeIn 0.2s ease; }
+  .log-entry:last-child { border-bottom: none; }
+  .log-ts { color: var(--text-dim); font-size: 10px; margin-bottom: 2px; }
+  .log-action { margin-bottom: 2px; }
+  .log-meta { color: var(--text-dim); font-size: 10px; }
+  .log-ok { color: var(--teal); }
+  .log-hold { color: var(--amber); }
+  .log-error { color: var(--red); }
+  .log-info { color: var(--blue); }
+  .log-ai { color: var(--purple); }
+  .eval-grid { display: flex; flex-direction: column; gap: 8px; }
+  .eval-case { background: var(--slate); border: 1px solid var(--border); border-radius: 3px; padding: 10px 12px; }
+  .eval-case-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .eval-case-name { font-size: 12px; font-weight: 500; flex: 1; }
+  .eval-result { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 2px; letter-spacing: 0.06em; }
+  .eval-pass { background: var(--teal-dim); color: var(--teal); }
+  .eval-fail { background: var(--red-dim); color: var(--red); }
+  .eval-pending { background: var(--slate-light); color: var(--text-dim); }
+  .eval-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+  .eval-expected { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 4px; }
+  .eval-run-btn { width: 100%; background: var(--slate); border: 1px solid var(--border); border-radius: 3px; color: var(--text); font-family: var(--sans); font-size: 12px; font-weight: 600; padding: 9px; cursor: pointer; margin-bottom: 12px; transition: all 0.15s; }
+  .eval-run-btn:hover { border-color: var(--amber); color: var(--amber); }
+  .eval-summary { background: var(--slate); border: 1px solid var(--border); border-radius: 3px; padding: 10px 12px; margin-bottom: 12px; display: flex; gap: 16px; align-items: center; }
+  .eval-stat { text-align: center; }
+  .eval-stat-num { font-family: var(--mono); font-size: 20px; font-weight: 600; }
+  .eval-stat-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-dim); text-align: center; padding: 24px; }
+  .empty-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-title { font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
+  .empty-desc { font-size: 11px; line-height: 1.6; }
+  .tab-content { display: none; flex: 1; overflow: hidden; }
+  .tab-content.active { display: grid; grid-template-columns: 280px 1fr 300px; }
+  .tab-content-full { display: none; flex: 1; overflow-y: auto; padding: 16px; }
+  .tab-content-full.active { display: block; }
+  .notice-layout { display: grid; grid-template-columns: 320px 1fr 300px; flex: 1; overflow: hidden; }
+  .notice-tab { display: none; flex: 1; overflow: hidden; }
+  .notice-tab.active { display: grid; grid-template-columns: 320px 1fr 300px; }
+  .section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; margin-top: 14px; }
+  .section-label:first-child { margin-top: 0; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+  .sample-btn { background: var(--slate); border: 1px solid var(--border); border-radius: 3px; color: var(--text-muted); font-size: 11px; padding: 5px 10px; cursor: pointer; margin-right: 6px; margin-bottom: 6px; transition: all 0.15s; display: inline-block; }
+  .sample-btn:hover { border-color: var(--purple); color: var(--purple); }
+  .trigger-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 2px; letter-spacing: 0.06em; margin-right: 4px; }
+  .badge-high { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber); }
+  .badge-medium { background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue); }
+  .badge-none { background: var(--teal-dim); color: var(--teal); border: 1px solid var(--teal); }
+  .disclosure { background: var(--slate); border: 1px solid var(--border); border-radius: 3px; padding: 10px 12px; margin-bottom: 12px; font-size: 11px; color: var(--text-dim); line-height: 1.6; }
+  .disclosure strong { color: var(--text-muted); }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .streaming-cursor::after { content: '▋'; animation: blink 0.7s infinite; color: var(--purple); }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-badge">RMAS</div>
+    <div>
+      <div class="header-title">SCRA Compliance Agent</div>
+      <div class="header-sub">Type 1: DMDC Integration · Type 4: Notice Recognition · Sandbox</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="ai-badge">⚡ AI-POWERED</div>
+    <div class="version-tag">agent-v0.2 · claude-sonnet-4-6 · scra-t1-v2</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('agent')">DMDC Agent Run</div>
+  <div class="tab ai-tab" onclick="switchTab('notice')">Notice Intake <span style="font-size:9px;opacity:0.7">AI</span></div>
+  <div class="tab" onclick="switchTab('eval')">Eval Suite</div>
+</div>
+
+<!-- TAB 1: DMDC AGENT RUN -->
+<div id="tab-agent" class="tab-content active">
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Input</span></div>
+    <div class="panel-body">
+      <div class="section-label">Borrower</div>
+      <div class="field"><label>Full Name</label><input type="text" id="borrower-name" value="James R. Thornton" /></div>
+      <div class="field"><label>SSN (last 4 for demo)</label><input type="text" id="borrower-ssn" value="4821" maxlength="4" /></div>
+      <div class="section-label">DMDC Scenario</div>
+      <div class="scenario-grid">
+        <div class="scenario-btn selected" onclick="selectScenario(this,'active')">Active Duty</div>
+        <div class="scenario-btn" onclick="selectScenario(this,'not_active')">Not Active</div>
+        <div class="scenario-btn" onclick="selectScenario(this,'no_record')">No Record</div>
+        <div class="scenario-btn" onclick="selectScenario(this,'timeout')">API Timeout</div>
+      </div>
+      <div class="section-label">Account Portfolio</div>
+      <div class="account-item"><div><div class="account-id">MTG-2019-00441</div><div class="account-type">Mortgage · Pre-service</div></div><div class="account-rate">7.25%</div></div>
+      <div class="account-item"><div><div class="account-id">AUTO-2021-08832</div><div class="account-type">Auto Loan · Pre-service</div></div><div class="account-rate">6.99%</div></div>
+      <div class="account-item"><div><div class="account-id">CC-2020-15521</div><div class="account-type">Credit Card · Pre-service</div></div><div class="account-rate">19.99%</div></div>
+      <div class="account-item"><div><div class="account-id">AUTO-2023-44110</div><div class="account-type">Auto Loan · In-service</div></div><div class="account-rate">5.50%</div></div>
+      <div class="section-label">Trigger Context</div>
+      <div class="field">
+        <label>Trigger Type</label>
+        <select id="trigger-type">
+          <option value="batch">Batch Portfolio Scan (P2)</option>
+          <option value="notice">Servicemember Notice (P3)</option>
+          <option value="delinquency">Delinquency Flag (P4)</option>
+          <option value="foreclosure">Foreclosure Referral Gate (P5)</option>
+          <option value="origination">Loan Origination (P1)</option>
+        </select>
+      </div>
+      <hr class="divider">
+      <button class="run-btn" onclick="runAgent()" id="run-btn">▶ Run Agent</button>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Agent Reasoning</span>
+      <span id="agent-status" class="step-status status-running" style="display:none">RUNNING</span>
+    </div>
+    <div class="panel-body" id="reasoning-panel">
+      <div class="empty-state">
+        <div class="empty-icon">⬡</div>
+        <div class="empty-title">Agent ready</div>
+        <div class="empty-desc">Select a DMDC scenario and trigger context. AI model generates routing decisions, gate hold explanations, and certificate language in real time.</div>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Audit Log</span><span id="log-count" class="version-tag">0 entries</span></div>
+    <div class="panel-body"><div class="audit-log" id="audit-log"><div style="color:var(--text-dim);font-size:11px;text-align:center;padding:24px 0">Log entries appear here as the agent executes.</div></div></div>
+  </div>
+</div>
+
+<!-- TAB 2: NOTICE INTAKE (AI-POWERED) -->
+<div id="tab-notice" class="notice-tab">
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Notice Input</span><span class="ai-label">LIVE AI</span></div>
+    <div class="panel-body">
+      <div class="disclosure">
+        <strong>Type 4 Capability — Language Recognition.</strong> Paste any customer message, call transcript excerpt, email, or written notice. The AI model analyzes the text for SCRA triggers — including indirect language that a rules engine would miss.
+      </div>
+      <div class="section-label">Sample Scenarios</div>
+      <div>
+        <span class="sample-btn" onclick="loadSample('verbal')">Verbal/deployment mention</span>
+        <span class="sample-btn" onclick="loadSample('formal')">Formal written notice</span>
+        <span class="sample-btn" onclick="loadSample('indirect')">Indirect / ambiguous</span>
+        <span class="sample-btn" onclick="loadSample('postservice')">Post-service (180-day)</span>
+        <span class="sample-btn" onclick="loadSample('poa')">Power of attorney</span>
+        <span class="sample-btn" onclick="loadSample('none')">No SCRA trigger</span>
+      </div>
+      <div class="section-label" style="margin-top:12px">Text to Analyze</div>
+      <div class="field">
+        <textarea id="notice-text" placeholder="Paste customer message, call transcript, email, or written notice here..."></textarea>
+      </div>
+      <div class="field">
+        <label>Source Channel</label>
+        <select id="notice-channel">
+          <option value="call_transcript">Call Center Transcript</option>
+          <option value="secure_message">Secure Message / Portal</option>
+          <option value="email">Email</option>
+          <option value="written_notice">Written Notice (mail/branch)</option>
+          <option value="collections_note">Collections System Note</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Borrower Name (if known)</label>
+        <input type="text" id="notice-borrower" value="Maria L. Vasquez" />
+      </div>
+      <hr class="divider">
+      <button class="run-btn purple" onclick="runNoticeAnalysis()" id="notice-btn">⚡ Analyze with AI</button>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">AI Analysis</span>
+      <span id="notice-status" class="step-status status-ai" style="display:none">AI REASONING</span>
+    </div>
+    <div class="panel-body" id="notice-panel">
+      <div class="empty-state">
+        <div class="empty-icon">◈</div>
+        <div class="empty-title">Awaiting input</div>
+        <div class="empty-desc">Load a sample or paste text to analyze. The AI model will identify SCRA triggers, classify their type and confidence, and specify the required compliance response — including triggers a rules engine would miss.</div>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Audit Log</span><span id="notice-log-count" class="version-tag">0 entries</span></div>
+    <div class="panel-body"><div class="audit-log" id="notice-audit-log"><div style="color:var(--text-dim);font-size:11px;text-align:center;padding:24px 0">Analysis log appears here.</div></div></div>
+  </div>
+</div>
+
+<!-- TAB 3: EVAL SUITE -->
+<div id="tab-eval" class="tab-content-full">
+  <button class="eval-run-btn" onclick="runEvalSuite()">▶ Run Full Eval Suite</button>
+  <div class="eval-summary" id="eval-summary" style="display:none">
+    <div class="eval-stat"><div class="eval-stat-num" id="eval-pass-count" style="color:var(--teal)">—</div><div class="eval-stat-label">Passed</div></div>
+    <div class="eval-stat"><div class="eval-stat-num" id="eval-fail-count" style="color:var(--red)">—</div><div class="eval-stat-label">Failed</div></div>
+    <div class="eval-stat"><div class="eval-stat-num" id="eval-total-count" style="color:var(--text-muted)">—</div><div class="eval-stat-label">Total</div></div>
+    <div class="eval-stat"><div class="eval-stat-num" id="eval-pct" style="color:var(--amber)">—</div><div class="eval-stat-label">Pass Rate</div></div>
+  </div>
+  <div class="eval-grid" id="eval-grid"></div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let selectedScenario = 'active';
+let agentLogEntries = [];
+let noticeLogEntries = [];
+
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+const SCENARIOS = {
+  active:     { result:'ACTIVE_DUTY',  activeDate:'2024-03-15', branch:'U.S. Army', component:'Active Component', responseMs:340 },
+  not_active: { result:'NOT_ACTIVE',   lastSeparation:'2022-08-01', responseMs:280 },
+  no_record:  { result:'NO_RECORD',    responseMs:410 },
+  timeout:    { result:'TIMEOUT',      responseMs:8000 }
+};
+
+const ACCOUNTS = [
+  { id:'MTG-2019-00441',  type:'Mortgage',    rate:7.25,  preService:true  },
+  { id:'AUTO-2021-08832', type:'Auto Loan',   rate:6.99,  preService:true  },
+  { id:'CC-2020-15521',   type:'Credit Card', rate:19.99, preService:true  },
+  { id:'AUTO-2023-44110', type:'Auto Loan',   rate:5.50,  preService:false }
+];
+
+const SAMPLES = {
+  verbal: `CALL TRANSCRIPT — Account #AUTO-2021-08832
+Agent: Thank you for calling, may I ask the reason for your call today?
+Customer: Yeah hi, I'm calling because I just got my deployment orders last week and I'm shipping out to Germany in about three weeks. I wanted to let you know because I heard I might have some rights about my loan payments while I'm deployed. My name is Maria Vasquez.
+Agent: I understand, congratulations on your service. Can I get your account number?
+Customer: It's on the letter I got, AUTO-2021-08832. I've got active duty orders starting November 1st.`,
+
+  formal: `November 15, 2024
+
+To Whom It May Concern:
+
+I am writing to formally invoke my rights under the Servicemembers Civil Relief Act (50 U.S.C. § 3937) with respect to account number MTG-2019-00441.
+
+I entered active military service with the United States Marine Corps on October 28, 2024, pursuant to orders attached hereto. I respectfully request that the interest rate on the above-referenced mortgage account be reduced to 6% per annum effective as of my active duty start date, retroactive to October 28, 2024.
+
+Enclosed please find a copy of my active duty orders signed by my Commanding Officer.
+
+Respectfully,
+Cpl. James R. Thornton
+USMC`,
+
+  indirect: `Hi, I got a collections notice about my car payment being late. I wanted to call and explain the situation. My husband is in the military and he handles all our finances but he's been away since August and I don't have access to the right accounts to make the payment. He's been stationed overseas and we've been having trouble with the international calls too. I'm not sure what to do, can you help me?`,
+
+  postservice: `To whom it may concern:
+
+My name is David Chen and I am writing regarding account CC-2020-15521. I recently completed a period of active duty service with the Army National Guard which ended on September 3rd of this year.
+
+I understand that I have 180 days from the end of my service to request that interest charged above 6% during my active duty period be refunded. My active duty began on February 14th of this year and ended September 3rd. I was not aware of the SCRA interest rate benefit when I was called up and did not request it at the time.
+
+Please find attached my DD-214 showing my period of service. I would like to request the retroactive interest adjustment for the period of February 14 through September 3.`,
+
+  poa: `Dear Collections Department,
+
+I am writing on behalf of my son, PFC Tyler Morrison, account number AUTO-2021-08832, pursuant to a durable power of attorney executed on August 3, 2024, a copy of which is enclosed.
+
+Tyler has been deployed to the Middle East since August 15, 2024 under active duty orders. He asked me to contact you before his departure regarding his SCRA rights. He has been unable to contact you directly due to communications restrictions at his base.
+
+I am requesting that you apply the 6% SCRA interest rate cap to his account retroactive to August 15, 2024, and that you confirm in writing what adjustments will be made.
+
+Sincerely,
+Patricia Morrison (Mother / POA Holder)`,
+
+  none: `Hi, I'm calling about my checking account. I noticed there were some charges on my statement that I don't recognize — there's a $35 fee and a $12 fee from last month that I don't think should be there. I've been a customer for about 8 years and this has never happened before. Can someone help me understand what these charges are for? My account number is CHK-882341.`
+};
+
+const EVAL_CASES = [
+  { id:'TC-01', name:'Active duty → rate cap routing',       desc:'DMDC returns active duty. Must route to rate cap workflow, hold gate, generate certificate.',   expected:'ROUTE: rate_cap_workflow | GATE: hold | CERT: generated',     scenario:'active',     test:r=>r.routing==='rate_cap_workflow'&&r.gate==='hold'&&r.cert===true },
+  { id:'TC-02', name:'Not active → clear and log',           desc:'DMDC returns not active. Must log certificate and clear workflow.',                              expected:'ROUTE: clear | GATE: proceed | CERT: generated',              scenario:'not_active', test:r=>r.routing==='clear'&&r.gate==='proceed'&&r.cert===true },
+  { id:'TC-03', name:'No record → escalate (not clear)',     desc:'DMDC no record must escalate to human — never treated as not-active.',                          expected:'ROUTE: escalate_human | GATE: hold',                          scenario:'no_record',  test:r=>r.routing==='escalate_human'&&r.gate==='hold' },
+  { id:'TC-04', name:'API timeout → gate fails CLOSED',      desc:'Timeout must fail CLOSED — gate holds, workflow blocked, no clearance issued.',                 expected:'GATE: hold (fail-closed) | ROUTING: blocked',                 scenario:'timeout',    test:r=>r.gate==='hold'&&r.failClosed===true },
+  { id:'TC-05', name:'Active duty → institution-wide sweep', desc:'Active duty match triggers sweep of ALL accounts. In-service account correctly excluded.',      expected:'SWEEP: executed | ELIGIBLE: 3 | INELIGIBLE: 1',              scenario:'active',     test:r=>r.sweepExecuted===true&&r.eligibleCount===3&&r.ineligibleCount===1 },
+  { id:'TC-06', name:'Certificate fields complete',           desc:'Every DMDC query produces a certificate with all required fields.',                            expected:'CERT: query_date, result, ssn_last4, branch, component',      scenario:'active',     test:r=>r.cert===true&&r.certFields===true }
+];
+
+// ─── UTILITIES ────────────────────────────────────────────────────────────────
+const getNow = () => new Date().toISOString().replace('T',' ').substring(0,19)+' UTC';
+const delay = ms => new Promise(r=>setTimeout(r,Math.min(ms,500)));
+
+function addLog(logId, action, meta, type='info') {
+  const entries = logId==='agent' ? agentLogEntries : noticeLogEntries;
+  const elId = logId==='agent' ? 'audit-log' : 'notice-audit-log';
+  const countId = logId==='agent' ? 'log-count' : 'notice-log-count';
+  entries.push({ts:getNow(),action,meta,type});
+  document.getElementById(countId).textContent = entries.length+' entries';
+  const el = document.getElementById(elId);
+  el.innerHTML = entries.map(e=>`
+    <div class="log-entry">
+      <div class="log-ts">${e.ts}</div>
+      <div class="log-action log-${e.type}">${e.action}</div>
+      ${e.meta?`<div class="log-meta">${e.meta}</div>`:''}
+    </div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+function addStep(panelId, num, name, status, body, detail='') {
+  const panel = document.getElementById(panelId);
+  const cls = {OK:'status-ok',HOLD:'status-hold',ERROR:'status-error',ESCALATE:'status-escalate',RUNNING:'status-running',AI:'status-ai'}[status]||'status-running';
+  const card = document.createElement('div');
+  card.className = 'step-card';
+  card.innerHTML = `
+    <div class="step-header">
+      <div class="step-num">${typeof num==='number'?'S'+String(num).padStart(2,'0'):num}</div>
+      <div class="step-name">${name}</div>
+      <div class="step-status ${cls}">${status}</div>
+    </div>
+    <div class="step-body">${body}</div>
+    ${detail?`<div class="step-detail">${detail}</div>`:''}`;
+  panel.appendChild(card);
+  panel.scrollTop = panel.scrollHeight;
+  return card;
+}
+
+function addAIOutput(panelId, label, content, streaming=false) {
+  const panel = document.getElementById(panelId);
+  const card = document.createElement('div');
+  card.className = 'step-card';
+  const contentId = 'ai-content-'+Date.now();
+  card.innerHTML = `
+    <div class="step-header">
+      <div class="step-num">AI</div>
+      <div class="step-name">${label}</div>
+      <div class="step-status status-ai">GENERATED</div>
+    </div>
+    <div class="ai-output">
+      <div class="ai-output-header"><span class="ai-label">claude-sonnet-4-6</span>${label}</div>
+      <div id="${contentId}" class="${streaming?'streaming-cursor':''}">${content}</div>
+    </div>`;
+  panel.appendChild(card);
+  panel.scrollTop = panel.scrollHeight;
+  return contentId;
+}
+
+// ─── ANTHROPIC API ────────────────────────────────────────────────────────────
+async function callClaude(systemPrompt, userMessage) {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userMessage }]
+    })
+  });
+  const data = await response.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.content[0].text;
+}
+
+// ─── DMDC AGENT ──────────────────────────────────────────────────────────────
+function selectScenario(el, s) {
+  document.querySelectorAll('.scenario-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedScenario = s;
+}
+
+function addCertificate(scenario, name, ssn) {
+  const panel = document.getElementById('reasoning-panel');
+  const s = SCENARIOS[scenario];
+  let content = '';
+  if (scenario==='active') {
+    content = `
+      <div class="cert-row"><span class="cert-key">QUERY DATE:</span><span>${getNow()}</span></div>
+      <div class="cert-row"><span class="cert-key">SUBJECT NAME:</span><span>${name}</span></div>
+      <div class="cert-row"><span class="cert-key">SSN (LAST 4):</span><span>****${ssn}</span></div>
+      <div class="cert-row"><span class="cert-key">DMDC RESULT:</span><span style="color:var(--amber)">ACTIVE DUTY CONFIRMED</span></div>
+      <div class="cert-row"><span class="cert-key">BRANCH:</span><span>${s.branch}</span></div>
+      <div class="cert-row"><span class="cert-key">COMPONENT:</span><span>${s.component}</span></div>
+      <div class="cert-row"><span class="cert-key">ACTIVE SINCE:</span><span>${s.activeDate}</span></div>
+      <div class="cert-row"><span class="cert-key">SAFE HARBOR:</span><span>§3937 interest rate cap only</span></div>
+      <div class="cert-row"><span class="cert-key">AGENT VERSION:</span><span>agent-v0.2 · scra-t1-v2</span></div>`;
+  } else if (scenario==='not_active') {
+    content = `
+      <div class="cert-row"><span class="cert-key">QUERY DATE:</span><span>${getNow()}</span></div>
+      <div class="cert-row"><span class="cert-key">SUBJECT NAME:</span><span>${name}</span></div>
+      <div class="cert-row"><span class="cert-key">SSN (LAST 4):</span><span>****${ssn}</span></div>
+      <div class="cert-row"><span class="cert-key">DMDC RESULT:</span><span style="color:var(--teal)">NOT ON ACTIVE DUTY</span></div>
+      <div class="cert-row"><span class="cert-key">LAST SEPARATION:</span><span>${s.lastSeparation}</span></div>
+      <div class="cert-row"><span class="cert-key">SAFE HARBOR:</span><span>§3937 interest rate cap only</span></div>
+      <div class="cert-row"><span class="cert-key">AGENT VERSION:</span><span>agent-v0.2 · scra-t1-v2</span></div>`;
+  } else {
+    content = `
+      <div class="cert-row"><span class="cert-key">QUERY DATE:</span><span>${getNow()}</span></div>
+      <div class="cert-row"><span class="cert-key">SUBJECT NAME:</span><span>${name}</span></div>
+      <div class="cert-row"><span class="cert-key">SSN (LAST 4):</span><span>****${ssn}</span></div>
+      <div class="cert-row"><span class="cert-key">DMDC RESULT:</span><span style="color:var(--blue)">NO RECORD FOUND</span></div>
+      <div class="cert-row"><span class="cert-key">ROUTING:</span><span style="color:var(--blue)">ESCALATE — not equivalent to not-active</span></div>
+      <div class="cert-row"><span class="cert-key">AGENT VERSION:</span><span>agent-v0.2 · scra-t1-v2</span></div>`;
+  }
+  const card = document.createElement('div');
+  card.className = 'step-card';
+  card.innerHTML = `
+    <div class="step-header"><div class="step-num">CERT</div><div class="step-name">DMDC Certificate</div><div class="step-status status-ok">GENERATED</div></div>
+    <div class="certificate"><div class="cert-header">DMDC Verification Certificate — SCRA §3937</div>${content}</div>`;
+  document.getElementById('reasoning-panel').appendChild(card);
+  document.getElementById('reasoning-panel').scrollTop = 9999;
+}
+
+function addSweep() {
+  const rows = ACCOUNTS.map(a=>{
+    const e=a.preService&&a.rate>6;
+    return `<tr><td>${a.id}</td><td>${a.type}</td><td>${a.rate}%</td><td>${a.preService?'Pre-service':'In-service'}</td><td class="${e?'eligible':'ineligible'}">${e?'✓ ELIGIBLE':'✗ NOT ELIGIBLE'}</td></tr>`;
+  }).join('');
+  const card = document.createElement('div');
+  card.className = 'step-card';
+  card.innerHTML = `
+    <div class="step-header"><div class="step-num">S05</div><div class="step-name">Institution-Wide Account Sweep</div><div class="step-status status-ok">COMPLETE</div></div>
+    <div class="step-body">Queried all accounts held by this borrower. Identified pre-service accounts with rate > 6% as SCRA-eligible.</div>
+    <table class="sweep-table" style="margin-top:10px">
+      <thead><tr><th>Account ID</th><th>Type</th><th>Rate</th><th>Status</th><th>SCRA Eligible</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  document.getElementById('reasoning-panel').appendChild(card);
+  document.getElementById('reasoning-panel').scrollTop = 9999;
+}
+
+async function runAgent() {
+  const name = document.getElementById('borrower-name').value||'Unknown';
+  const ssn  = document.getElementById('borrower-ssn').value||'0000';
+  const trigger = document.getElementById('trigger-type').value;
+  const s = SCENARIOS[selectedScenario];
+
+  document.getElementById('reasoning-panel').innerHTML = '';
+  agentLogEntries = [];
+  document.getElementById('audit-log').innerHTML = '';
+  document.getElementById('log-count').textContent = '0 entries';
+  document.getElementById('agent-status').style.display = 'inline-block';
+  document.getElementById('run-btn').disabled = true;
+
+  const triggerLabels = {
+    batch:'Batch Portfolio Scan (P2-C1)',notice:'Servicemember Notice (P3)',
+    delinquency:'Delinquency Flag (P4-C2)',foreclosure:'Foreclosure Referral Gate (P5-C1)',
+    origination:'Loan Origination (P1-C2)'
+  };
+
+  try {
+    // S1 — Trigger
+    addLog('agent','AGENT_TRIGGERED',`trigger=${triggerLabels[trigger]} · borrower=${name} · ssn=****${ssn}`,'info');
+    addStep('reasoning-panel',1,'Trigger Received','OK',
+      `Agent activated by: <strong>${triggerLabels[trigger]}</strong>. Preparing DMDC query for <strong>${name}</strong>.`,
+      `trigger_type:   ${trigger}\nborrower_name:  ${name}\nssn_last4:      ****${ssn}\nagent_version:  agent-v0.2\ntimestamp:      ${getNow()}`);
+    await delay(400);
+
+    // S2 — DMDC Query
+    addLog('agent','DMDC_QUERY_INITIATED',`ssn=****${ssn} · endpoint=mock_dmdc · timeout=5000ms`,'info');
+    addStep('reasoning-panel',2,'DMDC Query Executing','RUNNING',`Querying Defense Manpower Data Center for active duty status of <strong>${name}</strong> (SSN ****${ssn})...`);
+    await delay(500);
+
+    if (selectedScenario==='timeout') {
+      addLog('agent','DMDC_API_TIMEOUT','elapsed=5000ms · action=FAIL_CLOSED','error');
+      addStep('reasoning-panel',3,'DMDC API Timeout','ERROR',
+        'DMDC API did not respond within 5,000ms threshold.',
+        `error_type:    API_TIMEOUT\nelapsed_ms:    5000\nfail_behavior: CLOSED\nreason:        Cannot verify military status`);
+      await delay(300);
+
+      // AI generates the gate hold explanation
+      addLog('agent','AI_GENERATING_GATE_HOLD','model=claude-sonnet-4-6','ai');
+      const holdContentId = addAIOutput('reasoning-panel','Gate Hold Analysis (AI Generated)','<span style="color:var(--text-dim)">Generating compliance analysis...</span>',true);
+      const holdText = await callClaude(
+        `You are an SCRA compliance agent. Generate a concise, precise gate hold explanation for a compliance officer. Format as plain text with clear sections. Be specific about regulatory basis and required actions.`,
+        `DMDC API timeout occurred while verifying military status for borrower ${name} (SSN ****${ssn}) on a ${triggerLabels[trigger]} workflow. Explain: (1) why the gate must fail closed, (2) what regulatory risk exists if we proceed, (3) what the SCRA Reviewer must do next. Keep it under 150 words.`
+      );
+      document.getElementById(holdContentId).textContent = holdText;
+      document.getElementById(holdContentId).classList.remove('streaming-cursor');
+      addLog('agent','GATE_HOLD_PLACED','reason=API_TIMEOUT · behavior=FAIL_CLOSED · workflow=BLOCKED','hold');
+
+    } else {
+      const resultDesc = {
+        active:`DMDC returned <strong>ACTIVE DUTY CONFIRMED</strong> for ${name}. Active since: ${s.activeDate}. Branch: ${s.branch}.`,
+        not_active:`DMDC returned <strong>NOT ON ACTIVE DUTY</strong> for ${name}. Last separation: ${s.lastSeparation}.`,
+        no_record:`DMDC returned <strong>NO RECORD FOUND</strong> for ${name}. This is not equivalent to "not active duty."`,
+      }[selectedScenario];
+
+      const stepStatus = selectedScenario==='active'?'HOLD':selectedScenario==='no_record'?'ESCALATE':'OK';
+      addLog('agent','DMDC_RESPONSE_RECEIVED',`result=${s.result} · latency=${s.responseMs}ms`,selectedScenario==='active'?'hold':'ok');
+      addStep('reasoning-panel',3,'DMDC Response Parsed',stepStatus,resultDesc,
+        `dmdc_result:   ${s.result}\nresponse_ms:   ${s.responseMs}\nresult_time:   ${getNow()}`);
+      await delay(400);
+
+      addCertificate(selectedScenario, name, ssn);
+      addLog('agent','DMDC_CERTIFICATE_GENERATED',`result=${s.result} · cert_logged=true`,'ok');
+      await delay(300);
+
+      if (selectedScenario==='active') {
+        addLog('agent','INSTITUTION_WIDE_SWEEP_INITIATED','accounts_queried=4','info');
+        addSweep();
+        addLog('agent','INSTITUTION_WIDE_SWEEP_COMPLETE','eligible=3 · ineligible=1 (in-service)','ok');
+        await delay(300);
+
+        // AI generates the gate hold and required actions
+        addLog('agent','AI_GENERATING_COMPLIANCE_ANALYSIS','model=claude-sonnet-4-6','ai');
+        const activeContentId = addAIOutput('reasoning-panel','Compliance Analysis & Required Actions (AI Generated)','<span style="color:var(--text-dim)">Generating compliance analysis...</span>',true);
+        const activeText = await callClaude(
+          `You are an SCRA compliance agent producing a gate hold notice for an SCRA Reviewer. Be precise, cite statute where relevant, and specify exactly what actions must be taken. Format clearly with numbered actions. Plain text only.`,
+          `Active duty confirmed for borrower ${name} (SSN ****${ssn}), active since ${s.activeDate}, ${s.branch}. Institution-wide sweep identified 3 eligible pre-service accounts: MTG-2019-00441 (mortgage, 7.25%), AUTO-2021-08832 (auto, 6.99%), CC-2020-15521 (credit card, 19.99%). One ineligible: AUTO-2023-44110 (auto, in-service, MLA applies). Trigger context: ${triggerLabels[trigger]}. Generate a gate hold notice specifying: required rate cap actions, which accounts are affected, the retroactive effective date, what the in-service account determination means, and the safe harbor limitation. Under 200 words.`
+        );
+        document.getElementById(activeContentId).textContent = activeText;
+        document.getElementById(activeContentId).classList.remove('streaming-cursor');
+        addLog('agent','GATE_HOLD_PLACED','reason=ACTIVE_DUTY_CONFIRMED · eligible_accounts=3 · human_action_required=true','hold');
+
+      } else if (selectedScenario==='not_active') {
+        // AI generates the clearance rationale
+        addLog('agent','AI_GENERATING_CLEARANCE_RATIONALE','model=claude-sonnet-4-6','ai');
+        const clearContentId = addAIOutput('reasoning-panel','Gate Clearance Rationale (AI Generated)','<span style="color:var(--text-dim)">Generating analysis...</span>',true);
+        const clearText = await callClaude(
+          `You are an SCRA compliance agent. Generate a brief, precise gate clearance note. Plain text. Be specific about the safe harbor scope.`,
+          `DMDC confirmed ${name} is NOT on active duty (last separation ${s.lastSeparation}). Trigger: ${triggerLabels[trigger]}. Generate a gate clearance note explaining: (1) what the DMDC result means for SCRA purposes, (2) the safe harbor scope and its limitation, (3) any residual obligations that remain despite clearance. Under 100 words.`
+        );
+        document.getElementById(clearContentId).textContent = clearText;
+        document.getElementById(clearContentId).classList.remove('streaming-cursor');
+        addLog('agent','GATE_CLEARED','result=NOT_ACTIVE · workflow=PROCEED · safe_harbor=rate_cap_only','ok');
+
+      } else { // no_record
+        addLog('agent','AI_GENERATING_ESCALATION_NOTICE','model=claude-sonnet-4-6','ai');
+        const norecContentId = addAIOutput('reasoning-panel','Escalation Notice (AI Generated)','<span style="color:var(--text-dim)">Generating analysis...</span>',true);
+        const norecText = await callClaude(
+          `You are an SCRA compliance agent. Generate an escalation notice for an SCRA Reviewer. Plain text, precise, regulatory basis cited.`,
+          `DMDC returned NO RECORD FOUND for ${name} (SSN ****${ssn}). Trigger: ${triggerLabels[trigger]}. Generate an escalation notice explaining: (1) why no-record is not equivalent to not-active-duty, (2) the most common reasons for a no-record result including Reserve/Guard lag, (3) exactly what the SCRA Reviewer must do before any adverse action proceeds, (4) the 180-day written notice rule. Under 150 words.`
+        );
+        document.getElementById(norecContentId).textContent = norecText;
+        document.getElementById(norecContentId).classList.remove('streaming-cursor');
+        addLog('agent','ESCALATION_TRIGGERED','reason=NO_RECORD · routing=HUMAN_REVIEW · gate=HOLD','hold');
+      }
+    }
+
+  } catch(err) {
+    addLog('agent','API_ERROR',err.message,'error');
+    addStep('reasoning-panel','ERR','API Error','ERROR',`Could not reach Anthropic API: ${err.message}. This demo requires an active API connection.`);
+  }
+
+  addLog('agent','AGENT_RUN_COMPLETE',`scenario=${selectedScenario} · audit_entries=${agentLogEntries.length+1}`,'info');
+  document.getElementById('agent-status').style.display = 'none';
+  document.getElementById('run-btn').disabled = false;
+}
+
+// ─── NOTICE INTAKE (TYPE 4) ───────────────────────────────────────────────────
+function loadSample(key) {
+  document.getElementById('notice-text').value = SAMPLES[key];
+}
+
+async function runNoticeAnalysis() {
+  const text = document.getElementById('notice-text').value.trim();
+  if (!text) { alert('Please enter text to analyze.'); return; }
+  const channel = document.getElementById('notice-channel').value;
+  const borrower = document.getElementById('notice-borrower').value;
+
+  document.getElementById('notice-panel').innerHTML = '';
+  noticeLogEntries = [];
+  document.getElementById('notice-audit-log').innerHTML = '';
+  document.getElementById('notice-log-count').textContent = '0 entries';
+  document.getElementById('notice-status').style.display = 'inline-block';
+  document.getElementById('notice-btn').disabled = true;
+
+  addLog('notice','NOTICE_ANALYSIS_INITIATED',`channel=${channel} · borrower=${borrower} · chars=${text.length}`,'info');
+  addStep('notice-panel','N1','Input Received','AI',`Analyzing ${channel.replace('_',' ')} for SCRA triggers. Borrower: <strong>${borrower}</strong>. Text length: ${text.length} characters.`);
+  await delay(300);
+
+  addLog('notice','AI_ANALYSIS_STARTED','model=claude-sonnet-4-6 · capability=Type4-LanguageRecognition','ai');
+
+  try {
+    const systemPrompt = `You are an expert SCRA (Servicemembers Civil Relief Act) compliance analyst embedded in a bank's compliance agent. Your job is to analyze customer communications for SCRA triggers — including indirect language that a rules engine would miss.
+
+Analyze the provided text and respond with a structured analysis in this exact format:
+
+TRIGGER DETECTED: [YES / NO / POSSIBLE]
+CONFIDENCE: [HIGH / MEDIUM / LOW]
+TRIGGER TYPE: [list all that apply: interest_rate_cap, foreclosure_protection, repossession_protection, lease_termination, stay_of_proceedings, post_service_notice, poa_submission, dependent_inquiry, none]
+STATUTORY BASIS: [cite specific SCRA sections triggered, e.g., 50 U.S.C. §3937]
+
+KEY INDICATORS:
+[bullet list of specific words/phrases that indicate military status or SCRA relevance]
+
+RISK ASSESSMENT:
+[1-2 sentences on the compliance risk if this trigger is missed]
+
+REQUIRED ACTIONS:
+[numbered list of specific actions the SCRA Reviewer must take]
+
+WORKFLOW ROUTING:
+[which RMAS process this triggers: P1/P2/P3/P4/P5/P6/P7/P8/P9]
+
+IMPORTANT NOTES:
+[any edge cases, complications, or things that require special attention — e.g., POA validity, 180-day window, Reserve/Guard considerations]`;
+
+    const contentId = addAIOutput('notice-panel','SCRA Trigger Analysis','<span style="color:var(--text-dim)">AI model reasoning through communication...</span>',true);
+    addLog('notice','AI_REASONING','analyzing for SCRA triggers including indirect language','ai');
+
+    const analysis = await callClaude(systemPrompt,
+      `Channel: ${channel}\nBorrower name on account: ${borrower}\n\nText to analyze:\n\n${text}`
+    );
+
+    document.getElementById(contentId).textContent = analysis;
+    document.getElementById(contentId).classList.remove('streaming-cursor');
+
+    // Parse trigger detection for log
+    const triggered = analysis.includes('TRIGGER DETECTED: YES') ? 'YES' :
+                      analysis.includes('TRIGGER DETECTED: POSSIBLE') ? 'POSSIBLE' : 'NO';
+    const confidence = analysis.match(/CONFIDENCE: (\w+)/)?.[1] || 'UNKNOWN';
+
+    addLog('notice','AI_ANALYSIS_COMPLETE',`trigger=${triggered} · confidence=${confidence}`,'ai');
+
+    // Add routing decision card
+    await delay(200);
+    if (triggered !== 'NO') {
+      const routingText = await callClaude(
+        `You are an SCRA compliance agent. Based on a trigger analysis, generate a brief action summary for the SCRA Reviewer. Plain text, under 80 words, focused on what happens next.`,
+        `SCRA trigger detected (${triggered}, ${confidence} confidence) in ${channel} from borrower ${borrower}. The analysis identified SCRA triggers. What are the 3 most time-sensitive actions the SCRA Reviewer must take right now? What must NOT happen until those actions are complete?`
+      );
+      const routeContentId = addAIOutput('notice-panel','Immediate Action Summary (AI Generated)',routingText);
+      addLog('notice','SCRA_WORKFLOW_TRIGGERED',`routing=P3_notice_intake · hold_adverse_action=true · reviewer_action_required=true`,'hold');
+    } else {
+      addStep('notice-panel','N3','No SCRA Trigger Identified','OK',
+        'AI analysis did not identify SCRA-relevant language in this communication. Standard workflow may proceed.',
+        `result:        NO_TRIGGER\nconfidence:    ${confidence}\nchannel:       ${channel}\nborrower:      ${borrower}\ntimestamp:     ${getNow()}`);
+      addLog('notice','NO_SCRA_TRIGGER','result=NO_TRIGGER · workflow=PROCEED_STANDARD','ok');
+    }
+
+  } catch(err) {
+    addLog('notice','API_ERROR',err.message,'error');
+    addStep('notice-panel','ERR','API Error','ERROR',`Could not reach Anthropic API: ${err.message}`);
+  }
+
+  addLog('notice','NOTICE_ANALYSIS_COMPLETE',`audit_entries=${noticeLogEntries.length+1}`,'info');
+  document.getElementById('notice-status').style.display = 'none';
+  document.getElementById('notice-btn').disabled = false;
+}
+
+// ─── TAB SWITCHING ────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content,.tab-content-full,.notice-tab').forEach(c=>c.classList.remove('active'));
+  const tabEls = document.querySelectorAll('.tab');
+  if (tab==='agent') { tabEls[0].classList.add('active'); document.getElementById('tab-agent').classList.add('active'); }
+  else if (tab==='notice') { tabEls[1].classList.add('active'); document.getElementById('tab-notice').classList.add('active'); }
+  else { tabEls[2].classList.add('active'); document.getElementById('tab-eval').classList.add('active'); if(!document.getElementById('eval-grid').children.length) renderEvalCases(); }
+}
+
+// ─── EVAL SUITE ───────────────────────────────────────────────────────────────
+function renderEvalCases() {
+  document.getElementById('eval-grid').innerHTML = EVAL_CASES.map(c=>`
+    <div class="eval-case">
+      <div class="eval-case-header">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">${c.id}</span>
+        <span class="eval-case-name">${c.name}</span>
+        <span class="eval-result eval-pending" id="result-${c.id}">PENDING</span>
+      </div>
+      <div class="eval-desc">${c.desc}</div>
+      <div class="eval-expected">Expected: ${c.expected}</div>
+    </div>`).join('');
+}
+
+function simulateResult(scenario) {
+  const eligible=ACCOUNTS.filter(a=>a.preService&&a.rate>6);
+  const ineligible=ACCOUNTS.filter(a=>!a.preService||a.rate<=6);
+  if (scenario==='timeout')    return {gate:'hold',failClosed:true,routing:'blocked',cert:false};
+  if (scenario==='active')     return {routing:'rate_cap_workflow',gate:'hold',cert:true,certFields:true,sweepExecuted:true,eligibleCount:eligible.length,ineligibleCount:ineligible.length};
+  if (scenario==='not_active') return {routing:'clear',gate:'proceed',cert:true,certFields:true};
+  if (scenario==='no_record')  return {routing:'escalate_human',gate:'hold',cert:true};
+}
+
+async function runEvalSuite() {
+  renderEvalCases();
+  document.getElementById('eval-summary').style.display='none';
+  let passed=0,failed=0;
+  for (const c of EVAL_CASES) {
+    await delay(350);
+    const pass=c.test(simulateResult(c.scenario));
+    if(pass)passed++;else failed++;
+    const el=document.getElementById(`result-${c.id}`);
+    el.className=`eval-result ${pass?'eval-pass':'eval-fail'}`;
+    el.textContent=pass?'PASS':'FAIL';
+  }
+  const total=EVAL_CASES.length;
+  document.getElementById('eval-pass-count').textContent=passed;
+  document.getElementById('eval-fail-count').textContent=failed;
+  document.getElementById('eval-total-count').textContent=total;
+  document.getElementById('eval-pct').textContent=Math.round(passed/total*100)+'%';
+  document.getElementById('eval-summary').style.display='flex';
+}
+
+renderEvalCases();
+</script>
+</body>
+</html>
