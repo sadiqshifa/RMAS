@@ -406,14 +406,18 @@ function addAIOutput(panelId, label, content, streaming=false) {
   const card = document.createElement('div');
   card.className = 'step-card';
   const contentId = 'ai-content-'+Date.now();
+  const sourceLabel = AI_AVAILABLE ? 'claude-sonnet-4-6' : 'FALLBACK MODE';
+  const sourceBg = AI_AVAILABLE ? 'var(--purple)' : 'var(--amber)';
+  const statusLabel = AI_AVAILABLE ? 'GENERATED' : 'FALLBACK';
+  const statusClass = AI_AVAILABLE ? 'status-ai' : 'status-hold';
   card.innerHTML = `
     <div class="step-header">
       <div class="step-num">AI</div>
       <div class="step-name">${label}</div>
-      <div class="step-status status-ai">GENERATED</div>
+      <div class="step-status ${statusClass}">${statusLabel}</div>
     </div>
     <div class="ai-output">
-      <div class="ai-output-header"><span class="ai-label">claude-sonnet-4-6</span>${label}</div>
+      <div class="ai-output-header"><span class="ai-label" style="border-color:${sourceBg};color:${sourceBg};background:transparent">${sourceLabel}</span>${label}</div>
       <div id="${contentId}" class="${streaming?'streaming-cursor':''}">${content}</div>
     </div>`;
   panel.appendChild(card);
@@ -422,20 +426,54 @@ function addAIOutput(panelId, label, content, streaming=false) {
 }
 
 // ─── ANTHROPIC API ────────────────────────────────────────────────────────────
-async function callClaude(systemPrompt, userMessage) {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1000,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userMessage }]
-    })
-  });
-  const data = await response.json();
-  if (data.error) throw new Error(data.error.message);
-  return data.content[0].text;
+let AI_AVAILABLE = true; // tracked across runs
+
+const FALLBACKS = {
+  timeout: `FALLBACK MODE — AI unavailable. Standard compliance guidance applies:\n\nDMDC API timeout requires the gate to fail CLOSED. Per 50 U.S.C. §3937 and SCRA governance policy, the agent cannot establish military status and therefore cannot clear any gated workflow. The SCRA Reviewer must:\n1. Manually query DMDC via the public portal (scra.dmdc.osd.mil)\n2. Document the manual query result in the loan file\n3. Do not treat API timeout as "not active duty"\n4. Do not release any hold until status is confirmed through an alternative verification method`,
+
+  active: `FALLBACK MODE — AI unavailable. Standard compliance guidance applies:\n\nActive duty confirmed. Required actions per 50 U.S.C. §3937:\n1. Apply 6% interest rate cap retroactive to active duty start date on all eligible pre-service accounts\n2. Forgive (do not defer) all interest charged above 6% since active duty start date\n3. Reduce periodic payments by the amount of interest forgiven — do not keep payment the same\n4. Do not accelerate principal\n5. Notify servicemember of benefits applied before next statement cycle\n6. Note: AUTO-2023-44110 originated during active duty — MLA applies, not SCRA\n7. Safe harbor under §3937 applies to interest rate cap only — independent obligation remains for foreclosure and repossession`,
+
+  not_active: `FALLBACK MODE — AI unavailable. Standard compliance guidance applies:\n\nDMDC confirmed not active duty. Gate cleared for interest rate cap purposes. Important limitations:\n1. DMDC safe harbor applies to §3937 (interest rate cap) ONLY\n2. Independent obligation to verify military status before foreclosure or repossession remains regardless of this result\n3. If servicemember subsequently provides written notice and documentation within 180 days of end of service, written notice controls over this DMDC result\n4. Retain DMDC certificate in loan file\n5. Standard workflow may proceed`,
+
+  no_record: `FALLBACK MODE — AI unavailable. Standard compliance guidance applies:\n\nDMDC returned no record. This is NOT equivalent to "not active duty." Required actions:\n1. Do not clear any holds or proceed with adverse action based on a no-record result\n2. Most common causes: Reserve/National Guard member with recently issued orders not yet in DMDC; administrative delay; SSN input error\n3. Request military status documentation directly from borrower (written notice + orders or CO certification)\n4. Re-query DMDC with verified SSN and name before making any determination\n5. If borrower provides documentation, written notice controls over DMDC result per 50 U.S.C. §3937(b)(1)(A)`,
+
+  notice_triggered: `FALLBACK MODE — AI unavailable. Standard compliance guidance applies:\n\nSCRA trigger language detected. Immediate required actions:\n1. Place informal hold on any adverse action (collections escalation, foreclosure referral, repossession) pending formal SCRA determination\n2. Log the trigger with date, channel, and content summary\n3. Contact borrower to request formal written notice and military orders or CO certification\n4. Do not dismiss verbal triggers — a customer mentioning deployment on a collections call is a valid SCRA trigger requiring escalation\n5. Initiate institution-wide account sweep once military status is confirmed\n6. SCRA Reviewer must confirm trigger before formal workflow is initiated`,
+
+  notice_none: `FALLBACK MODE — AI unavailable. Standard compliance guidance applies:\n\nNo SCRA trigger language identified in this communication. Standard workflow may proceed. Note: if any subsequent communication from this borrower references military service, deployment, or active duty orders, re-analyze immediately. SCRA triggers can appear in follow-up communications after an initial non-triggered contact.`
+};
+
+async function callClaude(systemPrompt, userMessage, fallbackKey='active') {
+  // If AI was unavailable on a prior call this session, skip the API attempt
+  if (!AI_AVAILABLE) return FALLBACKS[fallbackKey] || FALLBACKS.active;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMessage }]
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    AI_AVAILABLE = true;
+    return data.content[0].text;
+
+  } catch(err) {
+    // Mark AI as unavailable for this session and return fallback
+    AI_AVAILABLE = false;
+    console.warn('Anthropic API unavailable, using fallback:', err.message);
+    return FALLBACKS[fallbackKey] || FALLBACKS.active;
+  }
 }
 
 // ─── DMDC AGENT ──────────────────────────────────────────────────────────────
@@ -549,7 +587,8 @@ async function runAgent() {
       const holdContentId = addAIOutput('reasoning-panel','Gate Hold Analysis (AI Generated)','<span style="color:var(--text-dim)">Generating compliance analysis...</span>',true);
       const holdText = await callClaude(
         `You are an SCRA compliance agent. Generate a concise, precise gate hold explanation for a compliance officer. Format as plain text with clear sections. Be specific about regulatory basis and required actions.`,
-        `DMDC API timeout occurred while verifying military status for borrower ${name} (SSN ****${ssn}) on a ${triggerLabels[trigger]} workflow. Explain: (1) why the gate must fail closed, (2) what regulatory risk exists if we proceed, (3) what the SCRA Reviewer must do next. Keep it under 150 words.`
+        `DMDC API timeout occurred while verifying military status for borrower ${name} (SSN ****${ssn}) on a ${triggerLabels[trigger]} workflow. Explain: (1) why the gate must fail closed, (2) what regulatory risk exists if we proceed, (3) what the SCRA Reviewer must do next. Keep it under 150 words.`,
+        'timeout'
       );
       document.getElementById(holdContentId).textContent = holdText;
       document.getElementById(holdContentId).classList.remove('streaming-cursor');
@@ -583,7 +622,8 @@ async function runAgent() {
         const activeContentId = addAIOutput('reasoning-panel','Compliance Analysis & Required Actions (AI Generated)','<span style="color:var(--text-dim)">Generating compliance analysis...</span>',true);
         const activeText = await callClaude(
           `You are an SCRA compliance agent producing a gate hold notice for an SCRA Reviewer. Be precise, cite statute where relevant, and specify exactly what actions must be taken. Format clearly with numbered actions. Plain text only.`,
-          `Active duty confirmed for borrower ${name} (SSN ****${ssn}), active since ${s.activeDate}, ${s.branch}. Institution-wide sweep identified 3 eligible pre-service accounts: MTG-2019-00441 (mortgage, 7.25%), AUTO-2021-08832 (auto, 6.99%), CC-2020-15521 (credit card, 19.99%). One ineligible: AUTO-2023-44110 (auto, in-service, MLA applies). Trigger context: ${triggerLabels[trigger]}. Generate a gate hold notice specifying: required rate cap actions, which accounts are affected, the retroactive effective date, what the in-service account determination means, and the safe harbor limitation. Under 200 words.`
+          `Active duty confirmed for borrower ${name} (SSN ****${ssn}), active since ${s.activeDate}, ${s.branch}. Institution-wide sweep identified 3 eligible pre-service accounts: MTG-2019-00441 (mortgage, 7.25%), AUTO-2021-08832 (auto, 6.99%), CC-2020-15521 (credit card, 19.99%). One ineligible: AUTO-2023-44110 (auto, in-service, MLA applies). Trigger context: ${triggerLabels[trigger]}. Generate a gate hold notice specifying: required rate cap actions, which accounts are affected, the retroactive effective date, what the in-service account determination means, and the safe harbor limitation. Under 200 words.`,
+          'active'
         );
         document.getElementById(activeContentId).textContent = activeText;
         document.getElementById(activeContentId).classList.remove('streaming-cursor');
@@ -595,7 +635,8 @@ async function runAgent() {
         const clearContentId = addAIOutput('reasoning-panel','Gate Clearance Rationale (AI Generated)','<span style="color:var(--text-dim)">Generating analysis...</span>',true);
         const clearText = await callClaude(
           `You are an SCRA compliance agent. Generate a brief, precise gate clearance note. Plain text. Be specific about the safe harbor scope.`,
-          `DMDC confirmed ${name} is NOT on active duty (last separation ${s.lastSeparation}). Trigger: ${triggerLabels[trigger]}. Generate a gate clearance note explaining: (1) what the DMDC result means for SCRA purposes, (2) the safe harbor scope and its limitation, (3) any residual obligations that remain despite clearance. Under 100 words.`
+          `DMDC confirmed ${name} is NOT on active duty (last separation ${s.lastSeparation}). Trigger: ${triggerLabels[trigger]}. Generate a gate clearance note explaining: (1) what the DMDC result means for SCRA purposes, (2) the safe harbor scope and its limitation, (3) any residual obligations that remain despite clearance. Under 100 words.`,
+          'not_active'
         );
         document.getElementById(clearContentId).textContent = clearText;
         document.getElementById(clearContentId).classList.remove('streaming-cursor');
@@ -606,7 +647,8 @@ async function runAgent() {
         const norecContentId = addAIOutput('reasoning-panel','Escalation Notice (AI Generated)','<span style="color:var(--text-dim)">Generating analysis...</span>',true);
         const norecText = await callClaude(
           `You are an SCRA compliance agent. Generate an escalation notice for an SCRA Reviewer. Plain text, precise, regulatory basis cited.`,
-          `DMDC returned NO RECORD FOUND for ${name} (SSN ****${ssn}). Trigger: ${triggerLabels[trigger]}. Generate an escalation notice explaining: (1) why no-record is not equivalent to not-active-duty, (2) the most common reasons for a no-record result including Reserve/Guard lag, (3) exactly what the SCRA Reviewer must do before any adverse action proceeds, (4) the 180-day written notice rule. Under 150 words.`
+          `DMDC returned NO RECORD FOUND for ${name} (SSN ****${ssn}). Trigger: ${triggerLabels[trigger]}. Generate an escalation notice explaining: (1) why no-record is not equivalent to not-active-duty, (2) the most common reasons for a no-record result including Reserve/Guard lag, (3) exactly what the SCRA Reviewer must do before any adverse action proceeds, (4) the 180-day written notice rule. Under 150 words.`,
+          'no_record'
         );
         document.getElementById(norecContentId).textContent = norecText;
         document.getElementById(norecContentId).classList.remove('streaming-cursor');
@@ -677,7 +719,8 @@ IMPORTANT NOTES:
     addLog('notice','AI_REASONING','analyzing for SCRA triggers including indirect language','ai');
 
     const analysis = await callClaude(systemPrompt,
-      `Channel: ${channel}\nBorrower name on account: ${borrower}\n\nText to analyze:\n\n${text}`
+      `Channel: ${channel}\nBorrower name on account: ${borrower}\n\nText to analyze:\n\n${text}`,
+      'notice_triggered'
     );
 
     document.getElementById(contentId).textContent = analysis;
@@ -695,7 +738,8 @@ IMPORTANT NOTES:
     if (triggered !== 'NO') {
       const routingText = await callClaude(
         `You are an SCRA compliance agent. Based on a trigger analysis, generate a brief action summary for the SCRA Reviewer. Plain text, under 80 words, focused on what happens next.`,
-        `SCRA trigger detected (${triggered}, ${confidence} confidence) in ${channel} from borrower ${borrower}. The analysis identified SCRA triggers. What are the 3 most time-sensitive actions the SCRA Reviewer must take right now? What must NOT happen until those actions are complete?`
+        `SCRA trigger detected (${triggered}, ${confidence} confidence) in ${channel} from borrower ${borrower}. The analysis identified SCRA triggers. What are the 3 most time-sensitive actions the SCRA Reviewer must take right now? What must NOT happen until those actions are complete?`,
+        'notice_triggered'
       );
       const routeContentId = addAIOutput('notice-panel','Immediate Action Summary (AI Generated)',routingText);
       addLog('notice','SCRA_WORKFLOW_TRIGGERED',`routing=P3_notice_intake · hold_adverse_action=true · reviewer_action_required=true`,'hold');

@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RMAS — SCRA Type 3: Deterministic Calculations Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #0F1923; --navy-mid: #162130; --slate: #1E2D3D; --slate-light: #243447;
+    --border: #2A3F54; --amber: #F59E0B; --amber-dim: rgba(245,158,11,0.12);
+    --teal: #0D9488; --teal-dim: rgba(13,148,136,0.12);
+    --red: #EF4444; --red-dim: rgba(239,68,68,0.12);
+    --blue: #3B82F6; --blue-dim: rgba(59,130,246,0.12);
+    --purple: #8B5CF6; --purple-dim: rgba(139,92,246,0.12);
+    --green: #22C55E; --green-dim: rgba(34,197,94,0.12);
+    --text: #F1F5F9; --text-muted: #94A3B8; --text-dim: #64748B;
+    --mono: 'JetBrains Mono', monospace; --sans: 'Inter', sans-serif;
+  }
+  body { background: var(--navy); color: var(--text); font-family: var(--sans); font-size: 13px; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+  /* Header */
+  .header { background: var(--navy-mid); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-badge { background: var(--amber-dim); border: 1px solid var(--amber); color: var(--amber); font-family: var(--mono); font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 2px; letter-spacing: 0.08em; }
+  .header-title { font-size: 13px; font-weight: 600; }
+  .header-sub { font-size: 11px; color: var(--text-muted); }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .version-tag { font-family: var(--mono); font-size: 10px; color: var(--text-dim); }
+  .type-badge { background: var(--green-dim); border: 1px solid var(--green); color: var(--green); font-family: var(--mono); font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 2px; }
+
+  /* Tabs */
+  .tabs { background: var(--navy-mid); border-bottom: 1px solid var(--border); display: flex; padding: 0 16px; flex-shrink: 0; }
+  .tab { padding: 8px 16px; font-size: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+
+  /* Layout */
+  .tab-content { display: none; flex: 1; overflow: hidden; }
+  .tab-content.active { display: grid; grid-template-columns: 300px 1fr 280px; }
+  .panel { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+  .panel:last-child { border-right: none; }
+  .panel-header { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; background: var(--slate); }
+  .panel-title { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: var(--text-muted); text-transform: uppercase; }
+  .panel-body { padding: 14px; overflow-y: auto; flex: 1; }
+
+  /* Form */
+  .field { margin-bottom: 11px; }
+  .field label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
+  .field input, .field select { width: 100%; background: var(--slate); border: 1px solid var(--border); border-radius: 3px; color: var(--text); font-family: var(--mono); font-size: 12px; padding: 6px 10px; outline: none; transition: border-color 0.15s; }
+  .field input:focus, .field select:focus { border-color: var(--amber); }
+  .field select option { background: var(--slate); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; margin-top: 14px; }
+  .section-label:first-child { margin-top: 0; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+
+  /* Account cards in input */
+  .acct-card { background: var(--slate); border: 1px solid var(--border); border-radius: 3px; padding: 8px 10px; margin-bottom: 6px; }
+  .acct-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .acct-id { font-family: var(--mono); font-size: 11px; font-weight: 600; }
+  .acct-eligible { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 2px; }
+  .eligible { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber); }
+  .ineligible { background: var(--slate-light); color: var(--text-dim); }
+  .acct-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .acct-field label { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; color: var(--text-dim); text-transform: uppercase; display: block; margin-bottom: 2px; }
+  .acct-field input { width: 100%; background: var(--navy-mid); border: 1px solid var(--border); border-radius: 2px; color: var(--text); font-family: var(--mono); font-size: 11px; padding: 4px 7px; outline: none; }
+  .acct-field input:focus { border-color: var(--amber); }
+
+  /* Run button */
+  .run-btn { width: 100%; background: var(--amber); border: none; border-radius: 3px; color: var(--navy); font-family: var(--sans); font-size: 12px; font-weight: 700; padding: 9px; cursor: pointer; margin-top: 4px; transition: all 0.15s; letter-spacing: 0.04em; }
+  .run-btn:hover { background: #FBBF24; }
+  .run-btn:disabled { background: var(--border); color: var(--text-dim); cursor: not-allowed; }
+
+  /* Ledger — the signature element */
+  .ledger { font-family: var(--mono); }
+  .ledger-header { padding: 12px 16px; border-bottom: 2px solid var(--amber); margin-bottom: 0; }
+  .ledger-title { font-size: 11px; font-weight: 700; color: var(--amber); letter-spacing: 0.1em; text-transform: uppercase; }
+  .ledger-subtitle { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+  .ledger-section { border-bottom: 1px solid var(--border); }
+  .ledger-section-header { padding: 8px 16px; background: var(--slate); display: flex; justify-content: space-between; align-items: center; }
+  .ledger-section-title { font-size: 10px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+  .ledger-section-badge { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 2px; }
+
+  .ledger-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 16px; border-bottom: 1px solid rgba(42,63,84,0.5); animation: rowIn 0.25s ease; }
+  .ledger-row:last-child { border-bottom: none; }
+  @keyframes rowIn { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: translateX(0); } }
+  .ledger-row.indent { padding-left: 28px; }
+  .ledger-row.total { background: var(--slate); border-top: 1px solid var(--border); padding: 8px 16px; }
+  .ledger-row.subtotal { background: rgba(30,45,61,0.5); }
+  .ledger-label { font-size: 11px; color: var(--text-muted); }
+  .ledger-label.primary { color: var(--text); font-weight: 500; }
+  .ledger-label.dim { color: var(--text-dim); font-size: 10px; }
+  .ledger-value { font-size: 12px; font-weight: 600; text-align: right; }
+  .ledger-value.debit { color: var(--red); }
+  .ledger-value.credit { color: var(--teal); }
+  .ledger-value.neutral { color: var(--text); }
+  .ledger-value.highlight { color: var(--amber); font-size: 13px; }
+  .ledger-value.dim { color: var(--text-dim); font-size: 11px; font-weight: 400; }
+
+  .statutory-note { margin: 12px 16px; background: var(--slate); border-left: 3px solid var(--purple); padding: 10px 12px; border-radius: 0 3px 3px 0; }
+  .statutory-note-label { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; color: var(--purple); text-transform: uppercase; margin-bottom: 4px; }
+  .statutory-note-text { font-size: 11px; color: var(--text-muted); line-height: 1.6; font-family: var(--sans); }
+
+  .ai-insight { margin: 12px 16px; background: var(--slate); border: 1px solid var(--purple); border-radius: 3px; padding: 10px 12px; }
+  .ai-insight-header { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; color: var(--purple); text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .ai-label { background: var(--purple-dim); border: 1px solid var(--purple); color: var(--purple); font-family: var(--mono); font-size: 9px; padding: 1px 5px; border-radius: 2px; }
+  .ai-insight-text { font-size: 11px; color: var(--text); line-height: 1.7; font-family: var(--sans); }
+  .streaming-cursor::after { content: '▋'; animation: blink 0.7s infinite; color: var(--purple); }
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:0} }
+
+  .gate-box { margin: 12px 16px; padding: 12px 14px; border-radius: 3px; }
+  .gate-box.hold { background: var(--amber-dim); border: 1px solid var(--amber); }
+  .gate-box.clear { background: var(--teal-dim); border: 1px solid var(--teal); }
+  .gate-box.blocked { background: var(--red-dim); border: 1px solid var(--red); }
+  .gate-title { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+  .gate-box.hold .gate-title { color: var(--amber); }
+  .gate-box.clear .gate-title { color: var(--teal); }
+  .gate-box.blocked .gate-title { color: var(--red); }
+  .gate-body { font-size: 11px; color: var(--text); line-height: 1.6; }
+
+  /* Audit log */
+  .audit-log { font-family: var(--mono); font-size: 11px; }
+  .log-entry { padding: 7px 0; border-bottom: 1px solid var(--border); animation: rowIn 0.2s ease; }
+  .log-entry:last-child { border-bottom: none; }
+  .log-ts { color: var(--text-dim); font-size: 9px; margin-bottom: 2px; }
+  .log-action { margin-bottom: 1px; }
+  .log-meta { color: var(--text-dim); font-size: 10px; }
+  .log-ok { color: var(--teal); }
+  .log-calc { color: var(--green); }
+  .log-hold { color: var(--amber); }
+  .log-ai { color: var(--purple); }
+  .log-info { color: var(--blue); }
+  .log-error { color: var(--red); }
+
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-dim); text-align: center; padding: 24px; }
+  .empty-icon { font-size: 28px; margin-bottom: 10px; opacity: 0.3; }
+  .empty-title { font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
+  .empty-desc { font-size: 11px; line-height: 1.6; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .period-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-family: var(--mono); font-size: 11px; }
+  .period-table th { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; color: var(--text-dim); text-transform: uppercase; text-align: right; padding: 4px 8px; border-bottom: 1px solid var(--border); }
+  .period-table th:first-child { text-align: left; }
+  .period-table td { padding: 5px 8px; border-bottom: 1px solid rgba(42,63,84,0.4); text-align: right; color: var(--text-muted); }
+  .period-table td:first-child { text-align: left; color: var(--text-dim); }
+  .period-table td.debit { color: var(--red); }
+  .period-table td.credit { color: var(--teal); }
+  .period-table tr:last-child td { border-bottom: none; }
+
+  .summary-card { background: var(--slate); border: 1px solid var(--border); border-radius: 3px; padding: 12px 14px; margin-bottom: 8px; }
+  .summary-card-title { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+  .summary-stat { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(42,63,84,0.5); }
+  .summary-stat:last-child { border-bottom: none; }
+  .summary-stat-label { font-size: 11px; color: var(--text-muted); }
+  .summary-stat-value { font-family: var(--mono); font-size: 12px; font-weight: 600; }
+
+  .calc-status { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 2px; letter-spacing: 0.06em; }
+  .status-calculating { background: var(--blue-dim); color: var(--blue); }
+  .status-complete { background: var(--green-dim); color: var(--green); }
+  .status-flagged { background: var(--amber-dim); color: var(--amber); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-badge">RMAS</div>
+    <div>
+      <div class="header-title">SCRA Calculations Agent — Type 3: Deterministic Calculations</div>
+      <div class="header-sub">Interest Rate Cap · Tail Period · Tolling · Full Account Summary</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="type-badge">TYPE 3</div>
+    <div class="version-tag">agent-v0.1 · claude-sonnet-4-6 · scra-t3-v1</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('cap')">Interest Rate Cap</div>
+  <div class="tab" onclick="switchTab('tail')">Tail Period</div>
+  <div class="tab" onclick="switchTab('tolling')">Tolling Calculator</div>
+  <div class="tab" onclick="switchTab('summary')">Full Account Summary</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TAB 1: INTEREST RATE CAP
+     ═══════════════════════════════════════════════════════════ -->
+<div id="tab-cap" class="tab-content active">
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Account Inputs</span></div>
+    <div class="panel-body">
+      <div class="section-label">Servicemember</div>
+      <div class="field"><label>Name</label><input type="text" id="cap-name" value="James R. Thornton"></div>
+      <div class="field-row">
+        <div class="field"><label>Active Duty Start</label><input type="date" id="cap-start" value="2024-03-15"></div>
+        <div class="field"><label>Calc Through Date</label><input type="date" id="cap-through" value="2025-03-15"></div>
+      </div>
+
+      <div class="section-label">Eligible Accounts</div>
+
+      <div class="acct-card">
+        <div class="acct-card-header">
+          <span class="acct-id">MTG-2019-00441</span>
+          <span class="acct-eligible eligible">MORTGAGE</span>
+        </div>
+        <div class="acct-fields">
+          <div class="acct-field"><label>Balance ($)</label><input type="number" id="mtg-balance" value="342500"></div>
+          <div class="acct-field"><label>Rate (%)</label><input type="number" id="mtg-rate" value="7.25" step="0.01"></div>
+          <div class="acct-field"><label>Monthly Pmt ($)</label><input type="number" id="mtg-payment" value="2337"></div>
+          <div class="acct-field"><label>Monthly Fees ($)</label><input type="number" id="mtg-fees" value="0"></div>
+        </div>
+      </div>
+
+      <div class="acct-card">
+        <div class="acct-card-header">
+          <span class="acct-id">AUTO-2021-08832</span>
+          <span class="acct-eligible eligible">AUTO LOAN</span>
+        </div>
+        <div class="acct-fields">
+          <div class="acct-field"><label>Balance ($)</label><input type="number" id="auto-balance" value="18400"></div>
+          <div class="acct-field"><label>Rate (%)</label><input type="number" id="auto-rate" value="6.99" step="0.01"></div>
+          <div class="acct-field"><label>Monthly Pmt ($)</label><input type="number" id="auto-payment" value="412"></div>
+          <div class="acct-field"><label>Monthly Fees ($)</label><input type="number" id="auto-fees" value="0"></div>
+        </div>
+      </div>
+
+      <div class="acct-card">
+        <div class="acct-card-header">
+          <span class="acct-id">CC-2020-15521</span>
+          <span class="acct-eligible eligible">CREDIT CARD</span>
+        </div>
+        <div class="acct-fields">
+          <div class="acct-field"><label>Balance ($)</label><input type="number" id="cc-balance" value="4250"></div>
+          <div class="acct-field"><label>Rate (%)</label><input type="number" id="cc-rate" value="19.99" step="0.01"></div>
+          <div class="acct-field"><label>Monthly Pmt ($)</label><input type="number" id="cc-payment" value="95"></div>
+          <div class="acct-field"><label>Annual Fee ($)</label><input type="number" id="cc-fees" value="95"></div>
+        </div>
+      </div>
+
+      <hr class="divider">
+      <button class="run-btn" onclick="runCapCalc()" id="cap-btn">▶ Calculate Rate Cap</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Calculation Ledger</span>
+      <span id="cap-status" class="calc-status status-calculating" style="display:none">CALCULATING</span>
+    </div>
+    <div class="panel-body" id="cap-ledger" style="padding:0">
+      <div class="empty-state">
+        <div class="empty-icon">⊟</div>
+        <div class="empty-title">Awaiting calculation</div>
+        <div class="empty-desc">Enter account details and active duty dates. The agent calculates excess interest per account, per period — with full methodology visible.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Audit Log</span><span id="cap-log-count" class="version-tag">0 entries</span></div>
+    <div class="panel-body"><div class="audit-log" id="cap-audit-log"><div style="color:var(--text-dim);font-size:11px;text-align:center;padding:20px 0">Calculation log appears here.</div></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TAB 2: TAIL PERIOD
+     ═══════════════════════════════════════════════════════════ -->
+<div id="tab-tail" class="tab-content">
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Tail Period Inputs</span></div>
+    <div class="panel-body">
+      <div class="section-label">Servicemember</div>
+      <div class="field"><label>Name</label><input type="text" id="tail-name" value="James R. Thornton"></div>
+      <div class="field"><label>End of Active Duty</label><input type="date" id="tail-end" value="2025-03-15"></div>
+      <div class="field"><label>Today's Date</label><input type="date" id="tail-today" value="2025-06-15"></div>
+
+      <div class="section-label">Mortgage Account</div>
+      <div class="field"><label>Account ID</label><input type="text" id="tail-acct" value="MTG-2019-00441"></div>
+      <div class="field"><label>Current Rate (%)</label><input type="number" id="tail-rate-current" value="6.00" step="0.01"></div>
+      <div class="field"><label>Pre-Service Rate (%)</label><input type="number" id="tail-rate-preservice" value="7.25" step="0.01"></div>
+      <div class="field"><label>Scheduled Foreclosure Action</label><input type="date" id="tail-foreclosure" value=""></div>
+
+      <div class="section-label">Non-Mortgage Accounts</div>
+      <div class="acct-card">
+        <div class="acct-card-header"><span class="acct-id">AUTO-2021-08832</span><span class="acct-eligible eligible">NO TAIL</span></div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:2px">Auto loans have no post-service tail period. Rate restoration permitted upon confirmed end of service.</div>
+      </div>
+      <div class="acct-card">
+        <div class="acct-card-header"><span class="acct-id">CC-2020-15521</span><span class="acct-eligible eligible">NO TAIL</span></div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:2px">Credit cards have no post-service tail period. Rate restoration permitted upon confirmed end of service.</div>
+      </div>
+
+      <hr class="divider">
+      <button class="run-btn" onclick="runTailCalc()" id="tail-btn">▶ Calculate Tail Period</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Tail Period Analysis</span>
+      <span id="tail-status" class="calc-status status-calculating" style="display:none">CALCULATING</span>
+    </div>
+    <div class="panel-body" id="tail-ledger" style="padding:0">
+      <div class="empty-state">
+        <div class="empty-icon">⊟</div>
+        <div class="empty-title">Awaiting calculation</div>
+        <div class="empty-desc">Enter end-of-service date. The agent calculates the one-year mortgage tail period, flags whether rate restoration is blocked, and assesses any foreclosure timing conflicts.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Audit Log</span><span id="tail-log-count" class="version-tag">0 entries</span></div>
+    <div class="panel-body"><div class="audit-log" id="tail-audit-log"><div style="color:var(--text-dim);font-size:11px;text-align:center;padding:20px 0">Calculation log appears here.</div></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TAB 3: TOLLING CALCULATOR
+     ═══════════════════════════════════════════════════════════ -->
+<div id="tab-tolling" class="tab-content">
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Tolling Inputs</span></div>
+    <div class="panel-body">
+      <div class="section-label">Borrower</div>
+      <div class="field"><label>Name</label><input type="text" id="toll-name" value="James R. Thornton"></div>
+
+      <div class="section-label">Obligation</div>
+      <div class="field"><label>Account / Case ID</label><input type="text" id="toll-acct" value="AUTO-2021-08832"></div>
+      <div class="field"><label>Default / Charge-off Date</label><input type="date" id="toll-default" value="2023-06-01"></div>
+      <div class="field">
+        <label>State of Contract</label>
+        <select id="toll-state">
+          <option value="CA">California — 4 years (written contract)</option>
+          <option value="NY">New York — 6 years</option>
+          <option value="TX" selected>Texas — 4 years</option>
+          <option value="FL">Florida — 5 years</option>
+          <option value="IL">Illinois — 5 years</option>
+          <option value="OH">Ohio — 6 years</option>
+          <option value="GA">Georgia — 6 years</option>
+          <option value="NC">North Carolina — 3 years</option>
+          <option value="VA">Virginia — 5 years</option>
+          <option value="WA">Washington — 6 years</option>
+        </select>
+      </div>
+
+      <div class="section-label">Military Service Periods</div>
+      <div class="field-row">
+        <div class="field"><label>Active Duty Start</label><input type="date" id="toll-svc-start" value="2024-03-15"></div>
+        <div class="field"><label>Active Duty End</label><input type="date" id="toll-svc-end" value="2025-03-15"></div>
+      </div>
+      <div style="font-size:10px;color:var(--text-dim);margin-top:-6px;margin-bottom:10px">
+        For multiple service periods, enter the most recent. The agent calculates total tolled days.
+      </div>
+
+      <div class="field"><label>Today's Date</label><input type="date" id="toll-today" value="2025-06-22"></div>
+
+      <hr class="divider">
+      <button class="run-btn" onclick="runTollingCalc()" id="toll-btn">▶ Calculate Tolling</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Tolling Analysis</span>
+      <span id="toll-status" class="calc-status status-calculating" style="display:none">CALCULATING</span>
+    </div>
+    <div class="panel-body" id="toll-ledger" style="padding:0">
+      <div class="empty-state">
+        <div class="empty-icon">⊟</div>
+        <div class="empty-title">Awaiting calculation</div>
+        <div class="empty-desc">Enter default date, state limitations period, and active duty dates. The agent calculates adjusted limitations expiry with military service periods excluded per 50 U.S.C. §3936.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Audit Log</span><span id="toll-log-count" class="version-tag">0 entries</span></div>
+    <div class="panel-body"><div class="audit-log" id="toll-audit-log"><div style="color:var(--text-dim);font-size:11px;text-align:center;padding:20px 0">Calculation log appears here.</div></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TAB 4: FULL ACCOUNT SUMMARY
+     ═══════════════════════════════════════════════════════════ -->
+<div id="tab-summary" class="tab-content">
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Summary Inputs</span></div>
+    <div class="panel-body">
+      <div class="section-label">Servicemember</div>
+      <div class="field"><label>Name</label><input type="text" id="sum-name" value="James R. Thornton"></div>
+      <div class="field-row">
+        <div class="field"><label>Active Duty Start</label><input type="date" id="sum-start" value="2024-03-15"></div>
+        <div class="field"><label>Active Duty End</label><input type="date" id="sum-end" value="2025-03-15"></div>
+      </div>
+      <div class="field"><label>Today's Date</label><input type="date" id="sum-today" value="2025-06-22"></div>
+
+      <div class="section-label">Portfolio (Pre-Service Eligible)</div>
+      <div class="acct-card">
+        <div class="acct-card-header"><span class="acct-id">MTG-2019-00441</span><span class="acct-eligible eligible">MORTGAGE · 7.25%</span></div>
+        <div class="acct-fields">
+          <div class="acct-field"><label>Balance ($)</label><input type="number" id="sum-mtg-bal" value="342500"></div>
+          <div class="acct-field"><label>Monthly Pmt ($)</label><input type="number" id="sum-mtg-pmt" value="2337"></div>
+        </div>
+      </div>
+      <div class="acct-card">
+        <div class="acct-card-header"><span class="acct-id">AUTO-2021-08832</span><span class="acct-eligible eligible">AUTO · 6.99%</span></div>
+        <div class="acct-fields">
+          <div class="acct-field"><label>Balance ($)</label><input type="number" id="sum-auto-bal" value="18400"></div>
+          <div class="acct-field"><label>Monthly Pmt ($)</label><input type="number" id="sum-auto-pmt" value="412"></div>
+        </div>
+      </div>
+      <div class="acct-card">
+        <div class="acct-card-header"><span class="acct-id">CC-2020-15521</span><span class="acct-eligible eligible">CREDIT CARD · 19.99%</span></div>
+        <div class="acct-fields">
+          <div class="acct-field"><label>Balance ($)</label><input type="number" id="sum-cc-bal" value="4250"></div>
+          <div class="acct-field"><label>Monthly Pmt ($)</label><input type="number" id="sum-cc-pmt" value="95"></div>
+        </div>
+      </div>
+
+      <hr class="divider">
+      <button class="run-btn" onclick="runSummary()" id="sum-btn">▶ Generate Full Summary</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Remediation Package</span>
+      <span id="sum-status" class="calc-status status-calculating" style="display:none">CALCULATING</span>
+    </div>
+    <div class="panel-body" id="sum-ledger" style="padding:0">
+      <div class="empty-state">
+        <div class="empty-icon">⊟</div>
+        <div class="empty-title">Awaiting calculation</div>
+        <div class="empty-desc">Runs all three calculations across all eligible accounts simultaneously. Produces a complete servicemember remediation package with total amounts owed, tail period status, and required actions.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Audit Log</span><span id="sum-log-count" class="version-tag">0 entries</span></div>
+    <div class="panel-body"><div class="audit-log" id="sum-audit-log"><div style="color:var(--text-dim);font-size:11px;text-align:center;padding:20px 0">Calculation log appears here.</div></div></div>
+  </div>
+</div>
+
+<script>
+// ─── UTILITIES ────────────────────────────────────────────────────────────────
+const getNow = () => new Date().toISOString().replace('T',' ').substring(0,19)+' UTC';
+const delay = ms => new Promise(r => setTimeout(r, ms));
+const fmt$ = n => '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtDays = n => n.toLocaleString()+' day'+(n!==1?'s':'');
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  const tabs = {cap:0,tail:1,tolling:2,summary:3};
+  document.querySelectorAll('.tab')[tabs[tab]].classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+}
+
+// ─── LOG ─────────────────────────────────────────────────────────────────────
+const logs = {cap:[],tail:[],toll:[],sum:[]};
+function addLog(id, action, meta, type='info') {
+  logs[id].push({ts:getNow(),action,meta,type});
+  const el = document.getElementById(id+'-audit-log');
+  const countEl = document.getElementById(id+'-log-count');
+  if(countEl) countEl.textContent = logs[id].length+' entries';
+  if(el) {
+    el.innerHTML = logs[id].map(e=>`
+      <div class="log-entry">
+        <div class="log-ts">${e.ts}</div>
+        <div class="log-action log-${e.type}">${e.action}</div>
+        ${e.meta?`<div class="log-meta">${e.meta}</div>`:''}
+      </div>`).join('');
+    el.scrollTop = el.scrollHeight;
+  }
+}
+
+// ─── CLAUDE API ───────────────────────────────────────────────────────────────
+let AI_AVAILABLE = true;
+
+const FALLBACKS = {
+  cap: `FALLBACK MODE — AI unavailable. Standard compliance guidance applies:\n\nInterest rate cap calculation complete. Before applying these results, the SCRA Reviewer must verify:\n1. All excess interest figures reflect the forgiven (not deferred) treatment required by 50 U.S.C. §3937(a)(3)\n2. Payment reductions are applied to all eligible accounts simultaneously — not just the account on which notice was received\n3. The retroactive effective date is the active duty start date, not the date notice was received\n4. Annual fees and service charges are included in the effective rate for cap calculation purposes\n5. The credit card calculation covers only the pre-service balance — new purchases after active duty start are not subject to the cap\n6. First statement after cap application must reflect the new rate — a statement showing the old rate is itself a compliance finding`,
+
+  tail: `FALLBACK MODE — AI unavailable. Standard compliance guidance applies:\n\nTail period analysis complete. Key compliance points:\n1. The one-year tail period applies to mortgage loans ONLY under 50 U.S.C. §3937(d)(2) — auto loans and credit cards have no tail period\n2. Rate restoration on non-mortgage products is permitted upon confirmed end of active duty, but Regulation Z advance notice (12 C.F.R. §1026.9(c)(2)(iv)(A)) is required before the rate increase takes effect\n3. For credit cards, the restored rate applies only to new transactions — the pre-service rate may not be applied retroactively to transactions that occurred before active duty\n4. Any foreclosure action scheduled within the tail period requires a court order — this is a strict liability provision with criminal penalty exposure\n5. Confirm end-of-service date via fresh DMDC query before releasing any holds`,
+
+  tolling: `FALLBACK MODE — AI unavailable. Standard compliance guidance applies:\n\nTolling calculation complete. Before relying on this calculation, Legal must verify:\n1. The applicable state limitations period — confirm the contract's choice-of-law provision governs\n2. Whether any other tolling events apply beyond military service (discovery rule, fraudulent concealment, bankruptcy stay)\n3. For deficiency judgments specifically, confirm which state's limitations period governs the deficiency action vs. the underlying contract\n4. The calculation assumes a single continuous service period — multiple separated periods would each be excluded separately\n5. Tolling applies to both actions by and against the servicemember — relevant for counterclaims\n6. This calculation is an input to Legal's determination, not a substitute for it`,
+
+  summary: `FALLBACK MODE — AI unavailable. Standard compliance guidance applies:\n\nFull remediation package calculated. Before applying any element of this package, the SCRA Reviewer must:\n1. Confirm all calculation inputs against the actual loan file — balance, rate history, fee structure, and active duty dates\n2. Obtain SCRA Reviewer sign-off on the complete package before any account modification\n3. Apply rate caps to all eligible accounts simultaneously — partial application is a compliance finding\n4. Verify first statements after application reflect correct new rates and payments\n5. Initiate credit bureau furnishing review for any adverse reporting during the protected period\n6. Document the complete remediation package in the loan file with methodology, inputs, outputs, and reviewer sign-off\n7. Send written confirmation to servicemember before next statement cycle`
+};
+
+async function callClaude(system, user, fallbackKey='cap') {
+  if (!AI_AVAILABLE) return FALLBACKS[fallbackKey] || FALLBACKS.cap;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:1000, system, messages:[{role:'user',content:user}]}),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+    const d = await r.json();
+    if(d.error) throw new Error(d.error.message);
+    AI_AVAILABLE = true;
+    return d.content[0].text;
+
+  } catch(err) {
+    AI_AVAILABLE = false;
+    console.warn('Anthropic API unavailable, using fallback:', err.message);
+    return FALLBACKS[fallbackKey] || FALLBACKS.cap;
+  }
+}
+
+// ─── LEDGER BUILDERS ─────────────────────────────────────────────────────────
+function clearLedger(id) {
+  document.getElementById(id).innerHTML = '';
+}
+
+function addLedgerHeader(id, title, subtitle) {
+  const el = document.getElementById(id);
+  const div = document.createElement('div');
+  div.className = 'ledger-header';
+  div.innerHTML = `<div class="ledger-title">${title}</div><div class="ledger-subtitle">${subtitle}</div>`;
+  el.appendChild(div);
+}
+
+function addLedgerSection(id, title, badgeText, badgeClass) {
+  const el = document.getElementById(id);
+  const div = document.createElement('div');
+  div.className = 'ledger-section';
+  div.innerHTML = `<div class="ledger-section-header">
+    <span class="ledger-section-title">${title}</span>
+    ${badgeText?`<span class="ledger-section-badge" style="background:var(--${badgeClass}-dim);color:var(--${badgeClass});border:1px solid var(--${badgeClass})">${badgeText}</span>`:''}
+  </div>`;
+  el.appendChild(div);
+  return div;
+}
+
+function addLedgerRow(containerId, label, value, labelClass='', valueClass='neutral', indent=false, isTotal=false, isSubtotal=false) {
+  const container = typeof containerId === 'string' ? document.getElementById(containerId) : containerId;
+  const div = document.createElement('div');
+  div.className = `ledger-row${indent?' indent':''}${isTotal?' total':''}${isSubtotal?' subtotal':''}`;
+  div.innerHTML = `<span class="ledger-label ${labelClass}">${label}</span><span class="ledger-value ${valueClass}">${value}</span>`;
+  div.style.animation = 'rowIn 0.25s ease';
+  container.appendChild(div);
+  if(container.scrollIntoView) container.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function addStatutoryNote(id, text) {
+  const el = document.getElementById(id);
+  const div = document.createElement('div');
+  div.className = 'statutory-note';
+  div.innerHTML = `<div class="statutory-note-label">Statutory Basis</div><div class="statutory-note-text">${text}</div>`;
+  el.appendChild(div);
+}
+
+function addGateBox(id, type, title, body) {
+  const el = document.getElementById(id);
+  const div = document.createElement('div');
+  div.className = `gate-box ${type}`;
+  div.innerHTML = `<div class="gate-title">${title}</div><div class="gate-body">${body}</div>`;
+  el.appendChild(div);
+}
+
+function addAIInsight(id, text) {
+  const el = document.getElementById(id);
+  const div = document.createElement('div');
+  div.className = 'ai-insight';
+  const contentId = 'ai-'+Date.now();
+  const sourceLabel = AI_AVAILABLE ? 'claude-sonnet-4-6' : 'FALLBACK MODE';
+  const sourceBg = AI_AVAILABLE ? 'var(--purple)' : 'var(--amber)';
+  const headerLabel = AI_AVAILABLE ? 'AI Analysis & Edge Case Review' : 'Standard Compliance Guidance (AI Unavailable)';
+  div.innerHTML = `<div class="ai-insight-header"><span class="ai-label" style="border-color:${sourceBg};color:${sourceBg};background:transparent">${sourceLabel}</span>${headerLabel}</div><div class="ai-insight-text streaming-cursor" id="${contentId}"></div>`;
+  el.appendChild(div);
+  return contentId;
+}
+
+// ─── CALCULATION FUNCTIONS ────────────────────────────────────────────────────
+
+function calcMonthsBetween(start, end) {
+  const s = new Date(start), e = new Date(end);
+  return (e.getFullYear()-s.getFullYear())*12 + (e.getMonth()-s.getMonth());
+}
+
+function calcDaysBetween(start, end) {
+  return Math.round((new Date(end)-new Date(start))/(1000*60*60*24));
+}
+
+function calcExcessInterest(balance, contractRate, months) {
+  // Daily balance method approximation
+  const contractMonthly = (contractRate/100)/12;
+  const capMonthly = 0.06/12;
+  const contractInterest = balance * contractMonthly * months;
+  const capInterest = balance * capMonthly * months;
+  const excess = contractInterest - capInterest;
+  const newPayment = balance * capMonthly / (1 - Math.pow(1+capMonthly, -360));
+  return { contractInterest, capInterest, excess: Math.max(0,excess), newPayment };
+}
+
+// ─── TAB 1: INTEREST RATE CAP ─────────────────────────────────────────────────
+async function runCapCalc() {
+  const name = document.getElementById('cap-name').value;
+  const start = document.getElementById('cap-start').value;
+  const through = document.getElementById('cap-through').value;
+  const ledgerId = 'cap-ledger';
+
+  clearLedger(ledgerId);
+  logs.cap = [];
+  document.getElementById('cap-log-count').textContent = '0 entries';
+  document.getElementById('cap-status').style.display = 'inline-block';
+  document.getElementById('cap-btn').disabled = true;
+
+  const accounts = [
+    { id:'MTG-2019-00441', type:'Mortgage', balance: +document.getElementById('mtg-balance').value, rate: +document.getElementById('mtg-rate').value, payment: +document.getElementById('mtg-payment').value, fees: +document.getElementById('mtg-fees').value },
+    { id:'AUTO-2021-08832', type:'Auto Loan', balance: +document.getElementById('auto-balance').value, rate: +document.getElementById('auto-rate').value, payment: +document.getElementById('auto-payment').value, fees: +document.getElementById('auto-fees').value },
+    { id:'CC-2020-15521', type:'Credit Card', balance: +document.getElementById('cc-balance').value, rate: +document.getElementById('cc-rate').value, payment: +document.getElementById('cc-payment').value, fees: +document.getElementById('cc-fees').value }
+  ];
+
+  addLog('cap','CALCULATION_INITIATED',`borrower=${name} · accounts=3 · period=${start} to ${through}`,'info');
+  addLedgerHeader(ledgerId, 'SCRA Interest Rate Cap Calculation', `Borrower: ${name} · Active Duty: ${start} → ${through}`);
+
+  const months = calcMonthsBetween(start, through);
+  let totalExcess = 0;
+  let totalNewPaymentReduction = 0;
+
+  try {
+    for (const acct of accounts) {
+      await delay(400);
+      addLog('cap',`CALCULATING_${acct.id}`,`balance=${fmt$(acct.balance)} · rate=${acct.rate}% · months=${months}`,'calc');
+
+      const effectiveRate = acct.rate; // includes fees for CC
+      const result = calcExcessInterest(acct.balance, effectiveRate, months);
+      const paymentReduction = acct.payment - result.newPayment;
+      totalExcess += result.excess;
+      totalNewPaymentReduction += Math.max(0, paymentReduction);
+
+      addLedgerSection(ledgerId, acct.id, acct.type, 'amber');
+      const section = document.getElementById(ledgerId).lastChild;
+
+      addLedgerRow(section, 'Pre-service balance', fmt$(acct.balance), 'primary', 'neutral');
+      addLedgerRow(section, 'Contract rate', acct.rate+'% APR', '', 'neutral', true);
+      addLedgerRow(section, 'SCRA cap rate', '6.00% APR', '', 'credit', true);
+      addLedgerRow(section, 'Effective period', months+' months', 'dim', 'dim', true);
+      addLedgerRow(section, 'Interest at contract rate', fmt$(result.contractInterest), '', 'debit', true);
+      addLedgerRow(section, 'Interest at 6% cap', fmt$(result.capInterest), '', 'credit', true);
+      addLedgerRow(section, 'Excess interest to FORGIVE', fmt$(result.excess), 'primary', 'highlight', false, true);
+      addLedgerRow(section, 'Current monthly payment', fmt$(acct.payment), '', 'neutral', true);
+      addLedgerRow(section, 'Required new payment', fmt$(result.newPayment), '', 'credit', true);
+      addLedgerRow(section, 'Required payment reduction', fmt$(Math.max(0,paymentReduction)), 'primary', paymentReduction>0?'credit':'neutral', false, false, true);
+
+      addLog('cap',`${acct.id}_COMPLETE`,`excess=${fmt$(result.excess)} · new_pmt=${fmt$(result.newPayment)}`,'ok');
+    }
+
+    await delay(300);
+
+    // Totals section
+    addLedgerSection(ledgerId, 'TOTAL REMEDIATION REQUIRED', null, null);
+    const totalsSection = document.getElementById(ledgerId).lastChild;
+    addLedgerRow(totalsSection, 'Total excess interest to forgive', fmt$(totalExcess), 'primary', 'highlight', false, true);
+    addLedgerRow(totalsSection, 'Retroactive effective date', start, '', 'neutral', true);
+    addLedgerRow(totalsSection, 'Treatment required', 'FORGIVEN — not deferred', 'primary', 'credit', true);
+    addLedgerRow(totalsSection, 'Principal acceleration', 'PROHIBITED — 50 U.S.C. §3937(a)(3)', '', 'neutral', true);
+
+    addLog('cap','TOTALS_COMPLETE',`total_excess=${fmt$(totalExcess)} · effective_date=${start}`,'ok');
+    addStatutoryNote(ledgerId, 'Excess interest must be <strong>forgiven, not deferred</strong>. Periodic payments must be reduced by the amount of interest forgiven. The bank may not accelerate principal. Per 50 U.S.C. §3937(a)(3). Retroactive to active duty start date regardless of when notice was received.');
+
+    await delay(300);
+    addLog('cap','AI_ANALYSIS_INITIATED','model=claude-sonnet-4-6','ai');
+    const aiId = addAIInsight(ledgerId, '');
+    const aiText = await callClaude(
+      `You are an SCRA compliance expert reviewing interest rate cap calculations. Identify any edge cases, compliance risks, or required actions the SCRA Reviewer must be aware of. Be specific and cite statute. Under 150 words. Plain text.`,
+      `SCRA interest rate cap calculation for ${name}. Active duty: ${start} to ${through} (${months} months). Three eligible accounts: Mortgage ($342,500 at 7.25%), Auto ($18,400 at 6.99%), Credit Card ($4,250 at 19.99%). Total excess interest to forgive: ${fmt$(totalExcess)}. Retroactive effective date: ${start}. Identify any edge cases or compliance concerns the reviewer must check before applying these calculations.`,
+      'cap'
+    );
+    document.getElementById(aiId).textContent = aiText;
+    document.getElementById(aiId).classList.remove('streaming-cursor');
+    addLog('cap','AI_ANALYSIS_COMPLETE','edge_cases_reviewed=true','ai');
+
+  } catch(err) {
+    addLog('cap','ERROR',err.message,'error');
+    addLedgerRow(ledgerId, 'API Error: '+err.message, '', 'primary', 'debit');
+  }
+
+  document.getElementById('cap-status').style.display = 'none';
+  document.getElementById('cap-btn').disabled = false;
+  addLog('cap','CALCULATION_COMPLETE',`status=REQUIRES_HUMAN_REVIEW · entries=${logs.cap.length+1}`,'ok');
+}
+
+// ─── TAB 2: TAIL PERIOD ───────────────────────────────────────────────────────
+async function runTailCalc() {
+  const name = document.getElementById('tail-name').value;
+  const endOfService = document.getElementById('tail-end').value;
+  const today = document.getElementById('tail-today').value;
+  const acct = document.getElementById('tail-acct').value;
+  const currentRate = +document.getElementById('tail-rate-current').value;
+  const preServiceRate = +document.getElementById('tail-rate-preservice').value;
+  const foreclosureDate = document.getElementById('tail-foreclosure').value;
+  const ledgerId = 'tail-ledger';
+
+  clearLedger(ledgerId);
+  logs.tail = [];
+  document.getElementById('tail-log-count').textContent = '0 entries';
+  document.getElementById('tail-status').style.display = 'inline-block';
+  document.getElementById('tail-btn').disabled = true;
+
+  addLog('tail','TAIL_CALC_INITIATED',`borrower=${name} · end_of_service=${endOfService}`,'info');
+  addLedgerHeader(ledgerId,'SCRA Mortgage Tail Period Analysis',`Borrower: ${name} · Account: ${acct}`);
+
+  try {
+    await delay(350);
+
+    // Calculate tail period
+    const endDate = new Date(endOfService);
+    const tailExpiry = new Date(endDate);
+    tailExpiry.setFullYear(tailExpiry.getFullYear()+1);
+    const tailExpiryStr = tailExpiry.toISOString().split('T')[0];
+    const todayDate = new Date(today);
+    const daysRemaining = Math.max(0, Math.round((tailExpiry-todayDate)/(1000*60*60*24)));
+    const inTailPeriod = todayDate < tailExpiry;
+
+    addLog('tail','TAIL_PERIOD_CALCULATED',`expiry=${tailExpiryStr} · days_remaining=${daysRemaining}`,'calc');
+
+    addLedgerSection(ledgerId,'Tail Period Calculation — 50 U.S.C. §3937(d)(2)',null,null);
+    const sec1 = document.getElementById(ledgerId).lastChild;
+    addLedgerRow(sec1,'End of active duty',endOfService,'primary','neutral');
+    addLedgerRow(sec1,'Tail period formula','End of service + 365 days','dim','dim',true);
+    addLedgerRow(sec1,'Tail period expiry',tailExpiryStr,'primary','highlight');
+    addLedgerRow(sec1,'Today\'s date',today,'','neutral',true);
+    addLedgerRow(sec1,'Days remaining in tail',fmtDays(daysRemaining),'primary',inTailPeriod?'highlight':'credit',false,true);
+
+    await delay(300);
+
+    // Rate restoration gate
+    addLedgerSection(ledgerId,'Rate Restoration Gate',null,null);
+    const sec2 = document.getElementById(ledgerId).lastChild;
+    addLedgerRow(sec2,'Current rate (SCRA cap)',currentRate+'%','primary','neutral');
+    addLedgerRow(sec2,'Pre-service contractual rate',preServiceRate+'%','','neutral',true);
+    addLedgerRow(sec2,'Rate restoration permitted',inTailPeriod?'NO — tail period active':'YES — tail period expired','primary',inTailPeriod?'debit':'credit',false,true);
+
+    await delay(300);
+
+    if(inTailPeriod) {
+      addGateBox(ledgerId,'hold','⚠ Rate Restoration Blocked',
+        `Mortgage account ${acct} is within the one-year post-service tail period. The 6% rate cap continues until <strong>${tailExpiryStr}</strong> (${fmtDays(daysRemaining)} remaining). Pre-service rate of ${preServiceRate}% may not be restored until after this date. Any system or workflow attempting to restore the rate before ${tailExpiryStr} must be blocked.`);
+    } else {
+      addGateBox(ledgerId,'clear','✓ Rate Restoration Permitted',
+        `Tail period expired on ${tailExpiryStr}. Pre-service rate of ${preServiceRate}% may be restored. Regulation Z advance notice required before rate increase takes effect (12 C.F.R. §1026.9(c)(2)(iv)(A)).`);
+    }
+
+    // Foreclosure timing check
+    if(foreclosureDate) {
+      await delay(300);
+      const fcDate = new Date(foreclosureDate);
+      const fcInTail = fcDate < tailExpiry;
+      addLedgerSection(ledgerId,'Foreclosure Timing Assessment — 50 U.S.C. §3953',null,null);
+      const sec3 = document.getElementById(ledgerId).lastChild;
+      addLedgerRow(sec3,'Scheduled foreclosure action',foreclosureDate,'primary','neutral');
+      addLedgerRow(sec3,'Tail period expiry',tailExpiryStr,'','neutral',true);
+      addLedgerRow(sec3,'Foreclosure within tail period',fcInTail?'YES — VIOLATION RISK':'NO — Permitted','primary',fcInTail?'debit':'credit',false,true);
+
+      if(fcInTail) {
+        addGateBox(ledgerId,'blocked','⛔ Foreclosure Blocked — Strict Liability Risk',
+          `Scheduled foreclosure action on ${foreclosureDate} falls within the one-year post-service tail period (expires ${tailExpiryStr}). Foreclosure may not proceed without a court order. This is a strict liability provision — knowing violations carry criminal penalties (fine + up to 1 year imprisonment) under 50 U.S.C. §3953(d). Immediately halt foreclosure referral and notify Legal.`);
+        addLog('tail','FORECLOSURE_VIOLATION_RISK',`scheduled=${foreclosureDate} · tail_expiry=${tailExpiryStr} · action=HALT`,'hold');
+      }
+    }
+
+    await delay(300);
+    addLog('tail','AI_ANALYSIS_INITIATED','model=claude-sonnet-4-6','ai');
+    const aiId = addAIInsight(ledgerId,'');
+    const aiText = await callClaude(
+      `You are an SCRA compliance expert. Review this tail period analysis and identify any compliance risks, required actions, or things the reviewer must check. Cite statute. Under 120 words. Plain text.`,
+      `SCRA mortgage tail period analysis for ${name}, account ${acct}. End of service: ${endOfService}. Tail period expiry: ${tailExpiryStr}. Days remaining: ${daysRemaining}. Currently in tail period: ${inTailPeriod}. Current rate: ${currentRate}%. Pre-service rate: ${preServiceRate}%. ${foreclosureDate?'Scheduled foreclosure: '+foreclosureDate+'.':''} What must the SCRA Reviewer check or do?`,
+      'tail'
+    );
+    document.getElementById(aiId).textContent = aiText;
+    document.getElementById(aiId).classList.remove('streaming-cursor');
+    addLog('tail','AI_COMPLETE','','ai');
+
+  } catch(err) {
+    addLog('tail','ERROR',err.message,'error');
+  }
+
+  document.getElementById('tail-status').style.display = 'none';
+  document.getElementById('tail-btn').disabled = false;
+}
+
+// ─── TAB 3: TOLLING ───────────────────────────────────────────────────────────
+const STATE_LIMITS = {CA:4,NY:6,TX:4,FL:5,IL:5,OH:6,GA:6,NC:3,VA:5,WA:6};
+const STATE_NAMES = {CA:'California',NY:'New York',TX:'Texas',FL:'Florida',IL:'Illinois',OH:'Ohio',GA:'Georgia',NC:'North Carolina',VA:'Virginia',WA:'Washington'};
+
+async function runTollingCalc() {
+  const name = document.getElementById('toll-name').value;
+  const acct = document.getElementById('toll-acct').value;
+  const defaultDate = document.getElementById('toll-default').value;
+  const state = document.getElementById('toll-state').value;
+  const svcStart = document.getElementById('toll-svc-start').value;
+  const svcEnd = document.getElementById('toll-svc-end').value;
+  const today = document.getElementById('toll-today').value;
+  const ledgerId = 'toll-ledger';
+  const limitYears = STATE_LIMITS[state];
+
+  clearLedger(ledgerId);
+  logs.toll = [];
+  document.getElementById('toll-log-count').textContent = '0 entries';
+  document.getElementById('toll-status').style.display = 'inline-block';
+  document.getElementById('toll-btn').disabled = true;
+
+  addLog('toll','TOLLING_CALC_INITIATED',`borrower=${name} · state=${state} · default=${defaultDate}`,'info');
+  addLedgerHeader(ledgerId,'SCRA Tolling of Statutes of Limitation',`Borrower: ${name} · Account: ${acct} · State: ${STATE_NAMES[state]}`);
+
+  try {
+    await delay(350);
+
+    // Without tolling
+    const defaultDt = new Date(defaultDate);
+    const stdExpiry = new Date(defaultDt);
+    stdExpiry.setFullYear(stdExpiry.getFullYear()+limitYears);
+    const stdExpiryStr = stdExpiry.toISOString().split('T')[0];
+
+    // Tolled days (military service period)
+    const tolledDays = calcDaysBetween(svcStart, svcEnd);
+    const adjExpiry = new Date(stdExpiry);
+    adjExpiry.setDate(adjExpiry.getDate()+tolledDays);
+    const adjExpiryStr = adjExpiry.toISOString().split('T')[0];
+
+    const todayDt = new Date(today);
+    const stdExpired = todayDt > stdExpiry;
+    const adjExpired = todayDt > adjExpiry;
+    const daysToAdj = Math.round((adjExpiry-todayDt)/(1000*60*60*24));
+
+    addLog('toll','STANDARD_EXPIRY_CALCULATED',`expiry=${stdExpiryStr} · years=${limitYears}`,'calc');
+    addLog('toll','TOLLED_DAYS_CALCULATED',`service_period=${svcStart}_to_${svcEnd} · days_tolled=${tolledDays}`,'calc');
+    addLog('toll','ADJUSTED_EXPIRY_CALCULATED',`adjusted_expiry=${adjExpiryStr}`,'calc');
+
+    await delay(300);
+
+    addLedgerSection(ledgerId,'Standard Limitations Period (Without Tolling)',null,null);
+    const sec1 = document.getElementById(ledgerId).lastChild;
+    addLedgerRow(sec1,'Default / charge-off date',defaultDate,'primary','neutral');
+    addLedgerRow(sec1,`${STATE_NAMES[state]} limitations period`,limitYears+' years (written contract)','','neutral',true);
+    addLedgerRow(sec1,'Standard expiry (unadjusted)',stdExpiryStr,'primary',stdExpired?'debit':'neutral',false,true);
+    addLedgerRow(sec1,'Status (unadjusted)',stdExpired?'EXPIRED — would be time-barred':'Active','',stdExpired?'debit':'credit',true);
+
+    await delay(300);
+
+    addLedgerSection(ledgerId,'Military Service Tolling — 50 U.S.C. §3936',null,null);
+    const sec2 = document.getElementById(ledgerId).lastChild;
+    addLedgerRow(sec2,'Active duty start',svcStart,'primary','neutral');
+    addLedgerRow(sec2,'Active duty end',svcEnd,'','neutral',true);
+    addLedgerRow(sec2,'Days tolled (excluded from limitations)',fmtDays(tolledDays),'primary','highlight',false,true);
+    addLedgerRow(sec2,'Standard expiry',stdExpiryStr,'','neutral',true);
+    addLedgerRow(sec2,'Plus tolled days','+'+fmtDays(tolledDays),'','credit',true);
+    addLedgerRow(sec2,'Adjusted expiry',adjExpiryStr,'primary','highlight',false,true);
+
+    await delay(300);
+
+    addLedgerSection(ledgerId,'Limitations Status Assessment',null,null);
+    const sec3 = document.getElementById(ledgerId).lastChild;
+    addLedgerRow(sec3,'Today\'s date',today,'primary','neutral');
+    addLedgerRow(sec3,'Adjusted expiry',adjExpiryStr,'','neutral',true);
+    addLedgerRow(sec3,'Days until adjusted expiry',adjExpired?'EXPIRED':fmtDays(daysToAdj),'primary',adjExpired?'debit':'highlight',false,true);
+    addLedgerRow(sec3,'Action is time-barred (adjusted)',adjExpired?'YES — filing would fail':'NO — action may proceed','primary',adjExpired?'debit':'credit',false,true);
+
+    if(stdExpired && !adjExpired) {
+      addGateBox(ledgerId,'hold','⚠ Critical: Tolling Changes the Outcome',
+        `Without tolling, this action would appear time-barred (standard expiry: ${stdExpiryStr}). With SCRA tolling applied, the adjusted expiry is <strong>${adjExpiryStr}</strong> — the action is still viable. Proceeding without applying tolling would result in abandoning a recoverable obligation. Confirm adjusted expiry with Legal before any limitations period decision.`);
+      addLog('toll','TOLLING_CHANGES_OUTCOME',`std_expired=true · adj_expired=false · days_remaining=${daysToAdj}`,'hold');
+    } else if(!stdExpired && !adjExpired) {
+      addGateBox(ledgerId,'clear','✓ Action Viable Under Both Standards',
+        `Limitations period has not expired under either standard calculation. Adjusted expiry with SCRA tolling: ${adjExpiryStr} (${fmtDays(daysToAdj)} remaining). Document tolling calculation in file before proceeding.`);
+    } else if(adjExpired) {
+      addGateBox(ledgerId,'blocked','Action Time-Barred — Even With Tolling Applied',
+        `Even with ${fmtDays(tolledDays)} of SCRA tolling applied, the adjusted limitations period expired on ${adjExpiryStr}. Filing would be time-barred. Confirm with Legal before closing the matter — additional tolling events or discovery rules may apply.`);
+    }
+
+    addStatutoryNote(ledgerId,'Per 50 U.S.C. §3936, the period of military service is excluded from any statute of limitations for civil actions. This applies to both actions brought by and against the servicemember. Calculation excludes the period from active duty start to active duty end. Multiple service periods would each be excluded.');
+
+    await delay(300);
+    addLog('toll','AI_ANALYSIS_INITIATED','model=claude-sonnet-4-6','ai');
+    const aiId = addAIInsight(ledgerId,'');
+    const aiText = await callClaude(
+      `You are an SCRA compliance expert reviewing a statute of limitations tolling calculation. Identify risks, caveats, and what Legal must verify. Cite statute. Under 120 words. Plain text.`,
+      `SCRA tolling analysis for ${name}, account ${acct}. ${STATE_NAMES[state]}: ${limitYears}-year limitations period. Default date: ${defaultDate}. Standard expiry: ${stdExpiryStr}. Active duty: ${svcStart} to ${svcEnd} (${tolledDays} days tolled). Adjusted expiry: ${adjExpiryStr}. Standard expired: ${stdExpired}. Adjusted expired: ${adjExpired}. What must Legal verify before relying on this calculation?`,
+      'tolling'
+    );
+    document.getElementById(aiId).textContent = aiText;
+    document.getElementById(aiId).classList.remove('streaming-cursor');
+    addLog('toll','AI_COMPLETE','','ai');
+
+  } catch(err) {
+    addLog('toll','ERROR',err.message,'error');
+  }
+
+  document.getElementById('toll-status').style.display = 'none';
+  document.getElementById('toll-btn').disabled = false;
+}
+
+// ─── TAB 4: FULL SUMMARY ──────────────────────────────────────────────────────
+async function runSummary() {
+  const name = document.getElementById('sum-name').value;
+  const start = document.getElementById('sum-start').value;
+  const end = document.getElementById('sum-end').value;
+  const today = document.getElementById('sum-today').value;
+  const ledgerId = 'sum-ledger';
+
+  clearLedger(ledgerId);
+  logs.sum = [];
+  document.getElementById('sum-log-count').textContent = '0 entries';
+  document.getElementById('sum-status').style.display = 'inline-block';
+  document.getElementById('sum-btn').disabled = true;
+
+  const accts = [
+    { id:'MTG-2019-00441', type:'Mortgage', rate:7.25, balance: +document.getElementById('sum-mtg-bal').value, payment: +document.getElementById('sum-mtg-pmt').value },
+    { id:'AUTO-2021-08832', type:'Auto Loan', rate:6.99, balance: +document.getElementById('sum-auto-bal').value, payment: +document.getElementById('sum-auto-pmt').value },
+    { id:'CC-2020-15521', type:'Credit Card', rate:19.99, balance: +document.getElementById('sum-cc-bal').value, payment: +document.getElementById('sum-cc-pmt').value }
+  ];
+
+  addLog('sum','FULL_SUMMARY_INITIATED',`borrower=${name} · active_duty=${start}_to_${end}`,'info');
+  addLedgerHeader(ledgerId,'SCRA Remediation Package — Full Account Summary',`Borrower: ${name} · Service: ${start} → ${end}`);
+
+  try {
+    const months = calcMonthsBetween(start, end);
+    const endDt = new Date(end);
+    const tailExpiry = new Date(endDt);
+    tailExpiry.setFullYear(tailExpiry.getFullYear()+1);
+    const tailExpiryStr = tailExpiry.toISOString().split('T')[0];
+    const todayDt = new Date(today);
+    const inTail = todayDt < tailExpiry;
+    const tailDaysRemaining = Math.max(0,Math.round((tailExpiry-todayDt)/(1000*60*60*24)));
+
+    // 1. Rate cap calculations
+    await delay(300);
+    addLog('sum','CALCULATING_RATE_CAPS','all_accounts','calc');
+    addLedgerSection(ledgerId,'1. Interest Rate Cap — All Accounts',null,null);
+    const capSec = document.getElementById(ledgerId).lastChild;
+
+    let totalExcess = 0;
+    for (const acct of accts) {
+      const result = calcExcessInterest(acct.balance, acct.rate, months);
+      totalExcess += result.excess;
+      addLedgerRow(capSec, acct.id+' ('+acct.type+')', fmt$(result.excess)+' excess', 'primary', 'debit');
+      addLedgerRow(capSec, '  Contract rate → 6% cap, '+months+' months', 'New pmt: '+fmt$(result.newPayment), 'dim', 'dim', true);
+    }
+    addLedgerRow(capSec, 'Total excess interest to forgive', fmt$(totalExcess), 'primary', 'highlight', false, true);
+    addLedgerRow(capSec, 'Retroactive effective date', start, '', 'neutral', true);
+    addLog('sum','RATE_CAP_COMPLETE',`total_excess=${fmt$(totalExcess)}`,'ok');
+
+    // 2. Tail period
+    await delay(300);
+    addLog('sum','CALCULATING_TAIL_PERIOD','MTG-2019-00441','calc');
+    addLedgerSection(ledgerId,'2. Mortgage Tail Period — MTG-2019-00441',null,null);
+    const tailSec = document.getElementById(ledgerId).lastChild;
+    addLedgerRow(tailSec, 'End of service', end, 'primary', 'neutral');
+    addLedgerRow(tailSec, 'Tail period expiry', tailExpiryStr, 'primary', 'highlight');
+    addLedgerRow(tailSec, 'Currently in tail period', inTail?'YES — rate cap continues':'NO — restoration permitted', '', inTail?'amber':'teal', true);
+    addLedgerRow(tailSec, 'Days remaining in tail', fmtDays(tailDaysRemaining), 'primary', inTail?'highlight':'credit', false, true);
+    addLedgerRow(tailSec, 'Auto/CC tail period', 'None — no tail for non-mortgage', 'dim', 'dim', true);
+    addLog('sum','TAIL_PERIOD_COMPLETE',`expiry=${tailExpiryStr} · in_tail=${inTail}`,'ok');
+
+    // 3. Required actions
+    await delay(300);
+    addLedgerSection(ledgerId,'3. Required Actions (Human-Confirmed)',null,null);
+    const actionSec = document.getElementById(ledgerId).lastChild;
+    addLedgerRow(actionSec, 'Apply 6% rate cap to all 3 accounts', 'Retroactive to '+start, 'primary', 'neutral');
+    addLedgerRow(actionSec, 'Forgive excess interest (not defer)', fmt$(totalExcess), 'primary', 'highlight');
+    addLedgerRow(actionSec, 'Reduce monthly payments on all accounts', 'Per calculation output', '', 'neutral', true);
+    addLedgerRow(actionSec, 'Notify servicemember before next statement', 'Required', '', 'neutral', true);
+    if(inTail) addLedgerRow(actionSec, 'Hold mortgage rate restoration until', tailExpiryStr, 'primary', 'hold', false, false, true);
+    addLedgerRow(actionSec, 'Review credit bureau furnishing', 'FCRA accuracy check required', '', 'neutral', true);
+    addLedgerRow(actionSec, 'Human confirmation required before application', 'SCRA Reviewer sign-off', 'primary', 'highlight', false, true);
+
+    await delay(300);
+    addLog('sum','AI_ANALYSIS_INITIATED','model=claude-sonnet-4-6','ai');
+    const aiId = addAIInsight(ledgerId,'');
+    const aiText = await callClaude(
+      `You are an SCRA compliance expert generating a final remediation summary review. Identify the most important risks, confirm all required actions are covered, and flag anything requiring immediate legal attention. Under 150 words. Plain text.`,
+      `Full SCRA remediation package for ${name}. Active duty: ${start} to ${end} (${months} months). Three pre-service accounts: Mortgage ($${document.getElementById('sum-mtg-bal').value} at 7.25%), Auto ($${document.getElementById('sum-auto-bal').value} at 6.99%), Credit Card ($${document.getElementById('sum-cc-bal').value} at 19.99%). Total excess interest to forgive: ${fmt$(totalExcess)}. Mortgage tail period: expires ${tailExpiryStr}, ${inTail?'currently active ('+tailDaysRemaining+' days remaining)':'expired'}. What are the most important things the SCRA Reviewer must verify before this package is applied?`,
+      'summary'
+    );
+    document.getElementById(aiId).textContent = aiText;
+    document.getElementById(aiId).classList.remove('streaming-cursor');
+    addLog('sum','AI_COMPLETE','full_package_reviewed=true','ai');
+    addLog('sum','PACKAGE_COMPLETE',`total_remediation=${fmt$(totalExcess)} · accounts=3 · requires_human_review=true`,'ok');
+
+  } catch(err) {
+    addLog('sum','ERROR',err.message,'error');
+  }
+
+  document.getElementById('sum-status').style.display = 'none';
+  document.getElementById('sum-btn').disabled = false;
+}
+</script>
+</body>
+</html>
