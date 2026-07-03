@@ -10,7 +10,7 @@ at each checkpoint — not just that it is required.
 > Governance). Layer 4 defines the governance architecture. This document
 > defines the operational execution of that architecture.
 
-> Status: v0.1, updated 2026-06-22. Added Domain 7 — DMDC Data Dependency and Operational Resilience, covering DMDC classification, known dependency risks, compensating controls, and governance cadence.
+> Status: v0.2, updated 2026-07-03. Added Domain 8 — AI System Availability and Business Continuity, covering LLM provider outage scenarios, fallback operating modes, and BCP requirements. Updated demonstration scope notice and next steps accordingly.
 
 > **⚠ Demonstration Scope Notice**
 >
@@ -61,6 +61,14 @@ at each checkpoint — not just that it is required.
 > As Types 2, 3, and 4 are built, each requires its own governance domain
 > extensions — particularly the eval suite (Domain 2) and human-in-the-loop
 > map (Domain 4), which will differ materially by capability type.
+>
+> **7. Business continuity plan is demonstration-level only.**
+> The agents implement a fallback mode that substitutes pre-written compliance
+> guidance when the AI model is unavailable. This is a functional demonstration
+> of the BCP concept, not a production-grade continuity plan. A production
+> deployment requires formally documented and tested manual procedures, adopted
+> RTO/RPO targets, staff training on fallback operation, and periodic BCP
+> testing per Domain 8.
 >
 > The governance actions, cadences, and human-in-the-loop standards defined
 > here are complete for showcase purposes. These gaps represent the
@@ -537,6 +545,200 @@ as a third-party vendor.
 
 ---
 
+## Domain 8 — AI System Availability and Business Continuity
+
+### 8A — The core question
+
+**What is the compliance program's business continuity plan if the AI
+systems don't work?**
+
+This is not a theoretical question. LLM providers experience outages,
+rate limits, latency spikes, and silent degradations. A compliance workflow
+that depends on AI model availability without a documented continuity plan
+is not a compliance workflow — it is a compliance workflow with an
+undisclosed single point of failure.
+
+The answer to this question must exist before an agent touches a live
+compliance obligation. It must be tested before the agent goes to
+production. And it must be documented in a form that a regulator or
+auditor can review.
+
+---
+
+### 8B — Failure mode taxonomy
+
+AI system unavailability manifests in four distinct ways, each with
+different detection characteristics and operational impacts:
+
+| Failure mode | Detection signal | Impact on agent | Agent behavior |
+|---|---|---|---|
+| **Complete API outage** | All API calls fail immediately | All AI-generated content unavailable | Fallback mode activates; deterministic logic continues |
+| **Partial outage / degraded service** | Some calls succeed; others time out | Inconsistent AI output quality | Fallback activates after timeout threshold; flagged in audit log |
+| **Rate limiting** | API returns 429 Too Many Requests | AI calls fail during high-volume periods | Fallback activates for affected calls; logged with rate limit indicator |
+| **Silent degradation** | API calls succeed but output quality has decreased | AI reasoning less precise; edge cases potentially missed | Not detectable by the agent — requires drift monitoring (Domain 3) and eval suite (Domain 2) |
+
+The fourth failure mode — silent degradation — is the most dangerous
+because it produces no error signal. The agent appears to be working
+while the quality of its AI-generated output has degraded. This is why
+the eval suite and drift monitoring exist as independent controls rather
+than relying on API health signals alone.
+
+---
+
+### 8C — Fallback operating mode
+
+The RMAS agents implement a two-tier operating model:
+
+**Tier 1 — Full operation (AI available):**
+- All deterministic logic executes — routing, calculations, gate
+  decisions, certificate generation, audit logging
+- AI model generates compliance analysis, edge case review, escalation
+  notices, and remediation summaries in real time
+- AI output labeled with model version for audit traceability
+
+**Tier 2 — Fallback mode (AI unavailable):**
+- All deterministic logic continues without interruption
+- AI-generated content sections display pre-written compliance guidance
+  specific to each scenario
+- Fallback content labeled visibly as "FALLBACK MODE" — reviewers know
+  they are not receiving AI-generated output
+- Audit log records fallback activation with timestamp
+- Agent does not retry failed API calls indefinitely — fallback activates
+  after a 15-second timeout to prevent workflow delays
+- Once fallback activates, it remains active for the session — avoids
+  repeated timeout delays on subsequent calls
+
+**What continues to work in fallback mode:**
+
+| Function | Fallback available? | Notes |
+|---|---|---|
+| DMDC query routing (active/not active/no record/timeout) | ✅ Yes | Fully deterministic — does not use AI |
+| Gate hold placement and display | ✅ Yes | Rules-based — does not use AI |
+| DMDC certificate generation | ✅ Yes | Structured output — does not use AI |
+| Institution-wide account sweep | ✅ Yes | Data query — does not use AI |
+| Interest rate cap calculation | ✅ Yes | Statutory formula — does not use AI |
+| Tail period calculation | ✅ Yes | Date arithmetic — does not use AI |
+| Tolling calculation | ✅ Yes | Date arithmetic — does not use AI |
+| Audit log generation | ✅ Yes | System function — does not use AI |
+| Eval suite execution | ✅ Yes | Logic-based — does not use AI |
+| AI compliance analysis and edge case review | ⚠️ Partial | Pre-written scenario-specific guidance substituted |
+| Notice intake trigger recognition | ❌ No | Core LLM task — no deterministic substitute |
+
+**The critical distinction:** Notice intake trigger recognition (Type 4
+capability) has no meaningful fallback — recognizing SCRA triggers in
+unstructured language is an LLM-native task that cannot be replicated
+by rules-based logic without significant false negative risk. During AI
+unavailability, notice intake must route to manual human review rather
+than agent-assisted screening.
+
+---
+
+### 8D — Manual procedure requirements
+
+Fallback mode provides pre-written compliance guidance. Guidance alone
+is not a complete BCP. A production deployment requires documented
+manual procedures that staff can execute when the agent is in fallback
+mode or fully unavailable.
+
+**Required manual procedures (production):**
+
+| Procedure | Trigger | Owner | Documentation required |
+|---|---|---|---|
+| Manual DMDC verification | AI unavailable AND DMDC query needed | SCRA Reviewer | Step-by-step portal query procedure; certificate documentation format |
+| Manual interest rate cap calculation | AI unavailable AND rate cap application needed | SCRA Reviewer | Calculation worksheet with statutory formula; sign-off checklist |
+| Manual notice screening | AI unavailable AND inbound communications need review | SCRA Reviewer | SCRA trigger language guide; escalation decision tree |
+| Manual tail period calculation | AI unavailable AND return-from-service triggered | SCRA Reviewer | Date calculation worksheet; mortgage vs. non-mortgage distinction |
+| Manual tolling calculation | AI unavailable AND legal action being considered | Legal | Limitations period reference by state; tolling calculation worksheet |
+
+**Documentation standard:** Each manual procedure must be written at a
+level of detail that allows a trained SCRA Reviewer to execute it
+correctly without referring to the agent. The agent's fallback output
+can reference the manual procedure but cannot substitute for it.
+
+---
+
+### 8E — Recovery time and recovery point objectives
+
+| Scenario | Recommended RTO | Recommended RPO | Rationale |
+|---|---|---|---|
+| Complete AI provider outage | 4 business hours to activate fallback mode | No data loss — fallback preserves all deterministic outputs | Fallback already implemented; RTO covers detection and notification |
+| Partial outage / rate limiting | Immediate — fallback auto-activates | No data loss | Agent detects and switches without human intervention |
+| Silent degradation detected | 24 hours to suspend AI output; 48 hours to rollback or fix | Audit log review of affected period | Detected via drift monitoring; rollback per Domain 5 |
+| Manual procedure activation | 1 business day to confirm manual procedures operational | No data loss — manual procedures produce same outputs as agent | Requires SCRA Reviewer availability and procedure documentation |
+
+**RTO and RPO for the compliance obligation itself:** The SCRA compliance
+obligation does not pause during AI system outages. A servicemember who
+submits SCRA notice during an AI outage is still entitled to SCRA
+protections within the required statutory timeframes. Manual procedures
+are not optional — they are the compliance program's backstop when
+technology fails.
+
+---
+
+### 8F — Testing requirements
+
+A BCP that has not been tested is a document, not a plan.
+
+| Test | Frequency | Owner | Pass criteria |
+|---|---|---|---|
+| Fallback mode activation test | Quarterly | Model Risk | Simulate API unavailability; confirm fallback activates within 15 seconds; confirm all deterministic functions continue; confirm fallback content displays correctly |
+| Manual DMDC verification drill | Semi-annually | SCRA Reviewer | Execute manual portal query; produce certificate in required format; complete within time standard |
+| Manual rate cap calculation drill | Semi-annually | SCRA Reviewer | Complete worksheet from provided inputs; result matches agent output within rounding tolerance |
+| Manual notice screening drill | Semi-annually | SCRA Reviewer | Review 10 sample communications; identify all SCRA triggers; compare to reference answers |
+| Full manual procedure exercise | Annually | Compliance Officer + SCRA Reviewer | Execute complete SCRA workflow manually from notice receipt to rate cap application, without agent assistance |
+| BCP documentation review | Annually | Compliance Officer | Confirm manual procedures reflect current SCRA requirements and any regulatory changes since last review |
+
+**Testing documentation:** Every BCP test must be documented with date,
+participants, scenario, results, pass/fail determination, and any gaps
+identified. Gap remediation must be tracked to closure before the next
+scheduled test.
+
+---
+
+### 8G — Governance cadence
+
+| Action | Cadence | Owner | Human review |
+|---|---|---|---|
+| Monitor API availability and error rate | Per-run (automated) | Model Risk | Alert on threshold breach |
+| Review fallback activation log | Daily (when fallback has activated) | SCRA Reviewer | Confirm no compliance-critical functions were missed during fallback period |
+| Review API provider status page and incident history | Weekly | Model Risk | Assess reliability trend; flag to Compliance Officer if pattern of degradation |
+| Test fallback mode activation | Quarterly | Model Risk | Confirm fallback activates correctly; all deterministic functions continue |
+| Review and update manual procedure documentation | Annually | Compliance Officer | Confirm procedures reflect current requirements |
+| Full manual procedure exercise | Annually | Compliance Officer + SCRA Reviewer | Document results; remediate gaps |
+
+---
+
+### 8H — What this domain answers for regulators and auditors
+
+When an examiner or auditor asks "what is your business continuity plan
+if the AI systems don't work?", the answer this domain provides is:
+
+**1. The compliance-critical functions don't depend on the AI.** Routing
+decisions, gate holds, calculations, certificate generation, and audit
+logging are all deterministic and execute regardless of AI availability.
+
+**2. The AI-dependent functions have a defined fallback.** Pre-written
+scenario-specific compliance guidance substitutes for AI-generated
+analysis, clearly labeled so reviewers know the difference.
+
+**3. Notice intake is the exception — and it routes to humans.** Trigger
+recognition in unstructured language requires AI. During outages, notice
+intake routes to manual human review — the same process that existed
+before the agent was built.
+
+**4. Manual procedures exist and are tested.** Staff can execute every
+SCRA compliance function manually, documented at the procedure level,
+tested on a defined schedule.
+
+**5. Recovery objectives are defined.** RTO and RPO targets exist for
+each failure scenario and are formally adopted before production deployment.
+
+**6. The audit log records everything.** Including when fallback mode was
+active, so the record of compliance activity is complete and accurate
+regardless of AI system status.
+
+---
+
 ## Next steps for this document
 
 - [ ] Assign named individuals to each role (Compliance Officer, SCRA Reviewer,
@@ -564,3 +766,10 @@ as a third-party vendor.
       (scra.dmdc.osd.mil) is accessible to SCRA Reviewers and that access
       does not require separate registration or credentials that may not be
       in place at time of an API outage
+- [ ] Draft manual procedure documentation for each function in Domain 8D —
+      calculation worksheets, DMDC portal procedure, notice screening guide
+- [ ] Formally adopt RTO and RPO targets from Domain 8E in a signed BCP document
+      before production deployment
+- [ ] Schedule and execute first BCP test (fallback mode activation) before
+      production deployment
+- [ ] Add Domain 8 BCP gap to the gap register as a production readiness item
