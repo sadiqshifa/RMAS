@@ -2,61 +2,96 @@
 
 **A methodology for connecting regulatory requirements to AI-assisted compliance controls — with governance as a first-class concern.**
 
-[**→ Try the live demo**](https://sadiqshifa.github.io/RMAS/scra-dmdc-agent.html)
+[**→ Try the DMDC Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-dmdc-agent.html) · [**→ Try the Calculations Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-calculations-agent.html)
 
 ---
 
 ## What this is
 
-RMAS is an independent project demonstrating how to take a complex regulatory obligation, decompose it into specific compliance processes and controls, identify where AI agents can genuinely help (and where they can't), build a working agent that executes those controls, and govern that agent so it stays trustworthy as the model underneath it changes.
+RMAS is an independent project demonstrating how to take a complex regulatory obligation, decompose it into specific compliance processes and controls, identify where AI agents can genuinely help (and where they can't), build working agents that execute those controls, and govern those agents so they stay trustworthy as the models underneath them change.
 
 The domain is financial services compliance, but the methodology is not. The four-layer approach — requirements → processes → controls → governance — applies anywhere that regulatory or operational complexity creates risk: healthcare, insurance, energy, legal, government contracting, or any industry with compliance obligations that exceed what manual processes can reliably handle.
 
-This is not a demo that stops at the automation. The harder question — **how do you know the agent is still working correctly after the model changes?** — is treated as a first-class part of the build.
+This is not a demo that stops at the automation. Two harder questions are treated as first-class parts of the build: **how do you know the agent is still working correctly after the model changes?** And: **what is your business continuity plan if the AI systems don't work?**
 
 ---
 
-## The live agent
+## The live agents
 
-The SCRA DMDC Integration Agent is a working AI-powered compliance tool, running in a browser with no installation required.
+Two working AI-powered compliance agents, running in a browser with no installation required.
 
-**What it demonstrates:**
+### Agent 1 — SCRA DMDC Integration (Type 1 + Type 4)
 
-**DMDC Agent Run** — the agent executes a military status verification workflow (mocked DMDC API) across four scenarios. For each scenario, a real Claude AI model generates the compliance analysis, gate hold explanation, and required actions in real time — not pre-scripted responses.
+[**→ Open agent**](https://sadiqshifa.github.io/RMAS/scra-dmdc-agent.html)
 
-- **Active duty:** Gate holds, institution-wide account sweep executes across four accounts, AI generates required actions with statutory basis
-- **Not active:** Gate cleared, AI generates safe harbor scope note with residual obligation language
+**DMDC Agent Run** — executes a military status verification workflow across four scenarios. A real Claude AI model generates the compliance analysis, gate hold explanation, and required actions in real time.
+
+- **Active duty:** Gate holds, institution-wide account sweep across four accounts, AI generates required actions with statutory basis
+- **Not active:** Gate cleared, AI generates safe harbor scope note with residual obligation language  
 - **No record:** Escalated — not cleared — AI explains Reserve/Guard accuracy lag and required reviewer actions
 - **API timeout:** Gate fails closed — AI explains why timeout ≠ clearance and what reviewer must do
 
-**Notice Intake (AI-powered)** — paste any customer communication and the AI identifies SCRA triggers, including indirect language a rules engine would miss. Six pre-loaded scenarios demonstrate the range:
+**Notice Intake (AI-powered)** — paste any customer communication and the AI identifies SCRA triggers, including indirect language a rules engine would miss. Six pre-loaded scenarios:
 
 - A customer mentioning deployment on a collections call
-- A formal SCRA invocation letter
+- A formal SCRA invocation letter  
 - A spouse calling about a billing issue, mentioning "he's been stationed overseas"
 - A post-service retroactive request within the 180-day window
 - A power of attorney submission
 - A non-SCRA communication (correctly identified as no trigger)
 
-**Eval Suite** — six test cases with defined pass/fail criteria, runnable in one click. Includes zero-tolerance cases (API timeout must fail closed; no-record must escalate, never clear) that reflect the strict liability exposure in the underlying regulation.
+**Eval Suite** — six test cases with defined pass/fail criteria, runnable in one click. Includes zero-tolerance cases (API timeout must fail closed; no-record must escalate, never clear) reflecting the strict liability exposure in the underlying regulation.
+
+**Fallback mode:** If the AI model is unavailable, all deterministic functions continue — routing decisions, gate holds, certificate generation, and audit logging. Pre-written compliance guidance substitutes for AI-generated analysis, clearly labeled as fallback. The agent does not silently fail.
+
+---
+
+### Agent 2 — SCRA Deterministic Calculations (Type 3)
+
+[**→ Open agent**](https://sadiqshifa.github.io/RMAS/scra-calculations-agent.html)
+
+Four calculation tabs, each implementing controls identified in Layer 3 and derived from statutory requirements in Layer 1. Every calculation shows its methodology — inputs, formula, statutory basis, output — so it is fully auditable.
+
+**Interest Rate Cap** — calculates excess interest per account, per period, across all eligible pre-service accounts. Implements controls P2-C2 and P3 from Layer 3. Derived from 50 U.S.C. §3937.
+
+- Account-by-account excess interest calculation retroactive to active duty start date
+- Forgiven vs. deferred treatment enforced in the output
+- Payment reduction calculated and displayed
+- AI edge case review at completion
+
+**Tail Period** — calculates the one-year mortgage post-service tail period and flags whether rate restoration or foreclosure actions are blocked. Implements control P7-C2. Derived from 50 U.S.C. §3937(d)(2).
+
+- Tail period expiry date and days remaining
+- Rate restoration gate — blocked or cleared
+- Foreclosure timing conflict detection with strict liability flag
+
+**Tolling Calculator** — calculates adjusted statute of limitations expiry with military service periods excluded. Implements control P9-C2. Derived from 50 U.S.C. §3936.
+
+- Ten states pre-loaded with correct limitations periods
+- Standard expiry vs. adjusted expiry comparison
+- Critical flag when tolling changes the outcome — action appears time-barred without tolling but is viable with it applied
+
+**Full Account Summary** — runs all three calculations simultaneously and produces a complete servicemember remediation package with total amounts owed, tail period status, and required actions checklist.
+
+**Fallback mode:** All calculations are deterministic JavaScript — they execute completely regardless of AI availability. Only the AI edge case review sections use the model; these display pre-written compliance guidance in fallback mode.
 
 ---
 
 ## The methodology
 
-The project is organized in four layers. Each layer is a prerequisite for the next — the agent is only as good as the control identification it's built from, which is only as good as the process map, which is only as good as the regulatory requirements it's derived from.
+Four layers, each a prerequisite for the next. The agents are only as good as the control identification they're built from, which is only as good as the process map, which is only as good as the regulatory requirements it's derived from.
 
 ### Layer 1 — Regulatory Requirements
 
-Enumerates specific obligations from the source statute and exam guidance — not summaries, but testable requirements. For SCRA: nine obligation clusters, each with statutory citation, trigger conditions, timing rules, documentation requirements, enforcement authority, and penalties.
+Enumerates specific obligations from the source statute and exam guidance — not summaries, but testable requirements. For SCRA: twelve obligation clusters covering interest rate caps, foreclosure protections, repossession protections, default judgments, stay of proceedings, tolling, lease termination, and vendor responsibility — each with statutory citation, trigger conditions, timing rules, documentation requirements, enforcement authority, and penalties.
 
-This layer is where most compliance technology projects start too late. Starting here means the agent's behavior is grounded in what the regulation actually requires, not what someone remembers it requiring.
+This layer is where most compliance technology projects start too late. Starting here means agent behavior is grounded in what the regulation actually requires, not what someone remembers it requiring.
 
 [→ SCRA Layer 1](docs/layer1-scra.md)
 
 ### Layer 2 — Process Map
 
-Maps each regulatory requirement to the compliance processes where it lives operationally — loan origination, ongoing servicing, notice intake, collections, foreclosure, repossession, return from service, lease termination, civil litigation. Nine processes in total for SCRA, each with step-by-step workflows, data inputs, and a precise statement of what control is needed at each step.
+Maps each regulatory requirement to the compliance processes where it lives operationally. Nine processes for SCRA: loan origination, ongoing servicing, notice intake, collections, foreclosure, repossession, return from service, lease termination, and civil litigation. Each process has step-by-step workflows, data inputs, and a precise statement of what control is needed at each step.
 
 This is the layer most often skipped. Skipping it means building controls that are disconnected from how the work actually happens.
 
@@ -64,9 +99,9 @@ This is the layer most often skipped. Skipping it means building controls that a
 
 ### Layer 3 — Control Matrix
 
-Maps each process step to a specific, testable control. For each control: what it does, how it's currently executed (Manual / Tool-assisted / Automated / Absent), what the failure mode looks like in practice, and where an agent can genuinely help.
+Maps each process step to a specific, testable control. For each control: what it does, how it's currently executed, what the failure mode looks like in practice, and where an agent can genuinely help.
 
-Agent opportunity is rated on a four-tier scale — High, Medium, Low-Medium, and Low. The Low-Medium tier exists because some controls were initially rated Medium but are more honestly characterized as constrained by data availability or human accountability dependencies. Rounding up would have been misleading. The 22 High-rated controls are the agent build targets; the others are documented with honest explanations of why agent opportunity is limited.
+Agent opportunity is rated on a four-tier scale — High, Medium, Low-Medium, and Low. The Low-Medium tier exists because some controls were initially rated Medium but are more honestly characterized as constrained by data availability or human accountability dependencies. Rounding up would have been misleading. The 22 High-rated controls are the agent build targets.
 
 [→ SCRA Layer 3](docs/layer3-scra-control-matrix.md)
 
@@ -82,9 +117,18 @@ The human-in-the-loop map is precise: specific agent actions are classified as a
 
 ## Governance and risk management
 
-A dedicated governance framework document covers six operational domains: model and prompt versioning, eval suite execution with defined pass thresholds, production drift monitoring with specific signals and alert thresholds, human-in-the-loop execution standards (including what "genuine review" actually requires), incident response with P1/P2/P3/P4 classification, and regulatory currency.
+A dedicated governance framework covers eight operational domains:
 
-A Domain 7 addendum addresses the DMDC data dependency specifically — classifying it correctly as a government data source rather than a vendor, documenting four distinct dependency risks, and specifying compensating controls for each.
+1. **Model and prompt versioning** — version pinning, controlled upgrades, changelog
+2. **Eval suite execution** — pass thresholds, zero-tolerance cases, regression gates
+3. **Production drift monitoring** — specific signals, alert thresholds, cadence
+4. **Human-in-the-loop execution** — what genuine review actually requires (not rubber-stamping)
+5. **Incident response** — P1/P2/P3/P4 classification, gap period assessment, rollback
+6. **Regulatory currency** — keeping Layer 1 current as SCRA evolves through the NDAA cycle
+7. **DMDC data dependency** — classifying DMDC correctly as a government data source, not a vendor; four dependency risks with compensating controls
+8. **AI system availability and business continuity** — what happens when the AI doesn't work; two-tier operating model; manual procedure requirements; RTO/RPO targets; BCP testing schedule
+
+Domain 8 directly answers the question any serious reviewer will ask: *what is your business continuity plan if the AI systems don't work?* The answer: compliance-critical functions are deterministic and don't depend on the AI; AI-dependent functions have defined fallbacks clearly labeled as such; notice intake routes to manual human review; manual procedures exist and are tested; recovery objectives are formally adopted; the audit log records everything including fallback activation.
 
 [→ Governance Framework](docs/scra-agent-governance-risk.md)
 
@@ -92,9 +136,9 @@ A Domain 7 addendum addresses the DMDC data dependency specifically — classify
 
 ## Honesty about what this is
 
-Every document in this project carries a **Demonstration Scope Notice** that specifies exactly what gaps exist between the showcase and a production deployment. A separate gap register consolidates all gaps across layers, categorizes them by type and priority, and sequences them into a phased production readiness roadmap.
+Every document in this project carries a **Demonstration Scope Notice** specifying exactly what gaps exist between the showcase and a production deployment. A gap register consolidates all gaps across layers — 19 P1 blocking gaps, 15 P2 required gaps — categorized by type, priority, and sequenced into a phased production readiness roadmap.
 
-This matters for two reasons. First, it's accurate — the demonstration agent uses a mocked DMDC API, is stateless, and handles one trigger context at a time. A production deployment would need real API integration, state management, multi-context concurrent operation, and integration with loan servicing systems. Second, being specific about the gaps is itself a demonstration of judgment — it shows the difference between understanding a methodology and understanding what it would take to operationalize one.
+This matters for two reasons. First, it's accurate — the agents use a mocked DMDC API, are stateless, and handle one trigger context at a time. Second, being specific about the gaps is itself a demonstration of judgment. It shows the difference between understanding a methodology and understanding what it would take to operationalize one.
 
 [→ Gap Register](docs/scra-demo-to-production-gap-register.md)
 
@@ -104,15 +148,16 @@ This matters for two reasons. First, it's accurate — the demonstration agent u
 
 ```
 rmas/
-├── scra-dmdc-agent.html          # Live demo — open in any browser
+├── scra-dmdc-agent.html              # DMDC + Notice Intake agent — open in any browser
+├── scra-calculations-agent.html      # Calculations agent — open in any browser
 │
 ├── docs/
-│   ├── layer1-scra.md            # SCRA regulatory requirements
-│   ├── layer2-scra-process-map.md # Nine compliance processes
-│   ├── layer3-scra-control-matrix.md # 47 controls, four-tier ratings
-│   ├── layer4-scra-governance.md  # Agent characterization + governance
-│   ├── scra-agent-governance-risk.md # Operational governance framework
-│   └── scra-demo-to-production-gap-register.md # Demo → production gaps
+│   ├── layer1-scra.md                # SCRA regulatory requirements (12 obligation clusters)
+│   ├── layer2-scra-process-map.md    # Nine compliance processes with step-by-step workflows
+│   ├── layer3-scra-control-matrix.md # 47 controls, four-tier agent opportunity ratings
+│   ├── layer4-scra-governance.md     # Agent characterization + governance architecture
+│   ├── scra-agent-governance-risk.md # Operational governance framework (8 domains)
+│   └── scra-demo-to-production-gap-register.md # Demo → production gap register
 │
 └── README.md
 ```
@@ -127,9 +172,11 @@ rmas/
 
 **Honest control assessment.** Identifying where automation genuinely helps vs. where data availability or human accountability dependencies constrain agent opportunity — and rating them differently rather than rounding up.
 
-**Working agent execution.** A live AI-powered agent demonstrating Type 1 (DMDC integration) and Type 4 (language recognition) capability types, with real compliance logic, real AI-generated analysis, and a working eval suite.
+**Working agent execution.** Two live AI-powered agents: Type 1 (DMDC integration) and Type 4 (language recognition) in the DMDC agent; Type 3 (deterministic calculations) in the calculations agent — with real compliance logic, real AI-generated analysis, and working eval suites.
 
-**Production governance thinking.** Eval suite design, version pinning, human-in-the-loop boundaries, drift monitoring, incident response, and data dependency governance — specified at operational precision, not policy-document level.
+**Production governance thinking.** Eval suite design, version pinning, human-in-the-loop boundaries, drift monitoring, incident response, data dependency governance, and business continuity — specified at operational precision, not policy-document level.
+
+**Business continuity design.** A two-tier operating model where compliance-critical functions run deterministically regardless of AI availability, with defined fallback behavior, manual procedure requirements, RTO/RPO targets, and a testing schedule.
 
 **Intellectual honesty.** A gap register that says clearly what this is and what it isn't, and a phased roadmap for what production deployment would require.
 
@@ -157,14 +204,14 @@ The methodology transfers. The domain knowledge is specific to the domain.
 |---|---|
 | SCRA Layer 1 — Regulatory Requirements | ✅ v0.1 complete |
 | SCRA Layer 2 — Process Map (9 processes) | ✅ v0.1 complete |
-| SCRA Layer 3 — Control Matrix (47 controls) | ✅ v0.2 complete |
-| SCRA Layer 4 — Agent Characterization | ✅ v0 complete |
-| SCRA Governance Framework | ✅ v0.1 complete |
-| SCRA Gap Register | ✅ v0 complete |
-| SCRA Agent — Type 1 (DMDC Integration) | ✅ Working demo |
-| SCRA Agent — Type 4 (Notice Recognition) | ✅ Working demo |
+| SCRA Layer 3 — Control Matrix (47 controls, 4-tier ratings) | ✅ v0.2 complete |
+| SCRA Layer 4 — Agent Characterization (4 capability types) | ✅ v0 complete |
+| SCRA Governance Framework (8 domains incl. BCP) | ✅ v0.2 complete |
+| SCRA Gap Register (19 P1 gaps, phased roadmap) | ✅ v0.1 complete |
+| SCRA Agent — Type 1 (DMDC Integration) | ✅ Working demo · fallback mode |
+| SCRA Agent — Type 4 (Notice Recognition) | ✅ Working demo · fallback mode |
+| SCRA Agent — Type 3 (Deterministic Calculations) | ✅ Working demo · fallback mode |
 | SCRA Agent — Type 2 (Gate Enforcement) | 🚧 Characterized, not yet built |
-| SCRA Agent — Type 3 (Calculations) | 🚧 Characterized, not yet built |
 | AML/KYC/Sanctions — Layers 1 & 2 | 🚧 v0 drafted |
 | Fair Lending / HMDA — Layer 1 | 🚧 v0 drafted |
 
@@ -178,5 +225,4 @@ The goal was to go deep enough on a real compliance domain to demonstrate workin
 
 ---
 
-*Regulatory content verified against OCC Comptroller's Handbook v1.1 (November 2025) and 50 U.S.C. statutory text. DMDC API is mocked in the demonstration agent. See the gap register for full production readiness assessment.*
-
+*Regulatory content verified against OCC Comptroller's Handbook v1.1 (November 2025) and 50 U.S.C. statutory text. DMDC API is mocked in the demonstration agents. See the gap register for full production readiness assessment.*
