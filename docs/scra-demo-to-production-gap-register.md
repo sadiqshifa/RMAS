@@ -13,7 +13,7 @@ category, and which showcase document(s) the gap originates from.
 > methodology is honest about its own limits — which is itself a
 > demonstration of the governance rigor the project claims.
 
-> Status: v0, drafted 2026-06-22.
+> Status: v0.1, updated 2026-07-03. Added Category 7 (Business Continuity gaps) reflecting Domain 8 addition to governance framework. Updated gap summary counts and production readiness roadmap.
 
 ---
 
@@ -140,35 +140,53 @@ exist in surrounding institutional infrastructure.
 
 ---
 
+## Category 7 — Business Continuity Gaps
+
+Gaps between the demonstration-level fallback implementation and a
+production-grade business continuity plan for AI system unavailability.
+
+| Gap ID | What the showcase has | What production requires | Effort | Priority | Source |
+|---|---|---|---|---|---|
+| BCG-01 | Fallback mode implemented in agent code — pre-written compliance guidance substitutes for AI output when API is unavailable | Formally documented manual procedures for each fallback function (DMDC verification, rate cap calculation, notice screening, tail period, tolling) — written at procedure level, not guidance level | Institutional | P1 — Blocking | Governance doc, Domain 8 |
+| BCG-02 | Fallback activates automatically with 15-second timeout | Formally adopted RTO and RPO targets in a signed BCP document — including RTO for manual procedure activation and RPO for compliance obligation continuity | Institutional | P1 — Blocking | Governance doc, Domain 8E |
+| BCG-03 | Fallback mode has never been tested | BCP testing schedule executed before production deployment — fallback activation test, manual procedure drills, full manual exercise per Domain 8F | Institutional | P1 — Blocking | Governance doc, Domain 8F |
+| BCG-04 | Notice intake has no fallback (correctly documented) | Formal policy documenting that notice intake routes to manual human review during AI unavailability; staff trained on manual notice screening procedure | Institutional | P1 — Blocking | Governance doc, Domain 8C |
+| BCG-05 | Fallback content is pre-written scenario-specific guidance | Manual procedure documentation referenced by fallback content — so reviewers can execute the procedure, not just read guidance | Build | P2 — Required | Governance doc, Domain 8D |
+| BCG-06 | Fallback audit log records activation | Integration of fallback activation events into the institution's operational risk event log — so AI outages are tracked as operational risk events, not just system logs | Institutional | P2 — Required | Governance doc, Domain 8G |
+| BCG-07 | Silent degradation not detectable by fallback mechanism | Silent degradation addressed only through drift monitoring (Domain 3) and eval suite (Domain 2) — confirm both are operational before relying on AI output for compliance decisions | Build | P2 — Required | Governance doc, Domain 8B |
+
+---
+
 ## Gap summary by priority
 
 | Priority | Count | Blocking nature |
 |---|---|---|
-| P1 — Blocking | 15 | Must be resolved before any production deployment |
-| P2 — Required | 13 | Must be resolved for program integrity; does not block initial deployment in a controlled environment |
+| P1 — Blocking | 19 | Must be resolved before any production deployment |
+| P2 — Required | 15 | Must be resolved for program integrity; does not block initial deployment in a controlled environment |
 | P3 — Important | 3 | Strengthens program; appropriate for pre-scale resolution |
 | P4 — Enhancement | 2 | Appropriate for mature program |
 | Institutional assumptions | 5 | Out of scope; assumed to exist |
 
 **The honest production readiness picture:**
 
-Of the 15 P1 gaps, eight are in Category 4 (agent build gaps) — reflecting
-that the demonstration agent is a Type 1 capability showcase, not a
-production system. The remaining seven P1 gaps are in regulatory coverage
-(NDAA verification), process validation (SOP review, system inventory),
-control matrix (data availability audit, institution-specific control
-inventory), and governance (named roles, formal pass threshold adoption,
-gate hold review interface).
+Of the 19 P1 gaps, eight are in Category 4 (agent build gaps), four are
+in Category 7 (business continuity), and the remaining seven are in
+regulatory coverage, process validation, control matrix, and governance.
+The BCP gaps are P1 because SCRA compliance obligations do not pause
+during AI outages — the institution must be able to meet its statutory
+obligations manually if the agent is unavailable.
 
 A production deployment could proceed in phases:
 - **Phase 0 (prerequisite):** Resolve CMG-02 (data availability audit)
   and CMG-01 (institution-specific control inventory) — these gate everything
 - **Phase 1 (foundation):** Resolve RCG-01 (NDAA verification), PMG-01
   (SOP validation), GOG-01/02/03 (named roles, formal thresholds, review
-  interface), ABG-04/06 (real DMDC integration, servicing system integration)
+  interface), ABG-04/06 (real DMDC integration, servicing system integration),
+  BCG-01/02/03/04 (manual procedures, BCP document, BCP testing, notice policy)
 - **Phase 2 (full Type 1 production):** Resolve ABG-02/03/05 (state
   management, multi-context operation, full eval suite), GOG-09 (drift
-  monitoring infrastructure)
+  monitoring infrastructure), BCG-05/06/07 (procedure documentation,
+  operational risk integration, silent degradation monitoring)
 - **Phase 3 (expand capability types):** ABG-01 (Types 2, 3, 4 built),
   GOG-04 (governance extensions for new types)
 - **Phase 4 (program maturity):** State law overlay (RCG-02, PMG-04,
