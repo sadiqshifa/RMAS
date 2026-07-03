@@ -226,3 +226,5 @@ The goal was to go deep enough on a real compliance domain to demonstrate workin
 ---
 
 *Regulatory content verified against OCC Comptroller's Handbook v1.1 (November 2025) and 50 U.S.C. statutory text. DMDC API is mocked in the demonstration agents. See the gap register for full production readiness assessment.*
+
+
