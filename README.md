@@ -2,7 +2,7 @@
 
 **A methodology for connecting regulatory requirements to AI-assisted compliance controls — with governance as a first-class concern.**
 
-[**→ Try the DMDC Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-dmdc-agent.html) · [**→ Try the Calculations Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-calculations-agent.html)
+[**→ Try the SCRA DMDC Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-dmdc-agent.html) · [**→ Try the SCRA Calculations Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-calculations-agent.html)
 
 ---
 
