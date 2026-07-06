@@ -2,7 +2,7 @@
 
 **A methodology for connecting regulatory requirements to AI-assisted compliance controls — with governance as a first-class concern.**
 
-[**→ Try the SCRA DMDC Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-dmdc-agent.html) · [**→ Try the SCRA Calculations Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-calculations-agent.html) · [**→ Try the Regulatory Change Monitor (live)**](https://sadiqshifa.github.io/RMAS/reg-change-monitor.html)
+[**→ Try the SCRA DMDC Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-dmdc-agent.html) · [**→ Try the SCRA Calculations Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-calculations-agent.html) · [**→ Try the Regulatory Change Monitor (live)**](https://sadiqshifa.github.io/RMAS/reg-change-monitor.html) · [**→ Try the Model Risk Register (live)**](https://sadiqshifa.github.io/RMAS/model-risk-register.html)
 
 ---
 
@@ -91,6 +91,20 @@ Unlike Agents 1 and 2, this agent isn't domain-specific — it's a second-line-o
 
 ---
 
+## Model Risk Register — governance of the governance
+
+[**→ Open the register**](https://sadiqshifa.github.io/RMAS/model-risk-register.html)
+
+The three agents above each contain AI components making judgment calls. This register treats those components as models under formal inventory and governance, modeled on **SR 11-7** (the Fed/OCC's actual Model Risk Management guidance) — model inventory, risk tiering (High/Medium/Low based on autonomy, materiality, and detectability), validation status by tier, and a documented remediation path for gaps.
+
+Unlike every other artifact in this project, the register makes **no API calls at all** — it's static governance content, deliberately, so it stays available regardless of AI status.
+
+**A real finding, not a hypothetical:** auditing all 4 AI models across the fleet turned up that only 1 — the Regulatory Change Monitor's classification model — has an eval suite that actually validates its output. The DMDC agent's existing eval suite tests deterministic routing/gate/certificate logic only, not the AI-generated narrative text. The Notice Intake trigger-recognition model has zero eval coverage. The Calculations agent's AI edge-case review has no eval suite at all. The register documents all three gaps with a prioritized remediation roadmap rather than leaving them implicit.
+
+[→ Full framework doc](docs/model-risk-management-framework.md)
+
+---
+
 ## The methodology
 
 Four layers, each a prerequisite for the next. The agents are only as good as the control identification they're built from, which is only as good as the process map, which is only as good as the regulatory requirements it's derived from.
@@ -165,6 +179,7 @@ rmas/
 ├── scra-dmdc-agent.html              # DMDC + Notice Intake agent — open in any browser
 ├── scra-calculations-agent.html      # Calculations agent — open in any browser
 ├── reg-change-monitor.html           # Cross-domain (AML/KYC, Fair Lending, SCRA) reg-change agent — open in any browser
+├── model-risk-register.html          # Model Risk Register — governance-of-governance, no API calls — open in any browser
 │
 ├── docs/
 │   ├── layer1-scra.md                # SCRA regulatory requirements (12 obligation clusters)
@@ -175,7 +190,8 @@ rmas/
 │   ├── scra-demo-to-production-gap-register.md # Demo → production gap register
 │   ├── layer1-aml-kyc.md             # AML/KYC/Sanctions regulatory map
 │   ├── layer2-aml-kyc.md             # AML/KYC/Sanctions control matrix
-│   └── layer1-fair-lending.md        # Fair Lending (Reg B/HMDA) regulatory map
+│   ├── layer1-fair-lending.md        # Fair Lending (Reg B/HMDA) regulatory map
+│   └── model-risk-management-framework.md # SR 11-7-inspired model inventory & governance methodology
 │
 └── README.md
 ```
@@ -240,6 +256,8 @@ Both AML/KYC and Fair Lending are already covered by the cross-domain [Regulator
 | AML/KYC/Sanctions — Layer 2 (Control Matrix) | ✅ v0 committed |
 | Fair Lending / HMDA — Layer 1 (Regulatory Map) | ✅ v0 committed |
 | Fair Lending / HMDA — Layer 2 (Control Matrix) | 🚧 Not yet built |
+| Model Risk Register — 4-model inventory, SR 11-7-inspired tiering | ✅ v0.1 complete |
+| Model Risk Register — validation coverage (1 of 4 models validated) | 🚧 3 known gaps, prioritized roadmap documented |
 
 ---
 
