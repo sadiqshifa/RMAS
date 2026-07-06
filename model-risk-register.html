@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Model Risk Register — RMAS</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root{
+    --charcoal-950:#0d0e12;
+    --charcoal-900:#15171d;
+    --charcoal-800:#1e212a;
+    --line:#2a2e38;
+    --paper:#e8e9ec;
+    --paper-dim:#9ea3ae;
+    --oxblood:#8a3a3a;
+    --oxblood-bright:#b5504f;
+    --amber:#c1893f;
+    --teal:#4f8f8a;
+    --green:#5a9b6e;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--charcoal-950);color:var(--paper);
+    font-family:'IBM Plex Sans',sans-serif;line-height:1.55;
+  }
+  .wrap{max-width:980px;margin:0 auto;padding:32px 20px 80px;}
+  h1,h2,h3{font-family:'Source Serif 4',serif;font-weight:700;margin:0;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--oxblood-bright);margin-bottom:8px;
+  }
+  header h1{font-size:27px;color:#fff;}
+  header p.sub{color:var(--paper-dim);margin-top:8px;font-size:15px;max-width:68ch;}
+
+  .no-api-badge{
+    display:inline-flex;align-items:center;gap:6px;margin-top:16px;
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.05em;
+    color:var(--green);border:1px solid var(--green);padding:5px 10px;border-radius:2px;
+  }
+
+  section{margin-top:28px;}
+  .panel{border:1px solid var(--line);background:var(--charcoal-900);padding:20px;}
+  .panel h2{font-size:17px;color:#fff;margin-bottom:4px;}
+  .panel .desc{font-size:13px;color:var(--paper-dim);margin-bottom:16px;}
+
+  .summary-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px;}
+  .stat{
+    flex:1;min-width:120px;border:1px solid var(--line);background:var(--charcoal-950);
+    padding:14px 16px;text-align:center;
+  }
+  .stat-num{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:#fff;}
+  .stat-label{font-size:10.5px;color:var(--paper-dim);text-transform:uppercase;letter-spacing:.06em;margin-top:4px;}
+
+  .finding-banner{
+    border:1px solid var(--oxblood);border-left:3px solid var(--oxblood-bright);
+    background:#8a3a3a15;padding:14px 16px;margin-bottom:20px;font-size:13.5px;
+  }
+  .finding-banner b{color:#fff;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{
+    text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--paper-dim);
+    padding:8px 10px;border-bottom:1px solid var(--line);
+  }
+  td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  tr.model-row{cursor:pointer;}
+  tr.model-row:hover{background:var(--charcoal-800);}
+  .model-id{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--paper-dim);}
+  .model-name{color:#fff;font-weight:600;}
+  .model-agent{font-size:12px;color:var(--paper-dim);}
+
+  .badge{
+    display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;
+    letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:2px;
+    border:1px solid currentColor;white-space:nowrap;
+  }
+  .badge.tier-high{color:var(--oxblood-bright);}
+  .badge.tier-medium{color:var(--amber);}
+  .badge.tier-low{color:var(--paper-dim);}
+  .badge.validated{background:var(--green);color:#0d0e12;border-color:var(--green);}
+  .badge.not-validated{background:var(--oxblood);color:#fff;border-color:var(--oxblood);}
+
+  .detail-row{display:none;}
+  .detail-row td{background:var(--charcoal-950);font-size:12.5px;color:var(--paper-dim);padding:14px 16px;}
+  .detail-row.open{display:table-row;}
+  .detail-row b{color:var(--paper);}
+
+  .roadmap-item{
+    border:1px solid var(--line);border-left:3px solid var(--amber);
+    background:var(--charcoal-950);padding:12px 14px;margin-bottom:8px;font-size:13px;
+  }
+  .roadmap-item b{color:#fff;}
+
+  .cadence-list{font-size:13px;color:var(--paper-dim);}
+  .cadence-list li{margin-bottom:8px;}
+
+  footer{margin-top:32px;font-size:12px;color:var(--paper-dim);border-top:1px solid var(--line);padding-top:16px;}
+  footer a{color:var(--teal);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">RMAS — Governance-of-Governance</div>
+    <h1>Model Risk Register</h1>
+    <p class="sub">Every RMAS agent contains AI components making judgment calls — generating narratives, classifying updates, recognizing triggers. This register treats those components as models under formal inventory and governance, modeled on SR 11-7 (the Fed/OCC's Model Risk Management guidance): inventory, risk tiering, validation status, and a documented remediation path for gaps.</p>
+    <div class="no-api-badge">● No API calls — this register is static governance content, always available regardless of AI status</div>
+  </header>
+
+  <section>
+    <div class="panel">
+      <h2>Portfolio summary</h2>
+      <div class="desc">4 AI models identified across 3 agents, as of this review.</div>
+      <div class="summary-row">
+        <div class="stat"><div class="stat-num">4</div><div class="stat-label">Models tracked</div></div>
+        <div class="stat"><div class="stat-num" style="color:var(--green);">1</div><div class="stat-label">Validated</div></div>
+        <div class="stat"><div class="stat-num" style="color:var(--oxblood-bright);">3</div><div class="stat-label">Not validated</div></div>
+        <div class="stat"><div class="stat-num" style="color:var(--oxblood-bright);">2</div><div class="stat-label">High tier</div></div>
+        <div class="stat"><div class="stat-num" style="color:var(--amber);">1</div><div class="stat-label">Medium tier</div></div>
+        <div class="stat"><div class="stat-num">1</div><div class="stat-label">Low tier</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="panel">
+      <div class="finding-banner">
+        <b>Finding — not hypothetical:</b> only 1 of 4 models in this portfolio has an eval suite that actually validates its output. The DMDC agent's existing 6-case eval suite tests deterministic routing/gate/certificate logic only — no test checks the AI-generated narrative text itself. The Notice Intake trigger-recognition model has zero eval coverage. The Calculations agent's AI edge-case review has no eval suite at all. Only the Regulatory Change Monitor's 18-case suite genuinely tests AI output against human-labeled correct answers. See the remediation roadmap below.
+      </div>
+
+      <h2>Model inventory</h2>
+      <div class="desc">Click a row for tiering rationale and validation detail.</div>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Model / use case</th><th>Agent</th><th>Tier</th><th>Validation status</th></tr>
+        </thead>
+        <tbody id="registerBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="panel">
+      <h2>Remediation roadmap</h2>
+      <div class="desc">Ordered by tier, then by ease of closing the gap.</div>
+      <div class="roadmap-item"><b>1. MRM-002 (High, unvalidated)</b> — build a labeled eval set from the six existing Notice Intake demo scenarios plus additional edge cases (ambiguous language, non-English phrasing, a trigger embedded in an unrelated complaint). Highest priority: highest tier, zero current coverage, raw material for a first-pass eval set already exists.</div>
+      <div class="roadmap-item"><b>2. MRM-001 (Medium, unvalidated)</b> — extend the existing 6-case eval suite with assertions on the generated narrative text itself, not just whether the gate held.</div>
+      <div class="roadmap-item"><b>3. MRM-003 (Low, unvalidated)</b> — lowest priority since materiality is already covered by deterministic calculation correctness, but a basic spot-check rubric would still close the zero-coverage gap cheaply.</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="panel">
+      <h2>Governance cadence</h2>
+      <ul class="cadence-list">
+        <li><b style="color:var(--paper);">Model inventory review:</b> any new agent or AI-powered feature gets an entry here before being marked "built" in the main README's status table — not after.</li>
+        <li><b style="color:var(--paper);">Re-validation trigger:</b> any model version pin change requires re-running every High and Medium tier model's eval suite before the change is treated as adopted.</li>
+        <li><b style="color:var(--paper);">Sign-off:</b> Sadiq is the sole Model Risk Owner for all entries in this sandbox. In production, High-tier models would require sign-off independent of the model's builder.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    RMAS · Model Risk Register — see <a href="docs/model-risk-management-framework.md">the full framework doc</a> for tiering methodology and validation requirements by tier.
+  </footer>
+</div>
+
+<script>
+const MODELS = [
+  { id:'MRM-001', name:'Gate clearance narrative generation', agent:'SCRA DMDC Agent', agentLink:'scra-dmdc-agent.html',
+    tier:'medium', validated:false,
+    rationale:'Human reviewer sees this narrative before acting, capping the tier below High — but the narrative meaningfully shapes what the reviewer understands about safe-harbor scope and residual obligations.',
+    validationNote:'The agent\'s 6-case eval suite (TC-01 through TC-06) tests only deterministic fields: routing, gate state, certificate generation, sweep counts. No test asserts anything about the actual AI-generated narrative text — its accuracy is currently untested by the agent\'s own eval suite.' },
+  { id:'MRM-002', name:'SCRA notice trigger recognition', agent:'SCRA DMDC Agent — Notice Intake tab', agentLink:'scra-dmdc-agent.html',
+    tier:'high', validated:false,
+    rationale:'This is the entry point to the entire SCRA workflow. If the model misses a valid trigger (e.g., indirect language like a spouse mentioning deployment on a billing call), there is no downstream check — the workflow simply never starts. High materiality and detectability risk independent of whether flagged cases get reviewed.',
+    validationNote:'Zero eval coverage. The six pre-loaded scenarios in the UI are demo content for showing the capability, not a labeled eval set with a pass/fail harness.' },
+  { id:'MRM-003', name:'AI edge case review (all 4 calculation tabs)', agent:'SCRA Calculations Agent', agentLink:'scra-calculations-agent.html',
+    tier:'low', validated:false,
+    rationale:'The calculation outputs themselves (interest owed, tail period dates, tolling adjustments) are fully deterministic JavaScript and don\'t depend on the AI at all. The AI-generated edge-case narrative is a drafting aid layered on top of a number that is already correct independent of what the model says about it.',
+    validationNote:'No eval suite exists for this agent at all. Lowest priority to close given materiality is already covered elsewhere, but still a documented gap.' },
+  { id:'MRM-004', name:'Regulatory update classification', agent:'Regulatory Change Monitor', agentLink:'reg-change-monitor.html',
+    tier:'high', validated:true,
+    rationale:'Directly shapes what a compliance team believes requires action across three regulatory domains. Miss a relevant change and it may go unaddressed until the next manual review; over-flag routine items and the tool loses credibility.',
+    validationNote:'18-case eval suite (14 real, dated regulatory items verified via search; 4 clearly-marked constructed edge cases), evenly split across the three domains, each with a human-set expected classification and materiality. This is the only model in the portfolio with genuine output validation.' }
+];
+
+const tierLabel = {high:'High', medium:'Medium', low:'Low'};
+
+function render(){
+  const tbody = document.getElementById('registerBody');
+  tbody.innerHTML = MODELS.map((m, i) => `
+    <tr class="model-row" onclick="toggleDetail(${i})">
+      <td class="model-id">${m.id}</td>
+      <td class="model-name">${m.name}</td>
+      <td class="model-agent">${m.agent}</td>
+      <td><span class="badge tier-${m.tier}">${tierLabel[m.tier]}</span></td>
+      <td><span class="badge ${m.validated ? 'validated' : 'not-validated'}">${m.validated ? 'Validated' : 'Not validated'}</span></td>
+    </tr>
+    <tr class="detail-row" id="detail-${i}">
+      <td colspan="5">
+        <b>Tiering rationale:</b> ${m.rationale}<br><br>
+        <b>Validation detail:</b> ${m.validationNote}<br><br>
+        <a href="${m.agentLink}" target="_blank" style="color:var(--teal);">Open this agent →</a>
+      </td>
+    </tr>`).join('');
+}
+
+function toggleDetail(i){
+  document.getElementById('detail-' + i).classList.toggle('open');
+}
+
+render();
+</script>
+</body>
+</html>
