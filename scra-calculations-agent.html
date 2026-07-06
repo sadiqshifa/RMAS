@@ -177,6 +177,9 @@
     </div>
   </div>
   <div class="header-right">
+    <input type="password" id="byokKey" placeholder="Your API key (optional)"
+      title="Optional: enter your own Anthropic API key to see live AI-generated compliance narratives. Stays in this browser tab only — never stored or logged. Leave blank to run in fallback mode."
+      style="background:var(--slate);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:2px;width:170px;">
     <div class="type-badge">TYPE 3</div>
     <div class="version-tag">agent-v0.1 · claude-sonnet-4-6 · scra-t3-v1</div>
   </div>
@@ -503,9 +506,17 @@ async function callClaude(system, user, fallbackKey='cap') {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
+    const byokKey = document.getElementById('byokKey').value.trim();
+    const headers = {'Content-Type':'application/json'};
+    if (byokKey) {
+      headers['x-api-key'] = byokKey;
+      headers['anthropic-version'] = '2023-06-01';
+      headers['anthropic-dangerous-direct-browser-access'] = 'true';
+    }
+
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers: headers,
       body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:1000, system, messages:[{role:'user',content:user}]}),
       signal: controller.signal
     });
