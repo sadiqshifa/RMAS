@@ -170,12 +170,12 @@ rmas/
 │   ├── layer1-scra.md                # SCRA regulatory requirements (12 obligation clusters)
 │   ├── layer2-scra-process-map.md    # Nine compliance processes with step-by-step workflows
 │   ├── layer3-scra-control-matrix.md # 47 controls, four-tier agent opportunity ratings
-│   ├── layer4-scra-governance.md     # Agent characterization + governance architecture
+│   ├── layer4-scra-governance.md     # SCRA agent characterization + governance architecture
 │   ├── scra-agent-governance-risk.md # Operational governance framework (8 domains)
-│   └── scra-demo-to-production-gap-register.md # Demo → production gap register
-│
-│   # Not yet in this repo — drafted separately, pending commit:
-│   # layer1-aml-kyc.md, layer2-aml-kyc.md, layer1-fair-lending.md
+│   ├── scra-demo-to-production-gap-register.md # Demo → production gap register
+│   ├── layer1-aml-kyc.md             # AML/KYC/Sanctions regulatory map
+│   ├── layer2-aml-kyc.md             # AML/KYC/Sanctions control matrix
+│   └── layer1-fair-lending.md        # Fair Lending (Reg B/HMDA) regulatory map
 │
 └── README.md
 ```
@@ -204,8 +204,8 @@ rmas/
 
 SCRA was chosen as the template domain because its requirements are discrete and its process touchpoints are bounded — it's a good domain to build the methodology in. The same four-layer approach applies to:
 
-- AML/KYC/Sanctions (Layer 1 and Layer 2 drafted; not yet committed to this repository)
-- Fair Lending / HMDA (Layer 1 drafted; not yet committed to this repository) — both domains are already covered by the cross-domain [Regulatory Change Monitor](https://sadiqshifa.github.io/RMAS/reg-change-monitor.html) agent above, ahead of their own Layer 1/2 docs landing here
+- [AML/KYC/Sanctions](docs/layer1-aml-kyc.md) — [Layer 1](docs/layer1-aml-kyc.md) and [Layer 2](docs/layer2-aml-kyc.md) built
+- [Fair Lending / HMDA](docs/layer1-fair-lending.md) — Layer 1 built; Layer 2 control matrix still outstanding
 - Healthcare privacy (HIPAA, 42 CFR Part 2)
 - Insurance regulatory compliance
 - Energy market compliance (FERC, NERC)
@@ -213,6 +213,8 @@ SCRA was chosen as the template domain because its requirements are discrete and
 - Any domain where regulatory complexity creates operational risk that exceeds what manual processes reliably handle
 
 The methodology transfers. The domain knowledge is specific to the domain.
+
+Both AML/KYC and Fair Lending are already covered by the cross-domain [Regulatory Change Monitor](https://sadiqshifa.github.io/RMAS/reg-change-monitor.html) agent above, ahead of either domain having its own dedicated Layer 3/4 agent build — a deliberate sequencing choice: build the cross-cutting second-line function once, then layer domain-specific agents on top as each domain's control matrix matures.
 
 ---
 
@@ -234,8 +236,10 @@ The methodology transfers. The domain knowledge is specific to the domain.
 | Regulatory Change Monitor — Production Architecture view (Fed Register API, OFAC SDN diff, scheduler, persistence) | ✅ Code present, intentionally inactive on static hosting |
 | Regulatory Change Monitor — Eval suite (18 cases, 14 real / 4 constructed) | ✅ v0.1 complete |
 | All three agents — BYOK live AI (bring-your-own Anthropic API key) | ✅ Implemented; fallback-by-default outside Claude.ai's runtime |
-| AML/KYC/Sanctions — Layers 1 & 2 | 🚧 v0 drafted — **not yet committed to this repo** |
-| Fair Lending / HMDA — Layer 1 | 🚧 v0 drafted — **not yet committed to this repo** |
+| AML/KYC/Sanctions — Layer 1 (Regulatory Map) | ✅ v0 committed |
+| AML/KYC/Sanctions — Layer 2 (Control Matrix) | ✅ v0 committed |
+| Fair Lending / HMDA — Layer 1 (Regulatory Map) | ✅ v0 committed |
+| Fair Lending / HMDA — Layer 2 (Control Matrix) | 🚧 Not yet built |
 
 ---
 
