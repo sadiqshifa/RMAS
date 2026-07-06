@@ -2,7 +2,7 @@
 
 **A methodology for connecting regulatory requirements to AI-assisted compliance controls — with governance as a first-class concern.**
 
-[**→ Try the SCRA DMDC Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-dmdc-agent.html) · [**→ Try the SCRA Calculations Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-calculations-agent.html)
+[**→ Try the SCRA DMDC Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-dmdc-agent.html) · [**→ Try the SCRA Calculations Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-calculations-agent.html) · [**→ Try the Regulatory Change Monitor (live)**](https://sadiqshifa.github.io/RMAS/reg-change-monitor.html)
 
 ---
 
@@ -18,13 +18,13 @@ This is not a demo that stops at the automation. Two harder questions are treate
 
 ## The live agents
 
-Two working AI-powered compliance agents, running in a browser with no installation required.
+Three working AI-powered compliance agents, running in a browser with no installation required.
 
 ### Agent 1 — SCRA DMDC Integration (Type 1 + Type 4)
 
 [**→ Open agent**](https://sadiqshifa.github.io/RMAS/scra-dmdc-agent.html)
 
-**DMDC Agent Run** — executes a military status verification workflow across four scenarios. A real Claude AI model generates the compliance analysis, gate hold explanation, and required actions in real time.
+**DMDC Agent Run** — executes a military status verification workflow across four scenarios. When run inside Claude.ai, or with your own Anthropic API key entered in the agent, a live Claude model generates the compliance analysis, gate hold explanation, and required actions in real time. Without a key — the default for any visitor opening the page directly — the agent runs in fallback mode: the same deterministic routing, gates, and audit logging execute normally, with pre-written compliance guidance in place of live AI analysis, clearly labeled as such.
 
 - **Active duty:** Gate holds, institution-wide account sweep across four accounts, AI generates required actions with statutory basis
 - **Not active:** Gate cleared, AI generates safe harbor scope note with residual obligation language  
@@ -42,7 +42,7 @@ Two working AI-powered compliance agents, running in a browser with no installat
 
 **Eval Suite** — six test cases with defined pass/fail criteria, runnable in one click. Includes zero-tolerance cases (API timeout must fail closed; no-record must escalate, never clear) reflecting the strict liability exposure in the underlying regulation.
 
-**Fallback mode:** If the AI model is unavailable, all deterministic functions continue — routing decisions, gate holds, certificate generation, and audit logging. Pre-written compliance guidance substitutes for AI-generated analysis, clearly labeled as fallback. The agent does not silently fail.
+**Fallback mode:** If no API key is provided (or the AI model is otherwise unavailable), all deterministic functions continue — routing decisions, gate holds, certificate generation, and audit logging. Pre-written compliance guidance substitutes for AI-generated analysis, clearly labeled as fallback. The agent does not silently fail. Enter your own Anthropic API key in the agent to see the live AI analysis this design is built to produce — the key is used only in your browser session and is never stored or logged.
 
 ---
 
@@ -73,7 +73,21 @@ Four calculation tabs, each implementing controls identified in Layer 3 and deri
 
 **Full Account Summary** — runs all three calculations simultaneously and produces a complete servicemember remediation package with total amounts owed, tail period status, and required actions checklist.
 
-**Fallback mode:** All calculations are deterministic JavaScript — they execute completely regardless of AI availability. Only the AI edge case review sections use the model; these display pre-written compliance guidance in fallback mode.
+**Fallback mode:** All calculations are deterministic JavaScript — they execute completely regardless of AI availability. Only the AI edge case review sections use the model; these display pre-written compliance guidance by default and require your own Anthropic API key (entered in the agent) to run live, same as Agent 1.
+
+---
+
+### Agent 3 — Regulatory Change Monitor (cross-domain, Layer 3/second-line)
+
+[**→ Open agent**](https://sadiqshifa.github.io/RMAS/reg-change-monitor.html)
+
+Unlike Agents 1 and 2, this agent isn't domain-specific — it's a second-line-of-defense GRC function that watches for regulatory change across all three domains in this project: **AML/KYC/Sanctions**, **Fair Lending (Reg B/HMDA)**, and **SCRA**. Pick any combination of domains and run a live check; the agent searches the correct primary source per domain (FinCEN/OFAC for AML, CFPB for Fair Lending, DOJ/Federal Register/Congress.gov for SCRA — DMDC is deliberately excluded as a source here, since it's a data source, not a rule-change source), then classifies each item found: relevant / not relevant / ambiguous, plus materiality and primary-vs-secondary sourcing.
+
+**Demo Mode vs. Production Architecture** — a toggle switches between the working live-search demo and a Production Architecture view showing real, verified integration code (a live-tested Federal Register API poller, an OFAC SDN list differ, a scheduler config, and a persistence schema) that a production deployment would run on a schedule. That code is present but intentionally inactive here, since static GitHub Pages hosting can't run scheduled server-side jobs or persist state between runs — the notice explains exactly why, rather than leaving "live" ambiguous.
+
+**Eval suite — 18 pre-labeled cases** (14 real, dated regulatory items verified via search; 4 clearly-marked constructed edge cases), evenly split across the three domains, each with a human-set correct classification and materiality. This is the concrete Layer 4 regression gate: before adopting any model or prompt change, re-run the suite and compare against the last known pass rate.
+
+**Fallback mode / BYOK:** By default — including for any visitor on this GitHub Pages site — the agent runs in fallback mode: no live API calls, no cost, nothing required, with direct links to primary sources if a check can't complete. Enter your own Anthropic API key in the agent to trigger genuine live search-and-classify runs and to actually score the eval suite instead of seeing "pending."
 
 ---
 
@@ -150,6 +164,7 @@ This matters for two reasons. First, it's accurate — the agents use a mocked D
 rmas/
 ├── scra-dmdc-agent.html              # DMDC + Notice Intake agent — open in any browser
 ├── scra-calculations-agent.html      # Calculations agent — open in any browser
+├── reg-change-monitor.html           # Cross-domain (AML/KYC, Fair Lending, SCRA) reg-change agent — open in any browser
 │
 ├── docs/
 │   ├── layer1-scra.md                # SCRA regulatory requirements (12 obligation clusters)
@@ -158,6 +173,9 @@ rmas/
 │   ├── layer4-scra-governance.md     # Agent characterization + governance architecture
 │   ├── scra-agent-governance-risk.md # Operational governance framework (8 domains)
 │   └── scra-demo-to-production-gap-register.md # Demo → production gap register
+│
+│   # Not yet in this repo — drafted separately, pending commit:
+│   # layer1-aml-kyc.md, layer2-aml-kyc.md, layer1-fair-lending.md
 │
 └── README.md
 ```
@@ -172,7 +190,7 @@ rmas/
 
 **Honest control assessment.** Identifying where automation genuinely helps vs. where data availability or human accountability dependencies constrain agent opportunity — and rating them differently rather than rounding up.
 
-**Working agent execution.** Two live AI-powered agents: Type 1 (DMDC integration) and Type 4 (language recognition) in the DMDC agent; Type 3 (deterministic calculations) in the calculations agent — with real compliance logic, real AI-generated analysis, and working eval suites.
+**Working agent execution.** Three live AI-powered agents: Type 1 (DMDC integration) and Type 4 (language recognition) in the DMDC agent; Type 3 (deterministic calculations) in the calculations agent; and a cross-domain classification agent in the Regulatory Change Monitor — with real compliance logic, AI analysis available live via your own API key (fallback mode by default), and working eval suites.
 
 **Production governance thinking.** Eval suite design, version pinning, human-in-the-loop boundaries, drift monitoring, incident response, data dependency governance, and business continuity — specified at operational precision, not policy-document level.
 
@@ -186,8 +204,8 @@ rmas/
 
 SCRA was chosen as the template domain because its requirements are discrete and its process touchpoints are bounded — it's a good domain to build the methodology in. The same four-layer approach applies to:
 
-- AML/KYC/Sanctions (Layer 1 and Layer 2 partially built in this repository)
-- Fair Lending / HMDA (Layer 1 drafted)
+- AML/KYC/Sanctions (Layer 1 and Layer 2 drafted; not yet committed to this repository)
+- Fair Lending / HMDA (Layer 1 drafted; not yet committed to this repository) — both domains are already covered by the cross-domain [Regulatory Change Monitor](https://sadiqshifa.github.io/RMAS/reg-change-monitor.html) agent above, ahead of their own Layer 1/2 docs landing here
 - Healthcare privacy (HIPAA, 42 CFR Part 2)
 - Insurance regulatory compliance
 - Energy market compliance (FERC, NERC)
@@ -212,8 +230,12 @@ The methodology transfers. The domain knowledge is specific to the domain.
 | SCRA Agent — Type 4 (Notice Recognition) | ✅ Working demo · fallback mode |
 | SCRA Agent — Type 3 (Deterministic Calculations) | ✅ Working demo · fallback mode |
 | SCRA Agent — Type 2 (Gate Enforcement) | 🚧 Characterized, not yet built |
-| AML/KYC/Sanctions — Layers 1 & 2 | 🚧 v0 drafted |
-| Fair Lending / HMDA — Layer 1 | 🚧 v0 drafted |
+| Regulatory Change Monitor — cross-domain (AML/KYC + Fair Lending + SCRA) | ✅ Working demo · fallback mode |
+| Regulatory Change Monitor — Production Architecture view (Fed Register API, OFAC SDN diff, scheduler, persistence) | ✅ Code present, intentionally inactive on static hosting |
+| Regulatory Change Monitor — Eval suite (18 cases, 14 real / 4 constructed) | ✅ v0.1 complete |
+| All three agents — BYOK live AI (bring-your-own Anthropic API key) | ✅ Implemented; fallback-by-default outside Claude.ai's runtime |
+| AML/KYC/Sanctions — Layers 1 & 2 | 🚧 v0 drafted — **not yet committed to this repo** |
+| Fair Lending / HMDA — Layer 1 | 🚧 v0 drafted — **not yet committed to this repo** |
 
 ---
 
@@ -226,4 +248,3 @@ The goal was to go deep enough on a real compliance domain to demonstrate workin
 ---
 
 *Regulatory content verified against OCC Comptroller's Handbook v1.1 (November 2025) and 50 U.S.C. statutory text. DMDC API is mocked in the demonstration agents. See the gap register for full production readiness assessment.*
-
