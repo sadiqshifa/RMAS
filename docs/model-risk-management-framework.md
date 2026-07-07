@@ -83,17 +83,15 @@ Each model is rated **High / Medium / Low** based on three factors:
 
 ## D. Current model inventory and findings
 
-> **Status as of this review: 4 models identified across 3 agents. 1 of 4
-> has an eval suite that actually validates its output. This finding — not
-> a hypothetical — is exactly the kind of gap this framework exists to
-> surface.** See `model-risk-register.html` for the live register; summary
-> below.
+> **Status as of this review: 4 models identified across 3 agents. 1 is
+> fully validated, 1 is partially validated, and 2 remain unvalidated.**
+> See `model-risk-register.html` for the live register; summary below.
 
 | ID | Model | Agent | Tier | Validation status |
 |---|---|---|---|---|
 | MRM-001 | Gate clearance narrative generation | SCRA DMDC Agent | Medium | **Not validated** — the agent's 6-case eval suite tests only deterministic routing/gate/certificate fields; no test checks the AI-generated narrative text itself |
 | MRM-002 | SCRA notice trigger recognition | SCRA DMDC Agent (Notice Intake tab) | High | **Not validated** — zero eval coverage; the six pre-loaded scenarios in the UI are demo content, not a labeled eval set |
-| MRM-003 | AI edge case review | SCRA Calculations Agent (all 4 tabs) | Low | **Not validated** — no eval suite exists for this agent at all |
+| MRM-003 | AI edge case review | SCRA Calculations Agent (all 4 tabs) | Low | **Partially validated** — 8-case eval suite built: statutory citation accuracy (§3937, §3936, §3953 depending on tab) and rubric-based issue-spotting are auto-graded across 7 of 8 cases; one deliberate "clean" decoy case tests for fabricated risk but is flagged for manual review rather than auto-scored, since reliably detecting fabrication by keyword match isn't realistic |
 | MRM-004 | Regulatory update classification | Regulatory Change Monitor | High | **Validated** — 18-case eval suite (14 real, dated items; 4 constructed edge cases), evenly split across domains, with human-set expected classification and materiality |
 
 **Why MRM-002 is rated High despite human review existing:** notice/trigger
@@ -117,16 +115,26 @@ independent of what the model says about it.
 1. **MRM-002 (High, unvalidated)** — build a labeled eval set from the six
    existing Notice Intake demo scenarios plus additional edge cases (e.g.,
    ambiguous language, non-English phrasing, a trigger embedded in an
-   otherwise unrelated complaint). This is the highest-priority gap: highest
-   tier, currently zero coverage, and the raw material for a first-pass eval
-   set already exists in the agent's own demo content.
+   otherwise unrelated complaint). This is the highest remaining priority:
+   highest tier, currently zero coverage, and the raw material for a
+   first-pass eval set already exists in the agent's own demo content.
 2. **MRM-001 (Medium, unvalidated)** — extend the existing 6-case eval suite
    (or add a parallel one) with assertions on the generated narrative text
    itself — e.g., does the active-duty clearance note actually state the
    safe-harbor scope and residual obligations, not just that the gate held.
-3. **MRM-003 (Low, unvalidated)** — lowest priority given materiality is
-   already covered by deterministic calculation correctness, but a basic
-   spot-check rubric would still close the "zero coverage" gap cheaply.
+3. ~~**MRM-003 (Low, unvalidated)**~~ — **done.** An 8-case eval suite now
+   covers all 4 calculation tabs: a primary check on statutory citation
+   accuracy (regex-matched against a pre-verified correct citation per
+   case — §3937 for rate cap, §3936 for tolling, §3937/§3953 for tail
+   period) and a secondary rubric of specific issues a competent reviewer
+   must catch (joint-account nuance, foreclosure-date conflicts, multi-period
+   tolling, anomalous account balances). One case is a deliberate "clean"
+   decoy testing whether the model fabricates risks that aren't there —
+   that specific check is flagged for manual review rather than auto-graded,
+   since reliably detecting fabrication by keyword match isn't realistic.
+   This is why the model is marked "partially validated" rather than fully
+   validated: 7 of 8 cases are completely auto-gradeable, one has a
+   manual-only dimension.
 
 ---
 
