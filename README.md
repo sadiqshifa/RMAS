@@ -75,6 +75,8 @@ Four calculation tabs, each implementing controls identified in Layer 3 and deri
 
 **Fallback mode:** All calculations are deterministic JavaScript — they execute completely regardless of AI availability. Only the AI edge case review sections use the model; these display pre-written compliance guidance by default and require your own Anthropic API key (entered in the agent) to run live, same as Agent 1.
 
+**Eval suite:** An 8-case eval suite (2 per tab) checks statutory citation accuracy and rubric-based issue-spotting for the AI edge case review — see the agent's "Eval Suite" tab. One case is a deliberate "clean" decoy testing whether the model invents risks that aren't there.
+
 ---
 
 ### Agent 3 — Regulatory Change Monitor (cross-domain, Layer 3/second-line)
@@ -99,7 +101,7 @@ The three agents above each contain AI components making judgment calls. This re
 
 Unlike every other artifact in this project, the register makes **no API calls at all** — it's static governance content, deliberately, so it stays available regardless of AI status.
 
-**A real finding, not a hypothetical:** auditing all 4 AI models across the fleet turned up that only 1 — the Regulatory Change Monitor's classification model — has an eval suite that actually validates its output. The DMDC agent's existing eval suite tests deterministic routing/gate/certificate logic only, not the AI-generated narrative text. The Notice Intake trigger-recognition model has zero eval coverage. The Calculations agent's AI edge-case review has no eval suite at all. The register documents all three gaps with a prioritized remediation roadmap rather than leaving them implicit.
+**An evolving, real finding, not a hypothetical:** auditing all 4 AI models across the fleet found that only 1 — the Regulatory Change Monitor's classification model — was originally validated. Since then, the Calculations agent's AI edge-case review gained its own 8-case eval suite (statutory citation accuracy plus rubric-based issue-spotting), making it partially validated. Two gaps remain: the DMDC agent's existing eval suite tests deterministic routing/gate/certificate logic only, not the AI-generated narrative text, and the Notice Intake trigger-recognition model still has zero eval coverage. The register documents all of this with a live, prioritized remediation roadmap rather than a static snapshot.
 
 [→ Full framework doc](docs/model-risk-management-framework.md)
 
@@ -257,7 +259,7 @@ Both AML/KYC and Fair Lending are already covered by the cross-domain [Regulator
 | Fair Lending / HMDA — Layer 1 (Regulatory Map) | ✅ v0 committed |
 | Fair Lending / HMDA — Layer 2 (Control Matrix) | 🚧 Not yet built |
 | Model Risk Register — 4-model inventory, SR 11-7-inspired tiering | ✅ v0.1 complete |
-| Model Risk Register — validation coverage (1 of 4 models validated) | 🚧 3 known gaps, prioritized roadmap documented |
+| Model Risk Register — validation coverage | ✅ 1 of 4 fully validated, 1 partially validated (Calculations agent's new 8-case suite), 2 remaining gaps documented with roadmap |
 
 ---
 
