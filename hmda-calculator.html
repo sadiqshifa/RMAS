@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HMDA Reportability Determination — RMAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F6F1;
+    --paper-raised:#FFFFFF;
+    --ink:#151A22;
+    --ink-soft:#3F4756;
+    --slate:#3F5064;
+    --slate-soft:#6B7A8F;
+    --brass:#8C6D33;
+    --brass-soft:#B99A5B;
+    --seal-red:#8C2F22;
+    --pass:#2F6B4F;
+    --fail:#8C2F22;
+    --rule:#D8D5C8;
+    --rule-soft:#E7E4D8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:0 24px 80px;}
+
+  /* Header — Federal-Register-style masthead */
+  header{
+    border-bottom:3px double var(--ink);
+    padding:36px 0 18px;
+    margin-bottom:0;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Source Serif 4',serif;
+    font-weight:700;
+    font-size:clamp(28px,4vw,40px);
+    line-height:1.15;
+    margin:0 0 10px;
+    letter-spacing:-0.01em;
+  }
+  .dek{
+    font-size:15px;
+    color:var(--ink-soft);
+    max-width:60ch;
+    line-height:1.55;
+    margin:0;
+  }
+  .citebar{
+    display:flex;
+    gap:18px;
+    margin-top:18px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    color:var(--slate-soft);
+    flex-wrap:wrap;
+  }
+  .citebar span{border-left:2px solid var(--rule);padding-left:10px;}
+
+  /* Tabs */
+  nav.tabs{
+    display:flex;
+    border-bottom:1px solid var(--ink);
+    margin-top:28px;
+    overflow-x:auto;
+  }
+  nav.tabs button{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    background:none;
+    border:none;
+    padding:14px 18px;
+    color:var(--slate-soft);
+    cursor:pointer;
+    white-space:nowrap;
+    position:relative;
+    top:1px;
+  }
+  nav.tabs button .num{color:var(--brass-soft);margin-right:8px;}
+  nav.tabs button.active{
+    color:var(--ink);
+    border-bottom:3px solid var(--seal-red);
+  }
+  nav.tabs button.active .num{color:var(--seal-red);}
+  nav.tabs button:hover{color:var(--ink);}
+
+  section.panel{display:none;padding-top:32px;}
+  section.panel.active{display:block;}
+
+  h2.section-title{
+    font-family:'Source Serif 4',serif;
+    font-size:22px;
+    font-weight:600;
+    margin:0 0 6px;
+  }
+  p.section-note{
+    color:var(--ink-soft);
+    font-size:14px;
+    line-height:1.6;
+    max-width:66ch;
+    margin:0 0 26px;
+  }
+
+  /* Test cards */
+  .test{
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    border-left:3px solid var(--brass-soft);
+    padding:20px 22px;
+    margin-bottom:14px;
+  }
+  .test .test-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+    margin-bottom:12px;
+  }
+  .test .test-title{
+    font-weight:600;
+    font-size:14.5px;
+  }
+  .test .cite{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--brass);
+    white-space:nowrap;
+  }
+  .test .test-body{font-size:13.5px;color:var(--ink-soft);line-height:1.55;margin-bottom:14px;}
+
+  label.field{display:block;margin-bottom:12px;font-size:13.5px;}
+  label.field .lbl{display:block;margin-bottom:5px;color:var(--ink-soft);}
+  input[type="number"], input[type="text"]{
+    width:100%;
+    max-width:260px;
+    padding:9px 10px;
+    border:1px solid var(--rule);
+    background:#FCFBF8;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13.5px;
+    color:var(--ink);
+  }
+  input:focus{outline:2px solid var(--slate);outline-offset:1px;}
+
+  .radio-row{display:flex;gap:22px;margin-top:4px;}
+  .radio-row label{
+    display:flex;align-items:center;gap:7px;
+    font-size:13.5px;font-weight:400;cursor:pointer;
+  }
+  .radio-row input{width:auto;}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:520px;}
+
+  .run-btn{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    padding:13px 26px;
+    cursor:pointer;
+    margin-top:8px;
+  }
+  .run-btn:hover{background:var(--slate);}
+
+  /* Determination stamp */
+  .determination{
+    margin-top:32px;
+    display:none;
+    grid-template-columns:150px 1fr;
+    gap:28px;
+    align-items:flex-start;
+  }
+  .determination.show{display:grid;}
+  .stamp{
+    border:3px solid var(--seal-red);
+    color:var(--seal-red);
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:14px;
+    letter-spacing:0.06em;
+    text-align:center;
+    padding:16px 8px;
+    transform:rotate(-6deg);
+    border-radius:3px;
+    position:relative;
+  }
+  .stamp::before, .stamp::after{
+    content:"";
+    position:absolute;
+    left:8px;right:8px;
+    height:1px;background:var(--seal-red);opacity:0.5;
+  }
+  .stamp::before{top:6px;}
+  .stamp::after{bottom:6px;}
+  .stamp.exempt{color:var(--pass);border-color:var(--pass);}
+  .stamp.exempt::before, .stamp.exempt::after{background:var(--pass);}
+  .stamp small{display:block;font-size:9px;font-weight:400;margin-top:4px;letter-spacing:0.1em;}
+
+  .trail{font-size:13.5px;}
+  .trail-title{font-weight:600;margin-bottom:10px;font-size:14px;}
+  .trail-item{
+    display:flex;
+    gap:10px;
+    padding:8px 0;
+    border-bottom:1px solid var(--rule-soft);
+  }
+  .trail-item:last-child{border-bottom:none;}
+  .mark{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:12px;
+    flex-shrink:0;
+    width:44px;
+  }
+  .mark.pass{color:var(--pass);}
+  .mark.fail{color:var(--fail);}
+  .trail-text{color:var(--ink-soft);}
+  .trail-text b{color:var(--ink);font-weight:600;}
+
+  /* Threshold history table */
+  table{width:100%;border-collapse:collapse;font-size:13.5px;max-width:640px;}
+  th{
+    text-align:left;font-family:'IBM Plex Mono',monospace;
+    font-size:11px;letter-spacing:0.06em;text-transform:uppercase;
+    color:var(--brass);border-bottom:1px solid var(--ink);
+    padding:8px 12px;
+  }
+  td{padding:11px 12px;border-bottom:1px solid var(--rule);color:var(--ink-soft);}
+  tr.current td{color:var(--ink);font-weight:500;background:#FCFBF3;}
+  tr.current td:first-child{border-left:3px solid var(--seal-red);padding-left:9px;}
+
+  .warn-box{
+    border:1px solid var(--brass-soft);
+    background:#FBF6EB;
+    padding:14px 16px;
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-top:20px;
+    line-height:1.55;
+  }
+  .warn-box b{color:var(--ink);}
+
+  .empty-state{
+    font-size:14px;color:var(--slate-soft);
+    padding:40px 0;text-align:center;
+    border:1px dashed var(--rule);
+  }
+
+  select{
+    padding:9px 10px;border:1px solid var(--rule);
+    background:#FCFBF8;font-family:'IBM Plex Mono',monospace;
+    font-size:13.5px;color:var(--ink);max-width:260px;width:100%;
+  }
+
+  footer{
+    margin-top:60px;padding-top:18px;border-top:1px solid var(--rule);
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--slate-soft);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  }
+
+  @media (max-width:600px){
+    .determination{grid-template-columns:1fr;}
+    .stamp{width:120px;transform:rotate(-4deg);}
+    .two-col{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">RMAS · Layer 3 Agent · Type 3 (Deterministic Calculation)</div>
+    <h1>HMDA Reportability Determination</h1>
+    <p class="dek">Walks a depository or non-depository institution through the coverage tests under Regulation C to determine whether it must report mortgage data for the current collection year.</p>
+    <div class="citebar">
+      <span>12 CFR §1003.2(g)</span>
+      <span>2026 asset threshold: $59,000,000</span>
+      <span>Effective through July 1, 2026 (eCFR)</span>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="depository"><span class="num">01</span>Depository</button>
+    <button class="tab-btn" data-tab="nondepository"><span class="num">02</span>Non-Depository</button>
+    <button class="tab-btn" data-tab="history"><span class="num">03</span>Threshold History</button>
+    <button class="tab-btn" data-tab="summary"><span class="num">04</span>Summary Determination</button>
+  </nav>
+
+  <!-- TAB 1: DEPOSITORY -->
+  <section class="panel active" id="panel-depository">
+    <h2 class="section-title">Depository Institution Test</h2>
+    <p class="section-note">Banks, savings associations, and credit unions. All five conditions under §1003.2(g)(1) must be satisfied for the institution to be covered.</p>
+
+    <div class="test">
+      <div class="test-head"><span class="test-title">1. Asset-Size Threshold</span><span class="cite">§1003.2(g)(1)(i)</span></div>
+      <div class="test-body">Assets exceeded the annually-adjusted threshold as of the preceding December 31.</div>
+      <label class="field"><span class="lbl">Total assets as of Dec 31, 2025 ($)</span>
+        <input type="number" id="dep-assets" placeholder="e.g. 62000000">
+      </label>
+    </div>
+
+    <div class="test">
+      <div class="test-head"><span class="test-title">2. Location</span><span class="cite">§1003.2(g)(1)(ii)</span></div>
+      <div class="test-body">Had a home or branch office in a Metropolitan Statistical Area as of the preceding December 31.</div>
+      <div class="radio-row">
+        <label><input type="radio" name="dep-location" value="yes">Yes</label>
+        <label><input type="radio" name="dep-location" value="no">No</label>
+      </div>
+    </div>
+
+    <div class="test">
+      <div class="test-head"><span class="test-title">3. Loan Activity</span><span class="cite">§1003.2(g)(1)(iii)</span></div>
+      <div class="test-body">Originated at least one home purchase loan (or refinancing of one) secured by a first lien on a 1–4 unit dwelling, in the preceding calendar year.</div>
+      <div class="radio-row">
+        <label><input type="radio" name="dep-activity" value="yes">Yes</label>
+        <label><input type="radio" name="dep-activity" value="no">No</label>
+      </div>
+    </div>
+
+    <div class="test">
+      <div class="test-head"><span class="test-title">4. Federally Related</span><span class="cite">§1003.2(g)(1)(iv)</span></div>
+      <div class="test-body">Federally insured or regulated, or the loan in Test 3 was insured/guaranteed by a federal agency, or intended for sale to Fannie Mae or Freddie Mac.</div>
+      <div class="radio-row">
+        <label><input type="radio" name="dep-federal" value="yes">Yes</label>
+        <label><input type="radio" name="dep-federal" value="no">No</label>
+      </div>
+    </div>
+
+    <div class="test">
+      <div class="test-head"><span class="test-title">5. Loan-Volume Threshold</span><span class="cite">§1003.2(g)(1)(v)</span></div>
+      <div class="test-body">At least 25 closed-end mortgage loans in each of the two preceding years, OR at least 200 open-end lines of credit in each of the two preceding years.</div>
+      <div class="two-col">
+        <label class="field"><span class="lbl">Closed-end loans, year 1</span><input type="number" id="dep-ce1"></label>
+        <label class="field"><span class="lbl">Closed-end loans, year 2</span><input type="number" id="dep-ce2"></label>
+        <label class="field"><span class="lbl">Open-end lines, year 1</span><input type="number" id="dep-oe1"></label>
+        <label class="field"><span class="lbl">Open-end lines, year 2</span><input type="number" id="dep-oe2"></label>
+      </div>
+    </div>
+
+    <button class="run-btn" onclick="runDepository()">Run Determination</button>
+
+    <div class="determination" id="dep-result">
+      <div class="stamp" id="dep-stamp">—</div>
+      <div class="trail">
+        <div class="trail-title">Reasoning trail</div>
+        <div id="dep-trail"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 2: NON-DEPOSITORY -->
+  <section class="panel" id="panel-nondepository">
+    <h2 class="section-title">Non-Depository Institution Test</h2>
+    <p class="section-note">For-profit mortgage lenders that are not banks, savings associations, or credit unions. Only two conditions apply under §1003.2(g)(2) — no asset-size or federally-related test.</p>
+
+    <div class="test">
+      <div class="test-head"><span class="test-title">1. Location</span><span class="cite">§1003.2(g)(2)(i)</span></div>
+      <div class="test-body">Satisfied either by having a home or branch office in an MSA, <b style="color:inherit">or</b> — for institutions with no physical branch — by having received applications for, originated, or purchased 5 or more covered loans related to property in an MSA in the preceding calendar year.</div>
+      <label class="field" style="margin-top:10px;"><span class="lbl">Home or branch office in an MSA?</span>
+        <div class="radio-row">
+          <label><input type="radio" name="ndep-office" value="yes">Yes</label>
+          <label><input type="radio" name="ndep-office" value="no">No</label>
+        </div>
+      </label>
+      <label class="field"><span class="lbl">If no office — received/originated/purchased ≥5 covered loans in an MSA last year?</span>
+        <div class="radio-row">
+          <label><input type="radio" name="ndep-fiveloans" value="yes">Yes</label>
+          <label><input type="radio" name="ndep-fiveloans" value="no">No</label>
+        </div>
+      </label>
+    </div>
+
+    <div class="test">
+      <div class="test-head"><span class="test-title">2. Loan-Volume Threshold</span><span class="cite">§1003.2(g)(2)(ii)</span></div>
+      <div class="test-body">At least 25 closed-end mortgage loans in each of the two preceding years, OR at least 200 open-end lines of credit in each of the two preceding years.</div>
+      <div class="two-col">
+        <label class="field"><span class="lbl">Closed-end loans, year 1</span><input type="number" id="ndep-ce1"></label>
+        <label class="field"><span class="lbl">Closed-end loans, year 2</span><input type="number" id="ndep-ce2"></label>
+        <label class="field"><span class="lbl">Open-end lines, year 1</span><input type="number" id="ndep-oe1"></label>
+        <label class="field"><span class="lbl">Open-end lines, year 2</span><input type="number" id="ndep-oe2"></label>
+      </div>
+    </div>
+
+    <button class="run-btn" onclick="runNonDepository()">Run Determination</button>
+
+    <div class="determination" id="ndep-result">
+      <div class="stamp" id="ndep-stamp">—</div>
+      <div class="trail">
+        <div class="trail-title">Reasoning trail</div>
+        <div id="ndep-trail"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 3: THRESHOLD HISTORY -->
+  <section class="panel" id="panel-history">
+    <h2 class="section-title">Asset-Size Threshold History</h2>
+    <p class="section-note">The depository asset-size threshold (§1003.2(g)(1)(i)) is adjusted annually based on the change in CPI-W for the 12-month period ending in November. This value is hardcoded in Tab 1 for the current collection year — the exact kind of figure a reg-change-monitor process needs to catch before it goes stale.</p>
+
+    <table>
+      <thead>
+        <tr><th>Collection year</th><th>Threshold</th><th>CPI-W change</th><th>Adjustment published</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>2024</td><td>$56,000,000</td><td>—</td><td>Dec 18, 2023</td></tr>
+        <tr><td>2025</td><td>$58,000,000</td><td>2.9%</td><td>Dec 18, 2024</td></tr>
+        <tr class="current"><td>2026</td><td>$59,000,000</td><td>2.5%</td><td>Jan 7, 2026</td></tr>
+      </tbody>
+    </table>
+
+    <div class="warn-box"><b>Governance note:</b> this table and the hardcoded value in Tab 1 must be manually reconciled each time the CFPB publishes a new adjustment (typically mid-December for the following collection year, though the 2026 adjustment was published Jan 7, 2026). This is a one-line, low-complexity update — but a missed one produces a silently wrong determination, which is precisely the failure mode Layer 4 governance is built to catch.</div>
+  </section>
+
+  <!-- TAB 4: SUMMARY -->
+  <section class="panel" id="panel-summary">
+    <h2 class="section-title">Summary Determination</h2>
+    <p class="section-note">Pulls the most recent result from Tab 1 or Tab 2. Complete a determination there first.</p>
+
+    <label class="field"><span class="lbl">Institution type</span>
+      <select id="summary-select" onchange="renderSummary()">
+        <option value="depository">Depository</option>
+        <option value="nondepository">Non-Depository</option>
+      </select>
+    </label>
+
+    <div id="summary-content"></div>
+  </section>
+
+  <footer>
+    <span>RMAS — Regulatory Management and Agent System</span>
+    <span>Layer 2 control: docs/layer2-fair-lending.md</span>
+  </footer>
+
+</div>
+
+<script>
+const ASSET_THRESHOLD = 59000000;
+const CE_MIN = 25;
+const OE_MIN = 200;
+
+let state = { depository: null, nondepository: null };
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    if(btn.dataset.tab === 'summary') renderSummary();
+  });
+});
+
+function radioVal(name){
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value === 'yes' : null;
+}
+
+function volumeTest(ce1, ce2, oe1, oe2){
+  const closedPass = (ce1 >= CE_MIN) && (ce2 >= CE_MIN);
+  const openPass = (oe1 >= OE_MIN) && (oe2 >= OE_MIN);
+  return closedPass || openPass;
+}
+
+function renderStamp(el, pass){
+  el.textContent = pass ? 'REPORTABLE' : 'EXEMPT';
+  el.classList.toggle('exempt', !pass);
+  const small = document.createElement('small');
+  small.textContent = '12 CFR §1003.2(g)';
+  el.appendChild(small);
+}
+
+function trailItem(container, label, pass, detail){
+  const row = document.createElement('div');
+  row.className = 'trail-item';
+  row.innerHTML = `<span class="mark ${pass?'pass':'fail'}">${pass?'PASS':'FAIL'}</span><span class="trail-text"><b>${label}</b> — ${detail}</span>`;
+  container.appendChild(row);
+}
+
+function runDepository(){
+  const assets = parseFloat(document.getElementById('dep-assets').value) || 0;
+  const location = radioVal('dep-location');
+  const activity = radioVal('dep-activity');
+  const federal = radioVal('dep-federal');
+  const ce1 = parseFloat(document.getElementById('dep-ce1').value) || 0;
+  const ce2 = parseFloat(document.getElementById('dep-ce2').value) || 0;
+  const oe1 = parseFloat(document.getElementById('dep-oe1').value) || 0;
+  const oe2 = parseFloat(document.getElementById('dep-oe2').value) || 0;
+
+  const t1 = assets > ASSET_THRESHOLD;
+  const t2 = location === true;
+  const t3 = activity === true;
+  const t4 = federal === true;
+  const t5 = volumeTest(ce1, ce2, oe1, oe2);
+  const allPass = t1 && t2 && t3 && t4 && t5;
+
+  const trail = document.getElementById('dep-trail');
+  trail.innerHTML = '';
+  trailItem(trail, 'Asset-size', t1, `$${assets.toLocaleString()} ${t1?'>':'≤'} $${ASSET_THRESHOLD.toLocaleString()} threshold`);
+  trailItem(trail, 'Location', t2, location===null ? 'not answered' : (t2 ? 'MSA office confirmed' : 'no MSA office'));
+  trailItem(trail, 'Loan activity', t3, activity===null ? 'not answered' : (t3 ? 'qualifying loan originated' : 'no qualifying loan'));
+  trailItem(trail, 'Federally related', t4, federal===null ? 'not answered' : (t4 ? 'condition met' : 'condition not met'));
+  trailItem(trail, 'Loan-volume', t5, `closed-end ${ce1}/${ce2} (need ${CE_MIN}/${CE_MIN}), open-end ${oe1}/${oe2} (need ${OE_MIN}/${OE_MIN})`);
+
+  renderStamp(document.getElementById('dep-stamp'), allPass);
+  document.getElementById('dep-result').classList.add('show');
+
+  state.depository = { allPass, t1, t2, t3, t4, t5, assets, location, activity, federal, ce1, ce2, oe1, oe2 };
+}
+
+function runNonDepository(){
+  const office = radioVal('ndep-office');
+  const fiveLoans = radioVal('ndep-fiveloans');
+  const ce1 = parseFloat(document.getElementById('ndep-ce1').value) || 0;
+  const ce2 = parseFloat(document.getElementById('ndep-ce2').value) || 0;
+  const oe1 = parseFloat(document.getElementById('ndep-oe1').value) || 0;
+  const oe2 = parseFloat(document.getElementById('ndep-oe2').value) || 0;
+
+  const t1 = (office === true) || (fiveLoans === true);
+  const t2 = volumeTest(ce1, ce2, oe1, oe2);
+  const allPass = t1 && t2;
+
+  const trail = document.getElementById('ndep-trail');
+  trail.innerHTML = '';
+  trailItem(trail, 'Location', t1, t1 ? (office ? 'MSA office confirmed' : '≥5 covered loans in an MSA') : 'neither condition met');
+  trailItem(trail, 'Loan-volume', t2, `closed-end ${ce1}/${ce2} (need ${CE_MIN}/${CE_MIN}), open-end ${oe1}/${oe2} (need ${OE_MIN}/${OE_MIN})`);
+
+  renderStamp(document.getElementById('ndep-stamp'), allPass);
+  document.getElementById('ndep-result').classList.add('show');
+
+  state.nondepository = { allPass, t1, t2, office, fiveLoans, ce1, ce2, oe1, oe2 };
+}
+
+function renderSummary(){
+  const type = document.getElementById('summary-select').value;
+  const data = state[type];
+  const content = document.getElementById('summary-content');
+
+  if(!data){
+    content.innerHTML = `<div class="empty-state">No determination on file for ${type === 'depository' ? 'Tab 1 (Depository)' : 'Tab 2 (Non-Depository)'} yet. Run it there first.</div>`;
+    return;
+  }
+
+  const label = data.allPass ? 'REPORTABLE' : 'EXEMPT';
+  const testCount = type === 'depository' ? 5 : 2;
+  const passCount = type === 'depository'
+    ? [data.t1,data.t2,data.t3,data.t4,data.t5].filter(Boolean).length
+    : [data.t1,data.t2].filter(Boolean).length;
+
+  content.innerHTML = `
+    <div class="determination show">
+      <div class="stamp ${data.allPass ? '' : 'exempt'}">${label}<small>12 CFR §1003.2(g)</small></div>
+      <div class="trail">
+        <div class="trail-title">${type === 'depository' ? 'Depository' : 'Non-Depository'} institution — ${passCount}/${testCount} tests passed</div>
+        <p class="section-note" style="margin-bottom:0;">
+          ${data.allPass
+            ? 'All required conditions were satisfied. This institution is covered under Regulation C for the current collection year and must compile and submit a Loan Application Register.'
+            : 'At least one required condition was not satisfied. This institution is exempt from HMDA data collection and reporting for the current collection year based on the inputs provided.'}
+        </p>
+      </div>
+    </div>
+    <div class="warn-box" style="margin-top:24px;">
+      <b>Not a substitute for legal or compliance review.</b> This tool reflects 12 CFR §1003.2(g) as of the date noted in the masthead and the asset threshold for the 2026 collection year. Verify against the current eCFR text and the institution's actual asset/loan data before relying on this determination.
+    </div>
+  `;
+}
+</script>
+</body>
+</html>

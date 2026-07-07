@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adverse Action Notice Validator — RMAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F6F1; --paper-raised:#FFFFFF; --ink:#151A22; --ink-soft:#3F4756;
+    --slate:#3F5064; --slate-soft:#6B7A8F; --brass:#8C6D33; --brass-soft:#B99A5B;
+    --seal-red:#8C2F22; --pass:#2F6B4F; --fail:#8C2F22; --amber:#9C7A21;
+    --rule:#D8D5C8; --rule-soft:#E7E4D8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:900px;margin:0 auto;padding:0 24px 80px;}
+
+  header{border-bottom:3px double var(--ink);padding:36px 0 18px;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--brass);margin-bottom:10px;}
+  h1{font-family:'Source Serif 4',serif;font-weight:700;font-size:clamp(28px,4vw,40px);line-height:1.15;margin:0 0 10px;letter-spacing:-0.01em;}
+  .dek{font-size:15px;color:var(--ink-soft);max-width:62ch;line-height:1.55;margin:0;}
+  .citebar{display:flex;gap:18px;margin-top:18px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--slate-soft);flex-wrap:wrap;}
+  .citebar span{border-left:2px solid var(--rule);padding-left:10px;}
+
+  .rulebanner{
+    margin-top:20px;padding:14px 16px;background:#FBF6EB;border:1px solid var(--brass-soft);
+    font-size:13px;color:var(--ink-soft);line-height:1.55;
+  }
+  .rulebanner b{color:var(--ink);}
+
+  nav.tabs{display:flex;border-bottom:1px solid var(--ink);margin-top:24px;overflow-x:auto;}
+  nav.tabs button{font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:0.04em;text-transform:uppercase;background:none;border:none;padding:14px 18px;color:var(--slate-soft);cursor:pointer;white-space:nowrap;position:relative;top:1px;}
+  nav.tabs button .num{color:var(--brass-soft);margin-right:8px;}
+  nav.tabs button.active{color:var(--ink);border-bottom:3px solid var(--seal-red);}
+  nav.tabs button.active .num{color:var(--seal-red);}
+  nav.tabs button:hover{color:var(--ink);}
+
+  section.panel{display:none;padding-top:32px;}
+  section.panel.active{display:block;}
+
+  h2.section-title{font-family:'Source Serif 4',serif;font-size:22px;font-weight:600;margin:0 0 6px;}
+  p.section-note{color:var(--ink-soft);font-size:14px;line-height:1.6;max-width:66ch;margin:0 0 26px;}
+
+  .test{background:var(--paper-raised);border:1px solid var(--rule);border-left:3px solid var(--brass-soft);padding:20px 22px;margin-bottom:14px;}
+  .test .test-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px;}
+  .test .test-title{font-weight:600;font-size:14.5px;}
+  .test .cite{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--brass);white-space:nowrap;}
+  .test .test-body{font-size:13.5px;color:var(--ink-soft);line-height:1.55;margin-bottom:14px;}
+
+  label.field{display:block;margin-bottom:12px;font-size:13.5px;}
+  label.field .lbl{display:block;margin-bottom:5px;color:var(--ink-soft);}
+  input[type="date"], input[type="text"], input[type="password"]{
+    width:100%;max-width:280px;padding:9px 10px;border:1px solid var(--rule);background:#FCFBF8;
+    font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:var(--ink);
+  }
+  textarea{
+    width:100%;min-height:220px;padding:14px;border:1px solid var(--rule);background:#FCFBF8;
+    font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ink);line-height:1.6;resize:vertical;
+  }
+  input:focus, textarea:focus, select:focus{outline:2px solid var(--slate);outline-offset:1px;}
+
+  select{padding:9px 10px;border:1px solid var(--rule);background:#FCFBF8;font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:var(--ink);max-width:340px;width:100%;}
+
+  .radio-row{display:flex;gap:22px;margin-top:4px;flex-wrap:wrap;}
+  .radio-row label{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:400;cursor:pointer;}
+  .radio-row input{width:auto;}
+
+  .checklist-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--rule-soft);}
+  .checklist-item:last-child{border-bottom:none;}
+  .checklist-item input{width:auto;margin-top:3px;}
+  .checklist-item .ci-text{font-size:13.5px;color:var(--ink-soft);line-height:1.5;}
+  .checklist-item .ci-text b{color:var(--ink);}
+
+  .run-btn{font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:0.04em;text-transform:uppercase;background:var(--ink);color:var(--paper);border:none;padding:13px 26px;cursor:pointer;margin-top:8px;}
+  .run-btn:hover{background:var(--slate);}
+  .run-btn:disabled{background:var(--slate-soft);cursor:wait;}
+
+  .determination{margin-top:32px;display:none;grid-template-columns:150px 1fr;gap:28px;align-items:flex-start;}
+  .determination.show{display:grid;}
+  .stamp{border:3px solid var(--seal-red);color:var(--seal-red);font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:13px;letter-spacing:0.05em;text-align:center;padding:16px 6px;transform:rotate(-6deg);border-radius:3px;position:relative;}
+  .stamp::before, .stamp::after{content:"";position:absolute;left:8px;right:8px;height:1px;background:var(--seal-red);opacity:0.5;}
+  .stamp::before{top:6px;} .stamp::after{bottom:6px;}
+  .stamp.pass{color:var(--pass);border-color:var(--pass);}
+  .stamp.pass::before, .stamp.pass::after{background:var(--pass);}
+  .stamp small{display:block;font-size:9px;font-weight:400;margin-top:4px;letter-spacing:0.1em;}
+
+  .trail{font-size:13.5px;}
+  .trail-title{font-weight:600;margin-bottom:10px;font-size:14px;}
+  .trail-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-soft);}
+  .trail-item:last-child{border-bottom:none;}
+  .mark{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px;flex-shrink:0;width:56px;}
+  .mark.pass{color:var(--pass);} .mark.fail{color:var(--fail);} .mark.flag{color:var(--amber);}
+  .trail-text{color:var(--ink-soft);}
+  .trail-text b{color:var(--ink);font-weight:600;}
+
+  .warn-box{border:1px solid var(--brass-soft);background:#FBF6EB;padding:14px 16px;font-size:13px;color:var(--ink-soft);margin-top:20px;line-height:1.55;}
+  .warn-box b{color:var(--ink);}
+
+  .mode-toggle{display:flex;align-items:center;gap:14px;margin-bottom:22px;padding:16px 18px;background:var(--paper-raised);border:1px solid var(--rule);}
+  .mode-toggle .mt-label{font-size:13px;color:var(--ink-soft);flex-shrink:0;}
+  .mode-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--slate-soft);color:var(--slate);}
+  .mode-badge.live{color:var(--pass);border-color:var(--pass);}
+
+  .ai-output{background:var(--paper-raised);border:1px solid var(--rule);padding:20px 22px;margin-top:20px;font-size:13.5px;line-height:1.65;color:var(--ink-soft);}
+  .ai-output .ai-tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--slate-soft);margin-bottom:12px;display:block;}
+  .ai-output h4{font-size:13px;color:var(--ink);margin:16px 0 6px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:0.04em;}
+  .ai-output h4:first-child{margin-top:0;}
+  .ai-output ul{margin:0 0 4px;padding-left:20px;}
+  .ai-output li{margin-bottom:6px;}
+
+  footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--slate-soft);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+
+  @media (max-width:600px){.determination{grid-template-columns:1fr;} .stamp{width:120px;transform:rotate(-4deg);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">RMAS · Layer 3 Agent · Type 1 + Type 4 (Deterministic Gates + AI-Assisted Review)</div>
+    <h1>Adverse Action Notice Validator</h1>
+    <p class="dek">Checks a draft adverse action notice's timing and required content against Regulation B, and flags language that may reference a legal standard the CFPB removed as of July 21, 2026.</p>
+    <div class="citebar">
+      <span>12 CFR §1002.9</span>
+      <span>15 U.S.C. §1691 et seq.</span>
+      <span>Final rule eff. July 21, 2026</span>
+    </div>
+    <div class="rulebanner">
+      <b>Why this date matters:</b> on April 22, 2026 the CFPB removed the "effects test" from Regulation B and stated ECOA does not recognize disparate-impact liability as a standalone theory — disparate treatment remains actionable. It also narrowed the discouragement prohibition to statements of intent to discriminate, and barred for-profit creditors from using race, color, national origin, or sex as a common eligibility characteristic in Special Purpose Credit Programs. A notice or SPCP program drafted before April 2026 may still reference the old standard.
+      <br><br>
+      <b>Litigation status:</b> consumer advocacy groups and state attorneys general are widely expected to challenge this rule, and several legal trackers consider a preliminary injunction before the July 21 effective date plausible. As of this tool's last update, no injunction had been confirmed and the rule stands as scheduled — but that status can change before the effective date itself. Verify current status before relying on any determination from this tool.
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="timing"><span class="num">01</span>Timing</button>
+    <button class="tab-btn" data-tab="content"><span class="num">02</span>Content Checklist</button>
+    <button class="tab-btn" data-tab="spcp"><span class="num">03</span>SPCP Screen</button>
+    <button class="tab-btn" data-tab="ai"><span class="num">04</span>AI-Assisted Review</button>
+  </nav>
+
+  <!-- TAB 1: TIMING -->
+  <section class="panel active" id="panel-timing">
+    <h2 class="section-title">Notice Timing Determination</h2>
+    <p class="section-note">Deadline depends on the scenario. Select the one that applies and enter the relevant date.</p>
+
+    <div class="test">
+      <div class="test-head"><span class="test-title">Scenario</span><span class="cite">§1002.9(a)</span></div>
+      <label class="field" style="max-width:none;">
+        <select id="timing-scenario" onchange="updateTimingLabel()">
+          <option value="30-completed">Completed application — approval, counteroffer, or adverse action</option>
+          <option value="30-incomplete">Incomplete application — adverse action taken</option>
+          <option value="30-existing">Existing account — adverse action taken</option>
+          <option value="90-counteroffer">Counteroffer — applicant did not respond</option>
+        </select>
+      </label>
+      <label class="field"><span class="lbl" id="timing-date-label">Date application was completed</span>
+        <input type="date" id="timing-date">
+      </label>
+    </div>
+
+    <button class="run-btn" onclick="runTiming()">Calculate Deadline</button>
+
+    <div class="determination" id="timing-result">
+      <div class="stamp" id="timing-stamp">—</div>
+      <div class="trail">
+        <div class="trail-title">Deadline</div>
+        <div id="timing-trail"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 2: CONTENT CHECKLIST -->
+  <section class="panel" id="panel-content">
+    <h2 class="section-title">Required Content Checklist</h2>
+    <p class="section-note">Check off each element as you confirm it's present in the draft notice. All four are required under §1002.9(a)(2).</p>
+
+    <div class="test">
+      <div class="checklist-item"><input type="checkbox" id="c1"><span class="ci-text"><b>Action taken</b> — states whether the application was denied, or credit was terminated/changed, and (if applicable) that the applicant may request the specific reasons within 60 days.</span></div>
+      <div class="checklist-item"><input type="checkbox" id="c2"><span class="ci-text"><b>Creditor identification</b> — name and address of the creditor.</span></div>
+      <div class="checklist-item"><input type="checkbox" id="c3"><span class="ci-text"><b>ECOA notice</b> — the statutory notice that it is unlawful to discriminate against credit applicants, per §1002.9(b)(1).</span></div>
+      <div class="checklist-item"><input type="checkbox" id="c4"><span class="ci-text"><b>Regulator identification</b> — name and address of the federal agency that administers compliance for this creditor.</span></div>
+    </div>
+
+    <button class="run-btn" onclick="runContent()">Check Completeness</button>
+
+    <div class="determination" id="content-result">
+      <div class="stamp" id="content-stamp">—</div>
+      <div class="trail">
+        <div class="trail-title">Element-by-element</div>
+        <div id="content-trail"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 3: SPCP SCREEN -->
+  <section class="panel" id="panel-spcp">
+    <h2 class="section-title">SPCP Eligibility Screen</h2>
+    <p class="section-note">Only relevant if this notice relates to a Special Purpose Credit Program run by a for-profit creditor. Under the April 2026 rule, none of the four characteristics below may be used as a common eligibility characteristic.</p>
+
+    <div class="test">
+      <div class="test-head"><span class="test-title">Credit extension timing</span><span class="cite">§1002.8 — transition rule</span></div>
+      <div class="test-body">The new rule applies prospectively. SPCP credit extended <b style="color:inherit">before</b> July 21, 2026 stays governed by the rule in place when the program was established and that credit was extended. Credit extended <b style="color:inherit">on or after</b> July 21, 2026 must comply with the amended rule, regardless of when the program itself was originally established.</div>
+      <div class="radio-row">
+        <label><input type="radio" name="spcp-timing" value="before">Credit extended before Jul 21, 2026</label>
+        <label><input type="radio" name="spcp-timing" value="after">Credit extended on/after Jul 21, 2026</label>
+      </div>
+    </div>
+
+    <div class="test">
+      <div class="test-head"><span class="test-title">Program type</span><span class="cite">§1002.8(a)</span></div>
+      <div class="radio-row">
+        <label><input type="radio" name="spcp-forprofit" value="yes">For-profit creditor</label>
+        <label><input type="radio" name="spcp-forprofit" value="no">Nonprofit / government-administered</label>
+      </div>
+    </div>
+
+    <div class="test">
+      <div class="test-head"><span class="test-title">Common eligibility characteristics used</span><span class="cite">§1002.8(a)(3) — amended</span></div>
+      <div class="checklist-item"><input type="checkbox" id="spcp-race"><span class="ci-text">Race</span></div>
+      <div class="checklist-item"><input type="checkbox" id="spcp-color"><span class="ci-text">Color</span></div>
+      <div class="checklist-item"><input type="checkbox" id="spcp-national"><span class="ci-text">National origin</span></div>
+      <div class="checklist-item"><input type="checkbox" id="spcp-sex"><span class="ci-text">Sex</span></div>
+    </div>
+
+    <button class="run-btn" onclick="runSPCP()">Screen Program</button>
+
+    <div class="determination" id="spcp-result">
+      <div class="stamp" id="spcp-stamp">—</div>
+      <div class="trail">
+        <div class="trail-title">Result</div>
+        <div id="spcp-trail"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 4: AI-ASSISTED REVIEW -->
+  <section class="panel" id="panel-ai">
+    <h2 class="section-title">AI-Assisted Draft Review</h2>
+    <p class="section-note">Paste the full draft notice text below. This checks for the same required elements as Tab 2, plus flags language that may reference the pre-April-2026 disparate-impact / "effects test" standard — a pattern-match tool alone won't reliably catch.</p>
+
+    <div class="mode-toggle">
+      <span class="mt-label">Anthropic API key (optional — leave blank to use fallback mode)</span>
+      <input type="password" id="api-key" placeholder="sk-ant-...">
+      <span class="mode-badge" id="mode-badge">FALLBACK MODE</span>
+    </div>
+
+    <textarea id="draft-text" placeholder="Paste the draft adverse action notice text here..."></textarea>
+
+    <button class="run-btn" id="ai-run-btn" onclick="runAIReview()">Review Draft</button>
+
+    <div class="ai-output" id="ai-output" style="display:none;"></div>
+
+    <div class="warn-box">
+      <b>Business continuity note:</b> fallback mode uses deterministic keyword matching against a fixed list of stale-standard phrases and required-element markers. It is intentionally conservative — it will flag phrases for review rather than assert a conclusion. Live mode (with a key) produces a fuller narrative analysis but is not a substitute for legal review of the final notice.
+    </div>
+  </section>
+
+  <footer>
+    <span>RMAS — Regulatory Management and Agent System</span>
+    <span>Layer 2 control: docs/layer2-fair-lending.md</span>
+  </footer>
+
+</div>
+
+<script>
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+document.getElementById('api-key').addEventListener('input', (e)=>{
+  const badge = document.getElementById('mode-badge');
+  if(e.target.value.trim().length > 0){
+    badge.textContent = 'LIVE AI MODE';
+    badge.classList.add('live');
+  } else {
+    badge.textContent = 'FALLBACK MODE';
+    badge.classList.remove('live');
+  }
+});
+
+function updateTimingLabel(){
+  const scenario = document.getElementById('timing-scenario').value;
+  const label = document.getElementById('timing-date-label');
+  const labels = {
+    '30-completed': 'Date application was completed',
+    '30-incomplete': 'Date adverse action was taken on incomplete application',
+    '30-existing': 'Date adverse action was taken on existing account',
+    '90-counteroffer': 'Date counteroffer was extended'
+  };
+  label.textContent = labels[scenario];
+}
+
+function addDays(dateStr, days){
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+}
+
+function runTiming(){
+  const scenario = document.getElementById('timing-scenario').value;
+  const dateVal = document.getElementById('timing-date').value;
+  const trail = document.getElementById('timing-trail');
+  const stamp = document.getElementById('timing-stamp');
+  trail.innerHTML = '';
+
+  if(!dateVal){
+    trail.innerHTML = '<div class="trail-item"><span class="mark fail">MISSING</span><span class="trail-text">Enter a date to calculate the deadline.</span></div>';
+    stamp.textContent = '—';
+    stamp.className = 'stamp';
+    document.getElementById('timing-result').classList.add('show');
+    return;
+  }
+
+  const days = scenario === '90-counteroffer' ? 90 : 30;
+  const deadline = addDays(dateVal, days);
+  const scenarioLabels = {
+    '30-completed': 'Completed application',
+    '30-incomplete': 'Incomplete application — adverse action',
+    '30-existing': 'Existing account — adverse action',
+    '90-counteroffer': 'Counteroffer, no applicant response'
+  };
+
+  stamp.textContent = deadline;
+  stamp.className = 'stamp pass';
+  trail.innerHTML = `<div class="trail-item"><span class="mark pass">${days} DAYS</span><span class="trail-text"><b>${scenarioLabels[scenario]}</b> — notice must be issued by <b>${deadline}</b> (${days} calendar days from ${dateVal}).</span></div>`;
+  document.getElementById('timing-result').classList.add('show');
+}
+
+function runContent(){
+  const items = [
+    {id:'c1', label:'Action taken', cite:'§1002.9(a)(2)(i)'},
+    {id:'c2', label:'Creditor identification', cite:'§1002.9(a)(2)(ii)'},
+    {id:'c3', label:'ECOA notice', cite:'§1002.9(b)(1)'},
+    {id:'c4', label:'Regulator identification', cite:'§1002.9(b)(1)'}
+  ];
+  const trail = document.getElementById('content-trail');
+  trail.innerHTML = '';
+  let allPass = true;
+  items.forEach(item=>{
+    const checked = document.getElementById(item.id).checked;
+    if(!checked) allPass = false;
+    trail.innerHTML += `<div class="trail-item"><span class="mark ${checked?'pass':'fail'}">${checked?'PRESENT':'MISSING'}</span><span class="trail-text"><b>${item.label}</b> (${item.cite})</span></div>`;
+  });
+  const stamp = document.getElementById('content-stamp');
+  stamp.textContent = allPass ? 'COMPLETE' : 'INCOMPLETE';
+  stamp.className = 'stamp' + (allPass ? ' pass' : '');
+  document.getElementById('content-result').classList.add('show');
+}
+
+function runSPCP(){
+  const timing = document.querySelector('input[name="spcp-timing"]:checked');
+  const forProfit = document.querySelector('input[name="spcp-forprofit"]:checked');
+  const trail = document.getElementById('spcp-trail');
+  const stamp = document.getElementById('spcp-stamp');
+  trail.innerHTML = '';
+
+  if(!timing){
+    trail.innerHTML = '<div class="trail-item"><span class="mark fail">MISSING</span><span class="trail-text">Select when credit was or will be extended under this program.</span></div>';
+    stamp.textContent = '—'; stamp.className = 'stamp';
+    document.getElementById('spcp-result').classList.add('show');
+    return;
+  }
+
+  if(timing.value === 'before'){
+    stamp.textContent = 'GRANDFATHERED'; stamp.className = 'stamp pass';
+    trail.innerHTML = '<div class="trail-item"><span class="mark pass">GRANDFATHERED</span><span class="trail-text">Credit extended before July 21, 2026 stays governed by the rule in place when the program was established — the amended prohibited-characteristics list does not apply to this credit. Note: if this program will <b>continue</b> extending credit on or after July 21, 2026, re-run this screen for that later credit — it will need to comply with the amended rule.</span></div>';
+    document.getElementById('spcp-result').classList.add('show');
+    return;
+  }
+
+  if(!forProfit){
+    trail.innerHTML = '<div class="trail-item"><span class="mark fail">MISSING</span><span class="trail-text">Select whether this is a for-profit program.</span></div>';
+    stamp.textContent = '—'; stamp.className = 'stamp';
+    document.getElementById('spcp-result').classList.add('show');
+    return;
+  }
+
+  const flags = [
+    {id:'spcp-race', label:'Race'},
+    {id:'spcp-color', label:'Color'},
+    {id:'spcp-national', label:'National origin'},
+    {id:'spcp-sex', label:'Sex'}
+  ].filter(f => document.getElementById(f.id).checked);
+
+  const isForProfit = forProfit.value === 'yes';
+  const violates = isForProfit && flags.length > 0;
+
+  if(!isForProfit){
+    stamp.textContent = 'N/A'; stamp.className = 'stamp pass';
+    trail.innerHTML = '<div class="trail-item"><span class="mark pass">N/A</span><span class="trail-text">The April 2026 restriction applies to for-profit creditors only. Nonprofit and government-administered SPCPs are not affected by this change.</span></div>';
+  } else if(violates){
+    stamp.textContent = 'FLAGGED'; stamp.className = 'stamp';
+    trail.innerHTML = `<div class="trail-item"><span class="mark fail">FLAGGED</span><span class="trail-text">This for-profit program uses <b>${flags.map(f=>f.label).join(', ')}</b> as a common eligibility characteristic — no longer permitted under §1002.8(a)(3) as amended, for credit extended on or after July 21, 2026. Route to legal/compliance for program redesign; this is not a task to automate a fix for.</span></div>`;
+  } else {
+    stamp.textContent = 'CLEAR'; stamp.className = 'stamp pass';
+    trail.innerHTML = '<div class="trail-item"><span class="mark pass">CLEAR</span><span class="trail-text">No prohibited characteristics selected for this for-profit program.</span></div>';
+  }
+  trail.innerHTML += '<div class="trail-item"><span class="mark flag">STATUS</span><span class="trail-text">This determination assumes the rule is in effect as scheduled. See the litigation-status note above the tabs — confirm the rule has not been enjoined before treating this as final.</span></div>';
+  document.getElementById('spcp-result').classList.add('show');
+}
+
+// --- Tab 4: AI-assisted review ---
+
+const STALE_PHRASES = [
+  'effects test', 'disparate impact', 'adverse impact analysis',
+  'facially neutral policy', 'statistically significant disparity',
+  'creates a negative impression'
+];
+const REQUIRED_MARKERS = [
+  {phrase:'unlawful', label:'ECOA notice language (discrimination is unlawful)'},
+  {phrase:'right to a statement of reasons', label:'Statement-of-reasons right (or equivalent 60-day language)'},
+];
+
+function fallbackReview(text){
+  const lower = text.toLowerCase();
+  const staleHits = STALE_PHRASES.filter(p => lower.includes(p));
+  const missingMarkers = REQUIRED_MARKERS.filter(m => !lower.includes(m.phrase));
+
+  let html = '<span class="ai-tag">Fallback mode — deterministic keyword scan</span>';
+
+  html += '<h4>Stale standard language</h4>';
+  if(staleHits.length){
+    html += '<ul>' + staleHits.map(h => `<li>Found phrase "<b>${h}</b>" — review against the post-April-2026 disparate-treatment-only standard; this term may no longer be accurate as written.</li>`).join('') + '</ul>';
+  } else {
+    html += '<p>No flagged phrases from the stale-language list found. This is a keyword match only — absence of these exact phrases does not confirm the notice is current.</p>';
+  }
+
+  html += '<h4>Required elements (heuristic)</h4>';
+  if(missingMarkers.length){
+    html += '<ul>' + missingMarkers.map(m => `<li>No match found for: <b>${m.label}</b>. Confirm manually against Tab 2\'s checklist — this scan is a lower-confidence heuristic, not a substitute for it.</li>`).join('') + '</ul>';
+  } else {
+    html += '<p>Basic markers for required language were found. Still confirm each element against Tab 2\'s checklist.</p>';
+  }
+
+  html += '<h4>Note</h4><p>Fallback mode cannot assess tone, context, or whether flagged phrases are used in a compliant way (e.g., quoting the old standard to explain a policy update is different from asserting it as current law). Treat all flags as prompts for human review, not conclusions.</p>';
+
+  return html;
+}
+
+async function liveReview(text, apiKey){
+  const systemPrompt = `You are reviewing a draft ECOA/Regulation B adverse action notice for compliance issues. Focus on two things: (1) whether it contains language suggesting reliance on the "effects test" or disparate-impact theory, which the CFPB removed from Regulation B effective July 21, 2026 (disparate treatment remains actionable; disparate impact as a standalone theory does not) — flag such language as needing review, don't assume it's wrong without context; (2) whether the four required elements under 12 CFR 1002.9 appear to be present: action taken, creditor identification, ECOA notice, regulator identification. Respond in concise HTML using <h4> section headers and <ul><li> lists only, no markdown, no preamble. Sections: "Stale standard language", "Required elements", "Other observations". Keep it factual and cite the regulation where relevant. Do not invent facts not in the text.`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: text }]
+    })
+  });
+
+  if(!response.ok){
+    throw new Error('API request failed: ' + response.status);
+  }
+  const data = await response.json();
+  const textBlock = data.content.find(b => b.type === 'text');
+  return textBlock ? textBlock.text : '<p>No response text returned.</p>';
+}
+
+async function runAIReview(){
+  const text = document.getElementById('draft-text').value.trim();
+  const apiKey = document.getElementById('api-key').value.trim();
+  const output = document.getElementById('ai-output');
+  const btn = document.getElementById('ai-run-btn');
+
+  if(!text){
+    output.style.display = 'block';
+    output.innerHTML = '<span class="ai-tag">—</span><p>Paste a draft notice above before running the review.</p>';
+    return;
+  }
+
+  output.style.display = 'block';
+
+  if(!apiKey){
+    output.innerHTML = fallbackReview(text);
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Reviewing...';
+  output.innerHTML = '<span class="ai-tag">Live AI mode — contacting Claude</span><p>Analyzing draft...</p>';
+
+  try{
+    const result = await liveReview(text, apiKey);
+    output.innerHTML = '<span class="ai-tag">Live AI mode — claude-sonnet-4-6</span>' + result;
+  } catch(err){
+    output.innerHTML = '<span class="ai-tag">Live AI mode failed — falling back</span><p>Live request failed (' + err.message + '). Showing fallback analysis instead:</p>' + fallbackReview(text);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Review Draft';
+  }
+}
+</script>
+</body>
+</html>
