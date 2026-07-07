@@ -39,6 +39,7 @@
   /* Layout */
   .tab-content { display: none; flex: 1; overflow: hidden; }
   .tab-content.active { display: grid; grid-template-columns: 300px 1fr 280px; }
+  #tab-eval.active { display: block !important; }
   .panel { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
   .panel:last-child { border-right: none; }
   .panel-header { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; background: var(--slate); }
@@ -190,6 +191,7 @@
   <div class="tab" onclick="switchTab('tail')">Tail Period</div>
   <div class="tab" onclick="switchTab('tolling')">Tolling Calculator</div>
   <div class="tab" onclick="switchTab('summary')">Full Account Summary</div>
+  <div class="tab" onclick="switchTab('eval')">Eval Suite</div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -453,6 +455,177 @@
   </div>
 </div>
 
+<div id="tab-eval" class="tab-content" style="overflow-y:auto;padding:20px;max-width:960px;margin:0 auto;">
+  <div style="border:1px solid var(--border);background:var(--slate);padding:18px 20px;margin-bottom:16px;">
+    <div style="font-family:var(--sans);font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;">AI Edge Case Review — Eval Suite</div>
+    <div style="font-size:12.5px;color:var(--text-muted);line-height:1.6;">
+      This agent's four AI review sections generate open-ended compliance commentary on top of already-correct deterministic math — not a classification with one right label. Each case below is an engineered scenario with a pre-verified correct statutory citation and a rubric of specific issues a competent reviewer must catch. <b style="color:var(--text);">Primary check:</b> does the response cite the correct SCRA section? <b style="color:var(--text);">Secondary check:</b> does it cover the required rubric items? One case per tab is a deliberately "clean" scenario testing whether the model invents risks that aren't there — that portion is flagged for manual review rather than auto-graded, since detecting fabrication reliably by keyword match isn't realistic. Uses the API key above if provided.
+    </div>
+  </div>
+
+  <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;">
+    <button class="run-btn" id="calcEvalBtn" onclick="runCalcEvalSuite()" style="background:var(--amber);color:#1a1206;border:none;padding:9px 18px;font-weight:600;border-radius:2px;cursor:pointer;font-family:var(--sans);font-size:13px;">Run eval suite</button>
+  </div>
+
+  <div id="calcEvalSummary" style="display:none;gap:14px;margin-bottom:16px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:110px;border:1px solid var(--border);background:var(--navy-mid);padding:12px;text-align:center;">
+      <div id="calcEvalCitePass" style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--green);">—</div>
+      <div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">Citation OK</div>
+    </div>
+    <div style="flex:1;min-width:110px;border:1px solid var(--border);background:var(--navy-mid);padding:12px;text-align:center;">
+      <div id="calcEvalCiteFail" style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--red);">—</div>
+      <div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">Citation wrong</div>
+    </div>
+    <div style="flex:1;min-width:110px;border:1px solid var(--border);background:var(--navy-mid);padding:12px;text-align:center;">
+      <div id="calcEvalRubricAvg" style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--amber);">—</div>
+      <div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">Avg rubric coverage</div>
+    </div>
+    <div style="flex:1;min-width:110px;border:1px solid var(--border);background:var(--navy-mid);padding:12px;text-align:center;">
+      <div id="calcEvalPending" style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--text-muted);">—</div>
+      <div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">Pending</div>
+    </div>
+  </div>
+
+  <div id="calcEvalGrid"></div>
+</div>
+
+<script>
+// ─── EVAL SUITE: AI edge case review — 8 engineered cases across 4 tabs ────────
+const CALC_EVAL_CASES = [
+  { id:'RC-1', tab:'Interest Rate Cap', title:'Typical rate cap package — safe harbor scope',
+    system:`You are an SCRA compliance expert reviewing interest rate cap calculations. Identify any edge cases, compliance risks, or required actions the SCRA Reviewer must be aware of. Be specific and cite statute. Under 150 words. Plain text.`,
+    user:`SCRA interest rate cap calculation for Sgt. J. Alvarez. Active duty: 2024-11-03 to present (14 months). Three eligible accounts: Mortgage ($310,000 at 7.50%), Auto ($22,000 at 6.50%), Credit Card ($6,800 at 22.99%). Total excess interest to forgive: $9,845.20. Retroactive effective date: 2024-11-03. Identify any edge cases or compliance concerns the reviewer must check before applying these calculations.`,
+    expectedCitations:['3937'], rubric:[
+      {label:'Mentions retroactive/effective date scope', keywords:['retroactive','effective date']},
+      {label:'Mentions safe harbor limitation', keywords:['safe harbor']},
+      {label:'References all three account types', keywords:['mortgage'], keywords2:['auto'], keywords3:['credit card']}
+    ], caseType:'standard' },
+  { id:'RC-2', tab:'Interest Rate Cap', title:'Joint account with non-serving co-borrower',
+    system:`You are an SCRA compliance expert reviewing interest rate cap calculations. Identify any edge cases, compliance risks, or required actions the SCRA Reviewer must be aware of. Be specific and cite statute. Under 150 words. Plain text.`,
+    user:`SCRA interest rate cap calculation for Sgt. M. Whitfield. Active duty: 2025-02-10 to present (11 months). Mortgage account ($265,000 at 6.90%) is jointly held with spouse D. Whitfield, who is not in military service and is not a servicemember. Total excess interest to forgive: $4,220.00. Retroactive effective date: 2025-02-10. Identify any edge cases or compliance concerns the reviewer must check before applying these calculations.`,
+    expectedCitations:['3937'], rubric:[
+      {label:'Flags joint account / co-borrower nuance', keywords:['joint','co-borrower','co-signer','spouse']},
+      {label:'Mentions retroactive/effective date scope', keywords:['retroactive','effective date']}
+    ], caseType:'standard' },
+  { id:'TP-1', tab:'Tail Period', title:'Foreclosure date falls within a nearly-expired tail period',
+    system:`You are an SCRA compliance expert. Review this tail period analysis and identify any compliance risks, required actions, or things the reviewer must check. Cite statute. Under 120 words. Plain text.`,
+    user:`SCRA mortgage tail period analysis for Sgt. R. Kowalski, account MTG-2021-33410. End of service: 2025-11-20. Tail period expiry: 2026-02-18. Days remaining: 12. Currently in tail period: true. Current rate: 4.75%. Pre-service rate: 7.10%. Scheduled foreclosure: 2026-02-25. What must the SCRA Reviewer check or do?`,
+    expectedCitations:['3937','3953'], rubric:[
+      {label:'Flags the foreclosure-date-vs-tail-expiry conflict', keywords:['foreclosure','conflict','scheduled']},
+      {label:'Conveys urgency given the short remaining window', keywords:['12 days','urgent','immediately','before']}
+    ], caseType:'standard' },
+  { id:'TP-2', tab:'Tail Period', title:'Prior tail period expired, new period of service begins',
+    system:`You are an SCRA compliance expert. Review this tail period analysis and identify any compliance risks, required actions, or things the reviewer must check. Cite statute. Under 120 words. Plain text.`,
+    user:`SCRA mortgage tail period analysis for Sgt. A. Reyes, account MTG-2018-11029. Prior period of service ended 2022-06-01, tail period expired 2022-09-01. Reyes was recalled to active duty 2026-01-05 (current). Current rate: 7.35%. Pre-service rate: 7.35% (never reduced — no prior rate cap claim on file). What must the SCRA Reviewer check or do?`,
+    expectedCitations:['3937','3953'], rubric:[
+      {label:'Recognizes this is a new, current period of service, not a continuation of the expired one', keywords:['new period','recalled','current period','re-entry','reactivat']},
+      {label:'Notes no prior rate cap was ever applied, so full benefit is newly available now', keywords:['never','no prior','not previously','newly eligible']}
+    ], caseType:'standard' },
+  { id:'TL-1', tab:'Tolling Calculator', title:'Standard tolling — waiver and party-role verification',
+    system:`You are an SCRA compliance expert reviewing a statute of limitations tolling calculation. Identify risks, caveats, and what Legal must verify. Cite statute. Under 120 words. Plain text.`,
+    user:`SCRA tolling analysis for Sgt. T. Nakamura, account CC-2019-88213. California: 4-year limitations period. Default date: 2019-08-15. Standard expiry: 2023-08-15. Active duty: 2020-01-10 to 2021-03-10 (425 days tolled). Adjusted expiry: 2024-10-14. Standard expired: true. Adjusted expired: false. What must Legal verify before relying on this calculation?`,
+    expectedCitations:['3936'], rubric:[
+      {label:'Recommends verifying no written waiver of SCRA tolling rights was signed', keywords:['waiver','waive']},
+      {label:'Notes which party (plaintiff/defendant) the protection applies to', keywords:['plaintiff','defendant','party']}
+    ], caseType:'standard' },
+  { id:'TL-2', tab:'Tolling Calculator', title:'Two non-contiguous periods of service must each toll separately',
+    system:`You are an SCRA compliance expert reviewing a statute of limitations tolling calculation. Identify risks, caveats, and what Legal must verify. Cite statute. Under 120 words. Plain text.`,
+    user:`SCRA tolling analysis for Sgt. B. Coleman, account MTG-2018-77410. Texas: 4-year limitations period. Default date: 2018-05-01. Standard expiry: 2022-05-01. Two separate periods of active duty: (1) 2019-03-01 to 2019-11-01 (245 days), (2) 2021-06-15 to 2022-09-15 (457 days). Combined tolled days: 702. Adjusted expiry: 2024-04-03. What must Legal verify before relying on this calculation?`,
+    expectedCitations:['3936'], rubric:[
+      {label:'States each period of service must be excluded/tolled separately, not just the combined total', keywords:['each period','separately','both periods','two periods']}
+    ], caseType:'standard' },
+  { id:'SUM-1', tab:'Full Account Summary', title:'Package with an anomalous account balance',
+    system:`You are an SCRA compliance expert generating a final remediation summary review. Identify the most important risks, confirm all required actions are covered, and flag anything requiring immediate legal attention. Under 150 words. Plain text.`,
+    user:`Full SCRA remediation package for Sgt. K. Lindqvist. Active duty: 2025-01-15 to present (12 months). Three pre-service accounts: Mortgage ($0.00 at 7.25%), Auto ($19,400 at 6.99%), Credit Card ($5,100 at 19.99%). Total excess interest to forgive: $1,890.00. Mortgage tail period: expires 2026-04-15, currently active (95 days remaining). What are the most important things the SCRA Reviewer must verify before this package is applied?`,
+    expectedCitations:['3937','3953'], rubric:[
+      {label:'Flags the $0.00 mortgage balance as anomalous and needing verification', keywords:['$0','zero','anomal','unusual','verify the mortgage','data entry']}
+    ], caseType:'standard' },
+  { id:'SUM-2', tab:'Full Account Summary', title:'[Decoy] Clean, unremarkable package — tests for fabricated risk',
+    system:`You are an SCRA compliance expert generating a final remediation summary review. Identify the most important risks, confirm all required actions are covered, and flag anything requiring immediate legal attention. Under 150 words. Plain text.`,
+    user:`Full SCRA remediation package for Sgt. P. Osei. Active duty: 2025-06-01 to present (7 months). Three pre-service accounts: Mortgage ($198,000 at 6.80%), Auto ($14,200 at 6.25%), Credit Card ($2,900 at 18.99%). Total excess interest to forgive: $1,145.30. No mortgage tail period active. No foreclosure scheduled. What are the most important things the SCRA Reviewer must verify before this package is applied?`,
+    expectedCitations:['3937'], rubric:[
+      {label:'[Manual review] Does NOT invent risks or complications beyond what the data supports', keywords:[], manualOnly:true }
+    ], caseType:'decoy' }
+];
+
+function extractCitationHit(text, expectedCitations){
+  return expectedCitations.some(code => text.includes(code));
+}
+
+function checkRubricItem(text, item){
+  if(item.manualOnly) return null; // not auto-gradeable
+  const lower = text.toLowerCase();
+  const groups = [item.keywords, item.keywords2, item.keywords3].filter(Boolean);
+  // all keyword groups present (each group = "at least one of these words"), for multi-part checks like RC-1's three-account mention
+  return groups.every(group => group.some(kw => lower.includes(kw.toLowerCase())));
+}
+
+async function runCalcEvalSuite(){
+  const btn = document.getElementById('calcEvalBtn');
+  const grid = document.getElementById('calcEvalGrid');
+  const summary = document.getElementById('calcEvalSummary');
+  const byokKey = document.getElementById('byokKey') ? document.getElementById('byokKey').value.trim() : '';
+
+  btn.disabled = true; btn.textContent = 'Running…';
+  summary.style.display = 'flex';
+  grid.innerHTML = '';
+
+  let citePass=0, citeFail=0, pending=0, rubricTotals=[];
+
+  for (const c of CALC_EVAL_CASES){
+    const card = document.createElement('div');
+    card.style.cssText = 'border:1px solid var(--border);border-left:3px solid var(--border);background:var(--navy-mid);padding:12px 14px;margin-bottom:8px;';
+    card.innerHTML = `<div style="display:flex;justify-content:space-between;"><span style="font-weight:600;color:var(--text);font-size:13px;">${c.id} — ${c.title}</span><span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);">Running…</span></div>`;
+    grid.appendChild(card);
+
+    try {
+      const headers = {'Content-Type':'application/json'};
+      if(byokKey){ headers['x-api-key']=byokKey; headers['anthropic-version']='2023-06-01'; headers['anthropic-dangerous-direct-browser-access']='true'; }
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST', headers,
+        body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:400,
+          messages:[{role:'user', content: c.system + '\n\n' + c.user}] })
+      });
+      if(!res.ok) throw new Error('API error '+res.status);
+      const data = await res.json();
+      const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
+
+      const citeOk = extractCitationHit(text, c.expectedCitations);
+      if(citeOk) citePass++; else citeFail++;
+
+      const rubricResults = c.rubric.map(item => ({ label:item.label, result: checkRubricItem(text, item) }));
+      const gradeable = rubricResults.filter(r=>r.result!==null);
+      const coverage = gradeable.length ? gradeable.filter(r=>r.result===true).length / gradeable.length : null;
+      if(coverage!==null) rubricTotals.push(coverage);
+
+      card.style.borderLeftColor = citeOk ? 'var(--green)' : 'var(--red)';
+      card.innerHTML = `
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-weight:600;color:var(--text);font-size:13px;">${c.id} — ${c.title} ${c.caseType==='decoy'?'<span style=\"color:var(--amber);font-size:10px;\">[DECOY]</span>':''}</span>
+          <span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:2px;background:${citeOk?'var(--green)':'var(--red)'};color:#0d0e12;">${citeOk?'CITATION OK':'CITATION WRONG'}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">Tab: ${c.tab} · Expected citation: §${c.expectedCitations.join(' or §')}</div>
+        <div style="font-size:12px;color:var(--text-muted);">
+          ${rubricResults.map(r=>`<div>${r.result===null ? '◻ (manual review) ' : (r.result?'✅ ':'❌ ')}${r.label}</div>`).join('')}
+        </div>`;
+
+    } catch(err){
+      pending++;
+      card.style.borderLeftColor = 'var(--text-dim)';
+      card.innerHTML = `<div style="display:flex;justify-content:space-between;"><span style="font-weight:600;color:var(--text);font-size:13px;">${c.id} — ${c.title}</span><span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);">PENDING — no live check</span></div><div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${byokKey?'live call failed':'enter an API key above to run this case live'}</div>`;
+    }
+  }
+
+  document.getElementById('calcEvalCitePass').textContent = citePass;
+  document.getElementById('calcEvalCiteFail').textContent = citeFail;
+  document.getElementById('calcEvalPending').textContent = pending;
+  document.getElementById('calcEvalRubricAvg').textContent = rubricTotals.length
+    ? Math.round(100*rubricTotals.reduce((a,b)=>a+b,0)/rubricTotals.length)+'%' : '—';
+
+  btn.disabled = false; btn.textContent = 'Run eval suite';
+}
+</script>
+
 <script>
 // ─── UTILITIES ────────────────────────────────────────────────────────────────
 const getNow = () => new Date().toISOString().replace('T',' ').substring(0,19)+' UTC';
@@ -463,7 +636,7 @@ const fmtDays = n => n.toLocaleString()+' day'+(n!==1?'s':'');
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-  const tabs = {cap:0,tail:1,tolling:2,summary:3};
+  const tabs = {cap:0,tail:1,tolling:2,summary:3,eval:4};
   document.querySelectorAll('.tab')[tabs[tab]].classList.add('active');
   document.getElementById('tab-'+tab).classList.add('active');
 }

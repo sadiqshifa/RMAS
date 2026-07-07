@@ -81,6 +81,7 @@
   .badge.tier-medium{color:var(--amber);}
   .badge.tier-low{color:var(--paper-dim);}
   .badge.validated{background:var(--green);color:#0d0e12;border-color:var(--green);}
+  .badge.partial{background:var(--amber);color:#0d0e12;border-color:var(--amber);}
   .badge.not-validated{background:var(--oxblood);color:#fff;border-color:var(--oxblood);}
 
   .detail-row{display:none;}
@@ -118,7 +119,8 @@
       <div class="summary-row">
         <div class="stat"><div class="stat-num">4</div><div class="stat-label">Models tracked</div></div>
         <div class="stat"><div class="stat-num" style="color:var(--green);">1</div><div class="stat-label">Validated</div></div>
-        <div class="stat"><div class="stat-num" style="color:var(--oxblood-bright);">3</div><div class="stat-label">Not validated</div></div>
+        <div class="stat"><div class="stat-num" style="color:var(--amber);">1</div><div class="stat-label">Partially validated</div></div>
+        <div class="stat"><div class="stat-num" style="color:var(--oxblood-bright);">2</div><div class="stat-label">Not validated</div></div>
         <div class="stat"><div class="stat-num" style="color:var(--oxblood-bright);">2</div><div class="stat-label">High tier</div></div>
         <div class="stat"><div class="stat-num" style="color:var(--amber);">1</div><div class="stat-label">Medium tier</div></div>
         <div class="stat"><div class="stat-num">1</div><div class="stat-label">Low tier</div></div>
@@ -129,7 +131,7 @@
   <section>
     <div class="panel">
       <div class="finding-banner">
-        <b>Finding — not hypothetical:</b> only 1 of 4 models in this portfolio has an eval suite that actually validates its output. The DMDC agent's existing 6-case eval suite tests deterministic routing/gate/certificate logic only — no test checks the AI-generated narrative text itself. The Notice Intake trigger-recognition model has zero eval coverage. The Calculations agent's AI edge-case review has no eval suite at all. Only the Regulatory Change Monitor's 18-case suite genuinely tests AI output against human-labeled correct answers. See the remediation roadmap below.
+        <b>Updated finding:</b> of 4 models in this portfolio, 1 is fully validated (Regulatory Change Monitor's 18-case classification suite), 1 is now partially validated (the Calculations agent's new 8-case suite — statutory citation checks and most rubric items are auto-graded; one deliberate "fabrication" decoy case is flagged for manual review rather than auto-scored), and 2 remain unvalidated: the DMDC agent's existing eval suite tests deterministic routing/gate/certificate logic only, never the AI-generated narrative text, and the Notice Intake trigger-recognition model has zero eval coverage. See the remediation roadmap below.
       </div>
 
       <h2>Model inventory</h2>
@@ -147,9 +149,9 @@
     <div class="panel">
       <h2>Remediation roadmap</h2>
       <div class="desc">Ordered by tier, then by ease of closing the gap.</div>
-      <div class="roadmap-item"><b>1. MRM-002 (High, unvalidated)</b> — build a labeled eval set from the six existing Notice Intake demo scenarios plus additional edge cases (ambiguous language, non-English phrasing, a trigger embedded in an unrelated complaint). Highest priority: highest tier, zero current coverage, raw material for a first-pass eval set already exists.</div>
+      <div class="roadmap-item" style="border-left-color:var(--green);"><b>✅ MRM-003 (Low, was unvalidated)</b> — done. An 8-case eval suite now covers statutory citation accuracy and rubric-based issue-spotting across all 4 calculation tabs, with one fabrication-check decoy case flagged for manual review.</div>
+      <div class="roadmap-item"><b>1. MRM-002 (High, unvalidated)</b> — build a labeled eval set from the six existing Notice Intake demo scenarios plus additional edge cases (ambiguous language, non-English phrasing, a trigger embedded in an unrelated complaint). Highest remaining priority: highest tier, zero current coverage.</div>
       <div class="roadmap-item"><b>2. MRM-001 (Medium, unvalidated)</b> — extend the existing 6-case eval suite with assertions on the generated narrative text itself, not just whether the gate held.</div>
-      <div class="roadmap-item"><b>3. MRM-003 (Low, unvalidated)</b> — lowest priority since materiality is already covered by deterministic calculation correctness, but a basic spot-check rubric would still close the zero-coverage gap cheaply.</div>
     </div>
   </section>
 
@@ -180,9 +182,9 @@ const MODELS = [
     rationale:'This is the entry point to the entire SCRA workflow. If the model misses a valid trigger (e.g., indirect language like a spouse mentioning deployment on a billing call), there is no downstream check — the workflow simply never starts. High materiality and detectability risk independent of whether flagged cases get reviewed.',
     validationNote:'Zero eval coverage. The six pre-loaded scenarios in the UI are demo content for showing the capability, not a labeled eval set with a pass/fail harness.' },
   { id:'MRM-003', name:'AI edge case review (all 4 calculation tabs)', agent:'SCRA Calculations Agent', agentLink:'scra-calculations-agent.html',
-    tier:'low', validated:false,
+    tier:'low', validated:'partial',
     rationale:'The calculation outputs themselves (interest owed, tail period dates, tolling adjustments) are fully deterministic JavaScript and don\'t depend on the AI at all. The AI-generated edge-case narrative is a drafting aid layered on top of a number that is already correct independent of what the model says about it.',
-    validationNote:'No eval suite exists for this agent at all. Lowest priority to close given materiality is already covered elsewhere, but still a documented gap.' },
+    validationNote:'8-case eval suite now built (see agent\'s "Eval Suite" tab): 2 cases per tab, each checking (1) correct statutory citation — §3937 for rate cap, §3936 for tolling, §3937/§3953 for tail period — and (2) a rubric of specific issues a competent reviewer must catch (joint-account nuance, foreclosure-date conflicts, multi-period tolling, anomalous balances). One case is a deliberate "clean" decoy testing whether the model fabricates risks that aren\'t there; that specific check is flagged for manual review rather than auto-graded, since reliably detecting fabrication by keyword match isn\'t realistic. Marked "partial" rather than fully validated for that reason — 7 of 8 cases are fully auto-gradeable, one has a manual-only dimension.' },
   { id:'MRM-004', name:'Regulatory update classification', agent:'Regulatory Change Monitor', agentLink:'reg-change-monitor.html',
     tier:'high', validated:true,
     rationale:'Directly shapes what a compliance team believes requires action across three regulatory domains. Miss a relevant change and it may go unaddressed until the next manual review; over-flag routine items and the tool loses credibility.',
@@ -190,6 +192,17 @@ const MODELS = [
 ];
 
 const tierLabel = {high:'High', medium:'Medium', low:'Low'};
+
+function validationBadgeClass(v){
+  if(v === true) return 'validated';
+  if(v === 'partial') return 'partial';
+  return 'not-validated';
+}
+function validationLabel(v){
+  if(v === true) return 'Validated';
+  if(v === 'partial') return 'Partially validated';
+  return 'Not validated';
+}
 
 function render(){
   const tbody = document.getElementById('registerBody');
@@ -199,7 +212,7 @@ function render(){
       <td class="model-name">${m.name}</td>
       <td class="model-agent">${m.agent}</td>
       <td><span class="badge tier-${m.tier}">${tierLabel[m.tier]}</span></td>
-      <td><span class="badge ${m.validated ? 'validated' : 'not-validated'}">${m.validated ? 'Validated' : 'Not validated'}</span></td>
+      <td><span class="badge ${validationBadgeClass(m.validated)}">${validationLabel(m.validated)}</span></td>
     </tr>
     <tr class="detail-row" id="detail-${i}">
       <td colspan="5">
