@@ -2,7 +2,7 @@
 
 **A methodology for connecting regulatory requirements to AI-assisted compliance controls — with governance as a first-class concern.**
 
-[**→ Try the SCRA DMDC Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-dmdc-agent.html) · [**→ Try the SCRA Calculations Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-calculations-agent.html) · [**→ Try the Regulatory Change Monitor (live)**](https://sadiqshifa.github.io/RMAS/reg-change-monitor.html) · [**→ Try the HMDA Calculator (live)**](https://sadiqshifa.github.io/RMAS/hmda-calculator.html) · [**→ Try the Adverse Action Notice Validator (live)**](https://sadiqshifa.github.io/RMAS/adverse-action-validator.html) · [**→ Try the Model Risk Register (live)**](https://sadiqshifa.github.io/RMAS/model-risk-register.html)
+[**→ Try the SCRA DMDC Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-dmdc-agent.html) · [**→ Try the SCRA Calculations Agent (live)**](https://sadiqshifa.github.io/RMAS/scra-calculations-agent.html) · [**→ Try the Regulatory Change Monitor (live)**](https://sadiqshifa.github.io/RMAS/reg-change-monitor.html)
 
 ---
 
@@ -18,7 +18,7 @@ This is not a demo that stops at the automation. Two harder questions are treate
 
 ## The live agents
 
-Five working compliance agents, running in a browser with no installation required. Four use live AI behind an optional, user-supplied API key (fallback mode by default); one — the HMDA Calculator — is deliberately pure deterministic logic with no AI component at all, since a coverage determination should have exactly one correct answer given its inputs.
+Three working AI-powered compliance agents, running in a browser with no installation required.
 
 ### Agent 1 — SCRA DMDC Integration (Type 1 + Type 4)
 
@@ -75,8 +75,6 @@ Four calculation tabs, each implementing controls identified in Layer 3 and deri
 
 **Fallback mode:** All calculations are deterministic JavaScript — they execute completely regardless of AI availability. Only the AI edge case review sections use the model; these display pre-written compliance guidance by default and require your own Anthropic API key (entered in the agent) to run live, same as Agent 1.
 
-**Eval suite:** An 8-case eval suite (2 per tab) checks statutory citation accuracy and rubric-based issue-spotting for the AI edge case review — see the agent's "Eval Suite" tab. One case is a deliberate "clean" decoy testing whether the model invents risks that aren't there.
-
 ---
 
 ### Agent 3 — Regulatory Change Monitor (cross-domain, Layer 3/second-line)
@@ -90,52 +88,6 @@ Unlike Agents 1 and 2, this agent isn't domain-specific — it's a second-line-o
 **Eval suite — 18 pre-labeled cases** (14 real, dated regulatory items verified via search; 4 clearly-marked constructed edge cases), evenly split across the three domains, each with a human-set correct classification and materiality. This is the concrete Layer 4 regression gate: before adopting any model or prompt change, re-run the suite and compare against the last known pass rate.
 
 **Fallback mode / BYOK:** By default — including for any visitor on this GitHub Pages site — the agent runs in fallback mode: no live API calls, no cost, nothing required, with direct links to primary sources if a check can't complete. Enter your own Anthropic API key in the agent to trigger genuine live search-and-classify runs and to actually score the eval suite instead of seeing "pending."
-
----
-
-### Agent 4 — HMDA Reportability Calculator (Type 3)
-
-[**→ Open agent**](https://sadiqshifa.github.io/RMAS/hmda-calculator.html)
-
-Determines whether a depository or non-depository institution is covered under HMDA / Regulation C (12 CFR §1003.2(g)) for the current collection year. No AI anywhere in this agent — every determination is deterministic logic implementing the regulation's own test structure, which is the right design for a question that has exactly one correct answer given its inputs.
-
-- **Depository Institution Test** — all five conditions (asset-size, location, loan activity, federally related, loan-volume) evaluated independently, with a full pass/fail reasoning trail rather than a black-box yes/no
-- **Non-Depository Institution Test** — the simpler two-condition test, including the lesser-known alternative location test (5+ covered loans in an MSA with no physical branch required)
-- **Threshold History** — the annually-adjusted asset-size threshold ($56M → $58M → $59M, 2024–2026) tracked with its CPI-W basis and publication date, doubling as a live demonstration of exactly the kind of figure that goes stale without a reg-change-monitor process watching it
-- **Summary Determination** — pulls the most recent result from either institution-type test into a single citeable output
-
-**Eval suite:** 14 deterministic test cases (MRM-004) covering both institution types and their boundary conditions (e.g., assets exactly at the threshold, volume tests passing via only one of the two available paths). Since there's no AI output to grade, this suite validates that the code correctly implements the regulation — not model judgment. Designed; not yet executed against the built tool.
-
----
-
-### Agent 5 — Adverse Action Notice Validator (Type 1 + Type 4)
-
-[**→ Open agent**](https://sadiqshifa.github.io/RMAS/adverse-action-validator.html)
-
-Checks a draft adverse action notice against Regulation B's timing and content requirements, and flags language that may still rely on the "effects test" / disparate-impact standard the CFPB removed effective July 21, 2026 — a live example of a regulatory ground-truth shift landing mid-build.
-
-- **Timing** — deterministic deadline calculator for all four notice scenarios (30-day standard, 30-day incomplete application, 30-day existing account, 90-day unanswered counteroffer)
-- **Content Checklist** — the four required elements under §1002.9(a)(2)/(b)(1), checked individually rather than as a single pass/fail
-- **SPCP Screen** — screens a Special Purpose Credit Program against the amended prohibited-characteristics list, but checks credit-extension timing first: programs are correctly marked **GRANDFATHERED** if credit was extended before July 21, 2026, since the rule applies prospectively rather than retroactively. A flagged violation routes to legal/compliance for redesign rather than attempting an automated fix — that redesign judgment isn't a task worth automating.
-- **AI-Assisted Draft Review (Type 4, BYOK)** — paste a draft notice; fallback mode runs a deterministic keyword scan against known stale-language phrases and required-element markers, live mode (with your own Anthropic API key) produces a fuller narrative analysis. Both modes carry an explicit litigation-status caveat: the July 21 effective date is scheduled but not yet litigated, and several legal trackers consider a pre-effective-date injunction plausible — the tool states this rather than treating the rule as permanently settled.
-
-**Eval suite:** 16 total cases (MRM-005) — 10 fully deterministic and auto-gradable (5 timing + 5 SPCP screen), plus 6 rubric-based cases for the AI draft review. The rubric-based set is the honest hard case in this whole project: distinguishing a notice that *asserts* the old standard as current law from one that merely *references* it historically is exactly the kind of judgment a keyword scan can't make, and it's the one sub-suite that needs a human-confirmed "correct" answer before any live-mode output can be graded against it. Designed; deterministic cases not yet executed, AI cases not yet run.
-
----
-
-## Model Risk Register — governance of the governance
-
-[**→ Open the register**](https://sadiqshifa.github.io/RMAS/model-risk-register.html)
-
-The three agents above each contain AI components making judgment calls. This register treats those components as models under formal inventory and governance, modeled on **SR 11-7** (the Fed/OCC's actual Model Risk Management guidance) — model inventory, risk tiering (High/Medium/Low based on autonomy, materiality, and detectability), validation status by tier, and a documented remediation path for gaps.
-
-Unlike every other artifact in this project, the register makes **no API calls at all** — it's static governance content, deliberately, so it stays available regardless of AI status.
-
-**An evolving, real finding, not a hypothetical:** auditing all 4 AI models across the fleet found that only 1 — the Regulatory Change Monitor's classification model — was originally validated. Since then, the Calculations agent's AI edge-case review gained its own 8-case eval suite (statutory citation accuracy plus rubric-based issue-spotting), making it partially validated. Two gaps remain: the DMDC agent's existing eval suite tests deterministic routing/gate/certificate logic only, not the AI-generated narrative text, and the Notice Intake trigger-recognition model still has zero eval coverage. The register documents all of this with a live, prioritized remediation roadmap rather than a static snapshot.
-
-**Not yet reflected here:** the Adverse Action Notice Validator's Tab 4 AI draft-review model (Agent 5) is a fifth model that belongs in this inventory and doesn't have a tier assignment yet — the register's "4 models" count predates it. Adding it, plus running its eval suite before assigning a validation status, is a documented next step rather than an oversight.
-
-[→ Full framework doc](docs/model-risk-management-framework.md)
 
 ---
 
@@ -213,23 +165,17 @@ rmas/
 ├── scra-dmdc-agent.html              # DMDC + Notice Intake agent — open in any browser
 ├── scra-calculations-agent.html      # Calculations agent — open in any browser
 ├── reg-change-monitor.html           # Cross-domain (AML/KYC, Fair Lending, SCRA) reg-change agent — open in any browser
-├── hmda-calculator.html              # HMDA Reportability Calculator — deterministic, no AI — open in any browser
-├── adverse-action-validator.html     # Adverse Action Notice Validator — open in any browser
-├── model-risk-register.html          # Model Risk Register — governance-of-governance, no API calls — open in any browser
 │
 ├── docs/
 │   ├── layer1-scra.md                # SCRA regulatory requirements (12 obligation clusters)
 │   ├── layer2-scra-process-map.md    # Nine compliance processes with step-by-step workflows
 │   ├── layer3-scra-control-matrix.md # 47 controls, four-tier agent opportunity ratings
-│   ├── layer4-scra-governance.md     # SCRA agent characterization + governance architecture
+│   ├── layer4-scra-governance.md     # Agent characterization + governance architecture
 │   ├── scra-agent-governance-risk.md # Operational governance framework (8 domains)
-│   ├── scra-demo-to-production-gap-register.md # Demo → production gap register
-│   ├── layer1-aml-kyc.md             # AML/KYC/Sanctions regulatory map
-│   ├── layer2-aml-kyc.md             # AML/KYC/Sanctions control matrix
-│   ├── layer1-fair-lending.md        # Fair Lending (Reg B/HMDA) regulatory map
-│   ├── layer2-fair-lending.md        # Fair Lending (Reg B/HMDA) control matrix
-│   ├── eval-suites-fair-lending-agents.md # MRM-004/MRM-005 eval suite specs for the two Fair Lending agents
-│   └── model-risk-management-framework.md # SR 11-7-inspired model inventory & governance methodology
+│   └── scra-demo-to-production-gap-register.md # Demo → production gap register
+│
+│   # Not yet in this repo — drafted separately, pending commit:
+│   # layer1-aml-kyc.md, layer2-aml-kyc.md, layer1-fair-lending.md
 │
 └── README.md
 ```
@@ -244,7 +190,7 @@ rmas/
 
 **Honest control assessment.** Identifying where automation genuinely helps vs. where data availability or human accountability dependencies constrain agent opportunity — and rating them differently rather than rounding up.
 
-**Working agent execution.** Five agents across two domains: Type 1 (DMDC integration) and Type 4 (language recognition) in the DMDC agent; Type 3 (deterministic calculations) in the calculations agent; a cross-domain classification agent in the Regulatory Change Monitor; a Type 3 HMDA coverage calculator with no AI component at all; and a Type 1 + Type 4 Adverse Action Notice Validator — with real compliance logic, AI analysis available live via your own API key where applicable (fallback mode by default), and eval suites at varying stages of design and execution.
+**Working agent execution.** Three live AI-powered agents: Type 1 (DMDC integration) and Type 4 (language recognition) in the DMDC agent; Type 3 (deterministic calculations) in the calculations agent; and a cross-domain classification agent in the Regulatory Change Monitor — with real compliance logic, AI analysis available live via your own API key (fallback mode by default), and working eval suites.
 
 **Production governance thinking.** Eval suite design, version pinning, human-in-the-loop boundaries, drift monitoring, incident response, data dependency governance, and business continuity — specified at operational precision, not policy-document level.
 
@@ -258,8 +204,8 @@ rmas/
 
 SCRA was chosen as the template domain because its requirements are discrete and its process touchpoints are bounded — it's a good domain to build the methodology in. The same four-layer approach applies to:
 
-- [AML/KYC/Sanctions](docs/layer1-aml-kyc.md) — [Layer 1](docs/layer1-aml-kyc.md) and [Layer 2](docs/layer2-aml-kyc.md) built
-- [Fair Lending / HMDA](docs/layer1-fair-lending.md) — Layer 1 and [Layer 2](docs/layer2-fair-lending.md) built; two Layer 3 agents built (HMDA Reportability Calculator, Adverse Action Notice Validator)
+- AML/KYC/Sanctions (Layer 1 and Layer 2 drafted; not yet committed to this repository)
+- Fair Lending / HMDA (Layer 1 drafted; not yet committed to this repository) — both domains are already covered by the cross-domain [Regulatory Change Monitor](https://sadiqshifa.github.io/RMAS/reg-change-monitor.html) agent above, ahead of their own Layer 1/2 docs landing here
 - Healthcare privacy (HIPAA, 42 CFR Part 2)
 - Insurance regulatory compliance
 - Energy market compliance (FERC, NERC)
@@ -267,8 +213,6 @@ SCRA was chosen as the template domain because its requirements are discrete and
 - Any domain where regulatory complexity creates operational risk that exceeds what manual processes reliably handle
 
 The methodology transfers. The domain knowledge is specific to the domain.
-
-Both AML/KYC and Fair Lending are already covered by the cross-domain [Regulatory Change Monitor](https://sadiqshifa.github.io/RMAS/reg-change-monitor.html) agent above — the deliberate sequencing choice was to build that cross-cutting second-line function once, then layer domain-specific agents on top as each domain's control matrix matures. Fair Lending has since gone further: its Layer 2 control matrix identified the HMDA Calculator and Adverse Action Notice Validator as the two strongest deterministic/AI-assisted candidates, and both are now built. AML/KYC's Layer 2 identified OFAC false-positive triage as its equivalent starting candidate — that build hasn't started yet.
 
 ---
 
@@ -290,16 +234,8 @@ Both AML/KYC and Fair Lending are already covered by the cross-domain [Regulator
 | Regulatory Change Monitor — Production Architecture view (Fed Register API, OFAC SDN diff, scheduler, persistence) | ✅ Code present, intentionally inactive on static hosting |
 | Regulatory Change Monitor — Eval suite (18 cases, 14 real / 4 constructed) | ✅ v0.1 complete |
 | All three agents — BYOK live AI (bring-your-own Anthropic API key) | ✅ Implemented; fallback-by-default outside Claude.ai's runtime |
-| AML/KYC/Sanctions — Layer 1 (Regulatory Map) | ✅ v0 committed |
-| AML/KYC/Sanctions — Layer 2 (Control Matrix) | ✅ v0 committed |
-| Fair Lending / HMDA — Layer 1 (Regulatory Map) | ✅ v0 committed |
-| Fair Lending / HMDA — Layer 2 (Control Matrix) | ✅ v0 committed |
-| Fair Lending Agent — HMDA Reportability Calculator (Type 3, no AI) | ✅ Working demo |
-| Fair Lending Agent — Adverse Action Notice Validator (Type 1 + Type 4) | ✅ Working demo · fallback mode |
-| Fair Lending — HMDA Calculator eval suite (MRM-004, 14 cases) | 🚧 Designed, not yet executed |
-| Fair Lending — Notice Validator eval suite (MRM-005, 16 cases: 10 deterministic + 6 rubric-based) | 🚧 Designed, not yet executed |
-| Model Risk Register — 4-model inventory, SR 11-7-inspired tiering | ⚠️ v0.1 complete, but predates Agent 5 — 5th model (Notice Validator's AI review) not yet added |
-| Model Risk Register — validation coverage | ✅ 1 of 4 fully validated, 1 partially validated (Calculations agent's new 8-case suite), 2 remaining gaps documented with roadmap; Agent 5's model not yet in scope |
+| AML/KYC/Sanctions — Layers 1 & 2 | 🚧 v0 drafted — **not yet committed to this repo** |
+| Fair Lending / HMDA — Layer 1 | 🚧 v0 drafted — **not yet committed to this repo** |
 
 ---
 
