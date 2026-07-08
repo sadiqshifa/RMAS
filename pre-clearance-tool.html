@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pre-Clearance Determination System — RMAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF7EF;
+    --paper-dark:#F0ECDF;
+    --ink:#1C1B18;
+    --ink-soft:#4A473E;
+    --rule:#C9C2AC;
+    --federal-blue:#1B3A5C;
+    --federal-blue-soft:#3D5A7A;
+    --stamp-green:#2B5D34;
+    --stamp-amber:#8A5A12;
+    --stamp-red:#8C2A22;
+    --field-bg:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Source Serif 4', Georgia, serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+
+  .masthead{
+    border-bottom:3px double var(--ink);
+    padding:28px 24px 18px;
+    text-align:center;
+    background:var(--paper);
+  }
+  .masthead .kicker{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--federal-blue);
+    margin-bottom:8px;
+  }
+  .masthead h1{
+    font-size:clamp(22px,3.4vw,32px);
+    font-weight:700;
+    margin:0 0 6px;
+    letter-spacing:-0.01em;
+  }
+  .masthead .sub{
+    font-size:14px;
+    color:var(--ink-soft);
+    font-style:italic;
+  }
+  .badge-row{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-top:14px;
+    flex-wrap:wrap;
+  }
+  .badge{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    border:1px solid var(--ink);
+    padding:4px 10px;
+    background:var(--paper-dark);
+  }
+  .badge.rules{ border-color:var(--federal-blue); color:var(--federal-blue); }
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:32px 24px 80px;
+  }
+
+  .section-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--federal-blue);
+    border-bottom:1px solid var(--rule);
+    padding-bottom:6px;
+    margin:0 0 18px;
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:36px;
+    align-items:start;
+  }
+  @media (max-width:880px){ .grid{ grid-template-columns:1fr; } }
+
+  fieldset{
+    border:1px solid var(--rule);
+    border-radius:2px;
+    padding:16px 18px 18px;
+    margin:0 0 16px;
+  }
+  legend{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    padding:0 6px;
+  }
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    margin:12px 0 5px;
+  }
+  label:first-child{ margin-top:0; }
+  .hint{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    color:var(--ink-soft);
+    font-weight:400;
+    display:block;
+    margin-top:2px;
+  }
+  input[type=text], input[type=number], select, textarea{
+    width:100%;
+    padding:8px 10px;
+    border:1px solid #A9A290;
+    background:var(--field-bg);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color:var(--ink);
+    border-radius:1px;
+  }
+  textarea{ resize:vertical; min-height:52px; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .checks{ display:flex; flex-direction:column; gap:8px; margin-top:4px; }
+  .checks label{
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+    font-weight:400;
+    font-size:12.5px;
+    margin:0;
+    cursor:pointer;
+  }
+  .checks input{ margin-top:3px; width:auto; }
+
+  button.submit{
+    width:100%;
+    margin-top:6px;
+    padding:12px;
+    background:var(--federal-blue);
+    color:#fff;
+    border:none;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    cursor:pointer;
+    border-radius:2px;
+  }
+  button.submit:hover{ background:var(--federal-blue-soft); }
+  button.ghost{
+    background:transparent;
+    border:1px solid var(--rule);
+    color:var(--ink-soft);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:6px 10px;
+    cursor:pointer;
+    border-radius:2px;
+  }
+  button.ghost:hover{ border-color:var(--ink); color:var(--ink); }
+
+  button.approve{
+    background:var(--stamp-green);
+    color:#fff;
+    border:none;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    padding:8px 12px;
+    cursor:pointer;
+    border-radius:2px;
+  }
+  button.reject{
+    background:var(--stamp-red);
+    color:#fff;
+    border:none;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    padding:8px 12px;
+    cursor:pointer;
+    border-radius:2px;
+    margin-left:8px;
+  }
+
+  .queue-card{
+    border:1px solid var(--rule);
+    background:#fff;
+    padding:14px 16px;
+    margin-bottom:12px;
+  }
+  .queue-meta{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+    line-height:1.6;
+  }
+  .queue-meta strong{ color:var(--ink); }
+  .flag-warning{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--stamp-red);
+    background:#FBEFEC;
+    border:1px solid var(--stamp-red);
+    padding:6px 8px;
+    margin-bottom:10px;
+  }
+  .queue-empty, .ledger-empty{
+    color:var(--ink-soft);
+    font-size:13px;
+    font-style:italic;
+  }
+
+  .det-card{
+    border:1px solid var(--rule);
+    background:#fff;
+    padding:20px;
+    margin-bottom:16px;
+    position:relative;
+    overflow:hidden;
+  }
+  .det-empty{
+    color:var(--ink-soft);
+    font-size:13px;
+    font-style:italic;
+  }
+  .stamp{
+    display:inline-block;
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:14px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    border:3px solid var(--stamp-green);
+    color:var(--stamp-green);
+    padding:7px 14px;
+    transform:rotate(-3deg);
+    border-radius:3px;
+    margin-bottom:14px;
+  }
+  .stamp.amber{ border-color:var(--stamp-amber); color:var(--stamp-amber); transform:rotate(2deg); }
+  .stamp.red{ border-color:var(--stamp-red); color:var(--stamp-red); transform:rotate(-2deg); }
+
+  .cite-list{ margin:12px 0; padding-left:0; list-style:none; }
+  .cite-list li{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    padding:5px 0 5px 14px;
+    border-left:2px solid var(--rule);
+    margin-bottom:4px;
+  }
+  .routing-table{ width:100%; border-collapse:collapse; margin-top:10px; font-size:12.5px; }
+  .routing-table th, .routing-table td{
+    text-align:left;
+    padding:6px 8px;
+    border-bottom:1px solid var(--rule);
+  }
+  .routing-table th{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--ink-soft);
+  }
+  .reasoning{
+    font-size:13px;
+    margin-top:12px;
+    padding:10px 12px;
+    background:var(--paper-dark);
+    border-left:3px solid var(--federal-blue);
+  }
+
+  .ledger-panel{
+    border:1px solid var(--rule);
+    background:#fff;
+    padding:16px 18px;
+  }
+  .ledger-row{
+    display:flex;
+    justify-content:space-between;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    padding:7px 0;
+    border-bottom:1px solid #EDE8D8;
+  }
+  .ledger-row:last-child{ border-bottom:none; }
+
+  .audit-panel{ margin-top:28px; }
+  .audit-entry{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    border-bottom:1px dashed var(--rule);
+    padding:8px 0;
+  }
+  .audit-entry .outcome{ font-weight:600; color:var(--ink); }
+
+  .footnote{
+    margin-top:40px;
+    padding-top:16px;
+    border-top:1px solid var(--rule);
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .footnote h3{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--federal-blue);
+    margin-bottom:8px;
+  }
+  .footnote ul{ padding-left:18px; margin:8px 0; }
+  .footnote li{ margin-bottom:6px; }
+  .policy-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9.5px;
+    text-transform:uppercase;
+    background:var(--paper-dark);
+    border:1px solid var(--rule);
+    padding:1px 5px;
+    border-radius:2px;
+    margin-left:4px;
+  }
+  .stack{ margin-top:28px; }
+  .cat-block{ display:none; }
+  .cat-block.active{ display:block; margin:12px 0 0; padding-top:10px; border-top:1px dashed var(--rule); }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="kicker">RMAS — Regulatory Systems Studio · Layer 3 Workflow Tool</div>
+  <h1>Pre-Clearance Determination System</h1>
+  <div class="sub">Gifts, Entertainment &amp; Anti-Bribery/Corruption — Conflicts of Interest</div>
+  <div class="badge-row">
+    <div class="badge rules">Deterministic rules engine — no AI in the decision path</div>
+    <div class="badge">Two-line review: manager, then independent compliance</div>
+    <div class="badge">Every state change logged &amp; auditable</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="grid">
+
+    <div>
+      <div class="section-label"><span>§ 1 &nbsp;New Request</span></div>
+
+      <fieldset>
+        <legend>Requestor</legend>
+        <div class="row2">
+          <div>
+            <label>Name</label>
+            <input type="text" id="reqName" placeholder="Jane Alvarez">
+          </div>
+          <div>
+            <label>Title / role</label>
+            <input type="text" id="reqTitle" placeholder="Relationship Manager">
+          </div>
+        </div>
+        <label>Manager's name <span class="hint">First-line approver. Free text in this demo — a production system would resolve this from an HR/identity system rather than accept typed input.</span></label>
+        <input type="text" id="managerName" placeholder="e.g. David Nguyen">
+      </fieldset>
+
+      <fieldset>
+        <legend>Transaction</legend>
+        <label>Type</label>
+        <select id="txnType">
+          <option value="gift">Gift</option>
+          <option value="entertainment">Entertainment / hospitality</option>
+          <option value="travel">Travel &amp; lodging</option>
+        </select>
+
+        <label>Direction</label>
+        <select id="direction">
+          <option value="offering">Offering (bank employee → recipient)</option>
+          <option value="receiving">Receiving (recipient → bank employee)</option>
+        </select>
+
+        <label>Recipient category <span class="hint">This is the input the second-line rules engine keys off first</span></label>
+        <select id="recipCategory" onchange="toggleCategoryFields()">
+          <option value="private">Private-sector customer / vendor contact (general)</option>
+          <option value="institutional">Institutional customer/vendor contact — broker-dealer gift-rule scope (FINRA/MSRB)</option>
+          <option value="us_official">U.S. government official / regulator</option>
+          <option value="examiner">Bank examiner — currently examining this institution</option>
+          <option value="foreign_official">Foreign government official / state-owned-entity employee</option>
+          <option value="insider">Bank insider — director, executive officer, or principal shareholder (Reg O)</option>
+        </select>
+
+        <div id="catFields">
+          <div class="cat-block" data-cat="private">
+            <label>Relationship type</label>
+            <select id="priv_relationship">
+              <option value="customer">Customer</option>
+              <option value="vendor">Vendor</option>
+            </select>
+          </div>
+
+          <div class="cat-block" data-cat="institutional">
+            <div class="row2">
+              <div>
+                <label>Recipient's employer <span class="hint">Required — this is what confirms FINRA/MSRB scope actually applies</span></label>
+                <input type="text" id="inst_employer" placeholder="e.g. Meridian Capital Partners">
+              </div>
+              <div>
+                <label>Relationship type</label>
+                <select id="inst_relationship">
+                  <option value="institutional_customer">Institutional customer</option>
+                  <option value="vendor">Vendor</option>
+                  <option value="counterparty">Counterparty</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="cat-block" data-cat="us_official">
+            <div class="row2">
+              <div>
+                <label>Government level</label>
+                <select id="uso_level" onchange="toggleBranchField()">
+                  <option value="federal">Federal</option>
+                  <option value="state">State</option>
+                  <option value="local">Local / municipal</option>
+                </select>
+              </div>
+              <div id="uso_branch_wrap">
+                <label>Branch</label>
+                <select id="uso_branch">
+                  <option value="executive">Executive</option>
+                  <option value="legislative">Legislative</option>
+                  <option value="judicial">Judicial</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="cat-block" data-cat="examiner">
+            <label>Examining agency</label>
+            <select id="ex_agency">
+              <option value="occ">OCC</option>
+              <option value="frb">Federal Reserve</option>
+              <option value="fdic">FDIC</option>
+              <option value="ncua">NCUA</option>
+              <option value="state">State banking regulator</option>
+            </select>
+          </div>
+
+          <div class="cat-block" data-cat="foreign_official">
+            <div class="row2">
+              <div>
+                <label>Country</label>
+                <input type="text" id="fo_country" placeholder="e.g. Brazil">
+              </div>
+              <div>
+                <label>Government / agency affiliation</label>
+                <input type="text" id="fo_agency" placeholder="e.g. Ministry of Finance">
+              </div>
+            </div>
+            <div class="checks">
+              <label><input type="checkbox" id="fo_pendingMatter"> This relates to a specific pending business matter, license, contract, or approval in this country</label>
+            </div>
+          </div>
+
+          <div class="cat-block" data-cat="insider">
+            <div class="row2">
+              <div>
+                <label>Insider type</label>
+                <select id="ins_type">
+                  <option value="director">Director</option>
+                  <option value="executive_officer">Executive officer</option>
+                  <option value="principal_shareholder">Principal shareholder</option>
+                </select>
+              </div>
+              <div>
+                <label>Benefit type</label>
+                <select id="ins_benefit">
+                  <option value="credit">Extension of credit</option>
+                  <option value="noncredit">Non-credit benefit</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label>Recipient name / identifier <span class="hint">Used to track annual aggregation</span></label>
+            <input type="text" id="recipName" placeholder="e.g. J. Kowalski, Acme Corp">
+          </div>
+          <div>
+            <label>Estimated value (USD)</label>
+            <input type="number" id="value" min="0" step="1" placeholder="0">
+          </div>
+        </div>
+
+        <label>Business purpose <span class="hint">Logged for the record — not evaluated by the engine</span></label>
+        <textarea id="purpose" placeholder="Brief description of the occasion or context"></textarea>
+      </fieldset>
+
+      <fieldset>
+        <legend>Red flags</legend>
+        <div class="checks">
+          <label><input type="checkbox" id="flag_pending"> Connected to a pending transaction, credit decision, or examination</label>
+          <label><input type="checkbox" id="flag_solicited"> Solicited by the recipient rather than offered unprompted</label>
+        </div>
+      </fieldset>
+
+      <button class="submit" onclick="submitRequest()">Submit for Manager Approval</button>
+      <div style="display:flex; justify-content:flex-end; margin-top:10px; gap:8px;">
+        <button class="ghost" onclick="resetAll()">Reset all stored data</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label"><span>§ 2 &nbsp;Manager Approval Queue</span></div>
+      <div class="hint" style="margin-bottom:14px; display:block;">First line of defense. In production, only the named manager — authenticated, resolved from the reporting-line hierarchy — could act on their own queue items. In this demo, the Approve/Reject buttons below simulate that action for demonstration purposes.</div>
+      <div id="queueList"><div class="queue-empty">No requests pending manager approval.</div></div>
+
+      <div class="ledger-panel" style="margin-top:20px;">
+        <div class="section-label" style="border:none; margin-bottom:10px;"><span>§ 3 &nbsp;Recipient Ledger (year-to-date)</span></div>
+        <div id="ledgerList"><div class="ledger-empty">No recipients tracked yet.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="section-label"><span>§ 4 &nbsp;Second-Line Determinations</span><span class="mono" style="font-size:10.5px;">most recent first</span></div>
+    <div id="detList"><div class="det-empty">No requests have completed second-line review yet.</div></div>
+  </div>
+
+  <div class="audit-panel">
+    <div class="section-label"><span>§ 5 &nbsp;Audit Log</span><span class="mono" style="font-size:10.5px;">most recent first</span></div>
+    <div id="auditList"><div class="ledger-empty">No entries yet.</div></div>
+  </div>
+
+  <div class="footnote">
+    <h3>Methodology &amp; sourcing notes</h3>
+    <ul>
+      <li><strong>This tool contains no AI.</strong> Every determination is produced by fixed if/then logic against the inputs below. That is a deliberate design choice, not a limitation — the underlying obligations (Bank Bribery Act, FINRA/MSRB gift limits, federal employee gift rules) are structured, threshold-based rules where a deterministic engine is more auditable, cheaper, and more defensible under exam than a language model would be.</li>
+      <li><strong>Two-line structure:</strong> the manager approval step (§ 2) is a first-line control — business-line accountability for whether the request makes sense at all. It is intentionally independent of the second-line rules engine (§ 4), which applies the same regulatory thresholds regardless of what the manager decided. A manager's approval does not override a Compliance/Legal escalation; it only clears the request to reach that independent review. A manager's rejection is terminal — the request never reaches second-line review.</li>
+      <li>Thresholds sourced to primary/regulatory text as of 2026-07-08: FINRA Rule 3220 gift limit <span class="mono">$300/year</span> (Regulatory Notice 26-05, effective March 30, 2026); federal employee de minimis <span class="mono">$20/occasion, $50/year</span> (5 CFR § 2635.204).</li>
+      <li>Several thresholds in this engine are <strong>firm-policy overlays, not statutory bright lines</strong> <span class="policy-tag">firm policy</span> — the Bank Bribery Act and FCPA both turn on corrupt intent rather than a dollar figure. Where this tool applies a specific number (e.g. the $50 foreign-official logging threshold, the $250 general-customer ceiling, the 4-events/year entertainment frequency flag), that number is a configurable internal control choice modeled on common industry practice, not a legal requirement.</li>
+      <li>Rules engine version <span class="mono" id="engineVersionFooter"></span> — tracked on every audit entry, mirroring the model-version-pinning discipline this project applies to AI agents (Layer 4 Governance). A change to any threshold above would be a new version, re-validated before adoption, not a silent edit.</li>
+      <li>Data entered here is stored only for this demonstration session/browser and is not shared. Use "Reset all stored data" to clear it.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const RULES_ENGINE_VERSION = 'v1.1.0';
+document.getElementById('engineVersionFooter').textContent = RULES_ENGINE_VERSION;
+
+const FINRA_GIFT_LIMIT = 300;
+const FED_OFFICIAL_OCCASION = 20;
+const FED_OFFICIAL_ANNUAL = 50;
+const FOREIGN_OFFICIAL_LOG_THRESHOLD = 50;
+const GENERAL_CUSTOMER_CEILING = 250;
+const ENTERTAINMENT_FREQUENCY_FLAG = 4;
+
+function ledgerKey(name){
+  return 'ledger:' + name.trim().toLowerCase().replace(/\s+/g,'_');
+}
+
+async function getLedgerEntry(name){
+  try{
+    const res = await window.storage.get(ledgerKey(name));
+    return res ? JSON.parse(res.value) : { total: 0, entertainmentCount: 0, name: name };
+  }catch(e){
+    return { total: 0, entertainmentCount: 0, name: name };
+  }
+}
+
+async function saveLedgerEntry(name, entry){
+  try{ await window.storage.set(ledgerKey(name), JSON.stringify(entry)); }catch(e){ console.error('ledger save failed', e); }
+}
+
+async function appendAudit(record){
+  try{
+    const key = 'audit:' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    await window.storage.set(key, JSON.stringify(record));
+  }catch(e){ console.error('audit save failed', e); }
+}
+
+function ordinal(n){
+  const s = ["th","st","nd","rd"], v = n % 100;
+  return s[(v-20)%10] || s[v] || s[0];
+}
+
+function toggleCategoryFields(){
+  const cat = document.getElementById('recipCategory').value;
+  document.querySelectorAll('.cat-block').forEach(el => {
+    el.classList.toggle('active', el.dataset.cat === cat);
+  });
+  if(cat === 'us_official') toggleBranchField();
+}
+function toggleBranchField(){
+  const level = document.getElementById('uso_level').value;
+  document.getElementById('uso_branch_wrap').style.display = (level === 'federal') ? 'block' : 'none';
+}
+
+function categoryDetailLine(r){
+  switch(r.recipCategory){
+    case 'foreign_official':
+      return 'Country: ' + (r.foCountry || '—') + ' · Agency: ' + (r.foAgency || '—') + (r.foPendingMatter ? ' · ⚠ tied to a pending business matter' : '');
+    case 'us_official':
+      return 'Level: ' + r.usoLevel + (r.usoLevel === 'federal' ? ' (' + r.usoBranch + ' branch)' : '');
+    case 'examiner': {
+      const map = {occ:'OCC', frb:'Federal Reserve', fdic:'FDIC', ncua:'NCUA', state:'State banking regulator'};
+      return 'Examining agency: ' + (map[r.exAgency] || r.exAgency || '—');
+    }
+    case 'institutional':
+      return 'Employer: ' + (r.instEmployer || '—') + ' · Relationship: ' + (r.instRelationship || '—');
+    case 'insider':
+      return 'Insider type: ' + (r.insType || '—') + ' · Benefit type: ' + (r.insBenefit || '—');
+    case 'private':
+      return 'Relationship: ' + (r.privRelationship || '—');
+    default:
+      return '';
+  }
+}
+
+function evaluate(input, ledgerEntry){
+  const citations = [];
+  const routing = [];
+  let decision = 'approved';
+  let reasoning = '';
+
+  routing.push({who: (input.managerName || 'Manager'), action: 'Approved as first-line — request cleared to independent second-line review'});
+
+  if(input.flagPending || input.flagSolicited){
+    citations.push('18 U.S.C. § 215 — Bank Bribery Act: prohibition turns on corrupt intent, not dollar value');
+    routing.push({who:'Chief Compliance Officer', action:'Immediate review required before any action is taken'});
+    routing.push({who:'General Counsel', action:'Notified — potential corrupt-intent indicator present'});
+    routing.push({who:'Requestor', action:'Hold — do not proceed until cleared'});
+    reasoning = 'A red flag was marked (connection to a pending matter, or solicitation by the recipient). Under the Bank Bribery Act, corrupt intent — not amount — is the operative test, so this overrides every threshold below and routes straight to Legal/Compliance regardless of value or manager approval.';
+    return { decision:'escalate_legal', citations, routing, reasoning };
+  }
+
+  switch(input.recipCategory){
+
+    case 'foreign_official': {
+      const countryLabel = input.foCountry || 'an unspecified country';
+      const agencyLabel = input.foAgency || 'an unspecified agency';
+      citations.push('FCPA anti-bribery provisions, 15 U.S.C. § 78dd-1 et seq. — no statutory de minimis');
+      if(input.foPendingMatter){
+        routing.push({who:'General Counsel', action:'FCPA review required — tied to a specific pending business matter'});
+        routing.push({who:'Chief Compliance Officer', action:'Notified'});
+        decision = 'escalate_legal';
+        reasoning = 'Recipient is a foreign official (' + agencyLabel + ', ' + countryLabel + ') and this request is tied to a specific pending business matter, license, contract, or approval in that country — the "obtain or retain business" element at the core of the FCPA. This routes to Legal regardless of value.';
+      } else if(input.value > FOREIGN_OFFICIAL_LOG_THRESHOLD){
+        routing.push({who:'General Counsel', action:'FCPA pre-clearance review required before offer is made'});
+        routing.push({who:'Chief Compliance Officer', action:'Notified'});
+        decision = 'escalate_legal';
+        reasoning = 'Recipient is a foreign official (' + agencyLabel + ', ' + countryLabel + ') and the value exceeds the firm\'s internal logging threshold. The FCPA itself sets no bright-line dollar exemption, so any value above a nominal courtesy level routes to Legal for review before anything is offered.';
+      } else {
+        routing.push({who:'Compliance (register only)', action:'Logged — no escalation required at this value'});
+        decision = 'approved';
+        reasoning = 'Value is at or below the firm\'s internal logging threshold, and this is not tied to a specific pending business matter. Still logged in full — recipient is a foreign official (' + agencyLabel + ', ' + countryLabel + ') — but does not require Legal pre-clearance at this level.';
+      }
+      break;
+    }
+
+    case 'examiner': {
+      const agencyMap = {occ:'OCC', frb:'Federal Reserve', fdic:'FDIC', ncua:'NCUA', state:'a state banking regulator'};
+      const agencyLabel = agencyMap[input.exAgency] || 'the examining agency';
+      citations.push('Interagency Bank Bribery Act guidelines — examiner independence is treated as a heightened category (' + agencyLabel + ')');
+      routing.push({who:'Chief Compliance Officer', action:'Review required regardless of value — examiner independence policy'});
+      routing.push({who:'General Counsel', action:'Notified'});
+      decision = 'escalate_legal';
+      reasoning = 'Recipient is an active examiner from ' + agencyLabel + ', currently examining this institution. Firm policy treats any gift, entertainment, or hospitality involving an active examiner as requiring review regardless of amount, to protect examiner independence.';
+      break;
+    }
+
+    case 'us_official': {
+      const level = input.usoLevel || 'federal';
+      const branch = input.usoBranch || 'executive';
+      if(level !== 'federal' || branch !== 'executive'){
+        const levelLabel = level === 'federal' ? ('federal ' + branch + '-branch') : level;
+        citations.push('No deterministic rule available for this government level/branch — 5 C.F.R. § 2635.204 applies only to federal executive-branch employees');
+        routing.push({who:'Compliance Officer', action:'Manual review required — applicable ethics code not covered by this engine'});
+        decision = 'escalate_compliance';
+        reasoning = 'Recipient is a ' + levelLabel + ' official. This engine\'s deterministic threshold (5 C.F.R. § 2635.204, $20/$50) applies only to federal executive-branch employees — it does not extend to state, local, legislative-branch, or judicial-branch officials, each of which follows a different ethics code. Routed to Compliance for manual review under the correct rule set rather than applying the wrong threshold.';
+      } else {
+        citations.push('5 C.F.R. § 2635.204 — federal employee gift acceptance limits ($20/occasion, $50/year aggregate)');
+        const newTotal = ledgerEntry.total + input.value;
+        if(input.value <= FED_OFFICIAL_OCCASION && newTotal <= FED_OFFICIAL_ANNUAL){
+          routing.push({who:'Compliance (register only)', action:'Logged — within recipient\'s own acceptance limits'});
+          decision = 'approved';
+          reasoning = 'Value ($' + input.value + ') is within the $20 per-occasion limit, and the recipient\'s year-to-date total ($' + newTotal + ') stays within the $50 annual aggregate a federal employee may accept from one source. Offering above this would risk putting the recipient in violation of their own ethics rules.';
+        } else {
+          routing.push({who:'Compliance Officer', action:'Review required — exceeds recipient\'s lawful acceptance limit'});
+          routing.push({who:'Requestor', action:'Hold pending review'});
+          decision = 'escalate_compliance';
+          reasoning = 'Either the single-occasion value exceeds $20 or the recipient\'s running year-to-date total would exceed $50 (current: $' + ledgerEntry.total + ', this request: $' + input.value + ', new total: $' + newTotal + '). Offering this would risk causing the recipient to violate their own agency\'s gift rules, so it routes to Compliance rather than auto-approving.';
+        }
+      }
+      break;
+    }
+
+    case 'institutional': {
+      const employer = input.instEmployer || 'an unspecified employer';
+      const relMap = {institutional_customer:'institutional customer', vendor:'vendor', counterparty:'counterparty'};
+      const relLabel = relMap[input.instRelationship] || 'institutional customer';
+      citations.push('FINRA Rule 3220 / MSRB Rule G-20 — $300 per-recipient annual gift limit (effective March 30, 2026)');
+      if(input.txnType === 'entertainment' || input.txnType === 'travel'){
+        const newCount = ledgerEntry.entertainmentCount + 1;
+        if(newCount > ENTERTAINMENT_FREQUENCY_FLAG){
+          routing.push({who:'Compliance Officer', action:'Propriety review — frequency threshold exceeded'});
+          decision = 'escalate_compliance';
+          reasoning = 'Recipient is employed by ' + employer + ' (' + relLabel + ' relationship, FINRA Rule 3220 scope). FINRA does not cap entertainment by dollar value, but requires it be neither "so frequent nor so extensive as to raise questions of propriety." This would be the ' + newCount + ordinal(newCount) + ' entertainment occasion with this recipient this year, above the firm\'s internal frequency flag of ' + ENTERTAINMENT_FREQUENCY_FLAG + ' — routed for a propriety review rather than auto-approved.';
+        } else {
+          routing.push({who:'Compliance (register only)', action:'Logged — within frequency norms'});
+          decision = 'approved';
+          reasoning = 'Recipient is employed by ' + employer + ' (' + relLabel + ' relationship, FINRA Rule 3220 scope). Entertainment is not subject to FINRA\'s dollar cap, and this is only the ' + newCount + ordinal(newCount) + ' occasion with this recipient this year — within the firm\'s internal frequency flag of ' + ENTERTAINMENT_FREQUENCY_FLAG + '.';
+        }
+      } else {
+        const newTotal = ledgerEntry.total + input.value;
+        if(newTotal <= FINRA_GIFT_LIMIT){
+          routing.push({who:'Compliance (register only)', action:'Logged — within FINRA/MSRB annual limit'});
+          decision = 'approved';
+          reasoning = 'Recipient is employed by ' + employer + ' (' + relLabel + ' relationship, FINRA Rule 3220 scope). Year-to-date total to this recipient, including this gift, is $' + newTotal + ' — within the $' + FINRA_GIFT_LIMIT + ' annual limit under FINRA Rule 3220 / MSRB Rule G-20.';
+        } else {
+          routing.push({who:'Compliance Officer', action:'Review required — exceeds $300 annual gift limit'});
+          decision = 'escalate_compliance';
+          reasoning = 'Recipient is employed by ' + employer + ' (' + relLabel + ' relationship, FINRA Rule 3220 scope). Year-to-date total to this recipient, including this gift, would reach $' + newTotal + ' — over the $' + FINRA_GIFT_LIMIT + ' annual limit. Only FINRA\'s exemptive-relief process can authorize an exception.';
+        }
+      }
+      break;
+    }
+
+    case 'insider': {
+      const typeMap = {director:'director', executive_officer:'executive officer', principal_shareholder:'principal shareholder'};
+      const typeLabel = typeMap[input.insType] || 'insider';
+      if(input.insBenefit === 'noncredit'){
+        citations.push('General conflicts-of-interest policy — Reg O\'s extension-of-credit rules do not apply to non-credit benefits');
+        routing.push({who:'Compliance Officer / Legal', action:'Disclosure and review required — insider conflict-of-interest policy'});
+        decision = 'escalate_compliance';
+        reasoning = 'Recipient is a bank insider (' + typeLabel + ') and this is a non-credit benefit, so Regulation O\'s extension-of-credit rules do not directly apply. It still requires disclosure and review under the firm\'s general conflicts-of-interest policy, given the risk that even a modest gift could be perceived as currying favor with an insider.';
+      } else {
+        citations.push('Regulation O, 12 C.F.R. Part 215 — insider benefit and extension-of-credit rules');
+        routing.push({who:'Insider Transaction Desk / Legal', action:'Review required regardless of value — Reg O scope'});
+        decision = 'escalate_compliance';
+        reasoning = 'Recipient is a bank insider (' + typeLabel + ') and this involves an extension of credit or credit-related benefit. Reg O requires a specific insider-transaction review, not a routine gifts-and-entertainment approval.';
+      }
+      break;
+    }
+
+    case 'private':
+    default: {
+      const rel = input.privRelationship || 'customer';
+      citations.push('Bank Bribery Act, 18 U.S.C. § 215 — interagency guidance on "ordinary business courtesy" exceptions');
+      const newTotal = ledgerEntry.total + input.value;
+      if(newTotal <= GENERAL_CUSTOMER_CEILING){
+        routing.push({who:'Compliance (register only)', action:'Logged — within firm\'s ordinary-courtesy ceiling'});
+        if(rel === 'vendor'){ routing.push({who:'Vendor Management (FYI)', action:'Notified — vendor relationship, also subject to procurement fair-dealing policy'}); }
+        decision = 'approved';
+        reasoning = 'Recipient is a ' + rel + '. Year-to-date total, including this item, is $' + newTotal + ' — within the firm\'s internal $' + GENERAL_CUSTOMER_CEILING + ' ordinary-business-courtesy ceiling. Note: this ceiling is a firm-policy choice, not a number set by the statute itself.';
+      } else {
+        routing.push({who:'Compliance Officer', action:'Review required — exceeds firm\'s ordinary-courtesy ceiling'});
+        decision = 'escalate_compliance';
+        reasoning = 'Recipient is a ' + rel + '. Year-to-date total would reach $' + newTotal + ', above the firm\'s internal $' + GENERAL_CUSTOMER_CEILING + ' ceiling. Escalated for a reasonableness review under the Bank Bribery Act\'s "ordinary business courtesy" standard.';
+      }
+      break;
+    }
+  }
+
+  return { decision, citations, routing, reasoning };
+}
+
+function stampLabel(decision){
+  switch(decision){
+    case 'approved': return { text: 'APPROVED', cls: '' };
+    case 'escalate_compliance': return { text: 'ESCALATED — COMPLIANCE REVIEW', cls: 'amber' };
+    case 'escalate_legal': return { text: 'ESCALATED — LEGAL / FCPA REVIEW', cls: 'red' };
+    case 'denied_by_manager': return { text: 'DENIED — MANAGER DECLINED', cls: 'red' };
+    default: return { text: 'DENIED', cls: 'red' };
+  }
+}
+
+async function submitRequest(){
+  const recipName = document.getElementById('recipName').value.trim();
+  const managerName = document.getElementById('managerName').value.trim();
+  if(!recipName){
+    alert('Enter a recipient name or identifier — it is used to track year-to-date aggregation.');
+    return;
+  }
+  if(!managerName){
+    alert('Enter the requestor\'s manager — this is now the first-line approval gate.');
+    return;
+  }
+
+  const cat = document.getElementById('recipCategory').value;
+  if(cat === 'foreign_official' && !document.getElementById('fo_country').value.trim()){
+    alert('Enter the country for this foreign official — required for an FCPA determination.');
+    return;
+  }
+  if(cat === 'institutional' && !document.getElementById('inst_employer').value.trim()){
+    alert('Enter the recipient\'s employer — required to confirm FINRA/MSRB gift-rule scope actually applies.');
+    return;
+  }
+
+  const id = Date.now() + '_' + Math.random().toString(36).slice(2,7);
+  const record = {
+    id: id,
+    ts: new Date().toISOString(),
+    reqName: document.getElementById('reqName').value.trim() || '(not provided)',
+    reqTitle: document.getElementById('reqTitle').value.trim() || '(not provided)',
+    managerName: managerName,
+    txnType: document.getElementById('txnType').value,
+    direction: document.getElementById('direction').value,
+    recipCategory: cat,
+    recipName: recipName,
+    value: parseFloat(document.getElementById('value').value) || 0,
+    purpose: document.getElementById('purpose').value.trim() || '(not provided)',
+    flagPending: document.getElementById('flag_pending').checked,
+    flagSolicited: document.getElementById('flag_solicited').checked,
+    status: 'pending_manager',
+    // category-specific fields — populated conditionally, blank where not applicable
+    foCountry: document.getElementById('fo_country').value.trim(),
+    foAgency: document.getElementById('fo_agency').value.trim(),
+    foPendingMatter: document.getElementById('fo_pendingMatter').checked,
+    usoLevel: document.getElementById('uso_level').value,
+    usoBranch: document.getElementById('uso_branch').value,
+    exAgency: document.getElementById('ex_agency').value,
+    instEmployer: document.getElementById('inst_employer').value.trim(),
+    instRelationship: document.getElementById('inst_relationship').value,
+    insType: document.getElementById('ins_type').value,
+    insBenefit: document.getElementById('ins_benefit').value,
+    privRelationship: document.getElementById('priv_relationship').value
+  };
+
+  try{ await window.storage.set('request:' + id, JSON.stringify(record)); }catch(e){ console.error(e); }
+
+  await appendAudit({
+    ts: record.ts, requestor: record.reqName, manager: record.managerName,
+    recipient: record.recipName, category: record.recipCategory, type: record.txnType,
+    value: record.value, decision: 'SUBMITTED — pending manager approval', engineVersion: RULES_ENGINE_VERSION
+  });
+
+  await renderQueue();
+  await renderAudit();
+}
+
+async function loadRequest(id){
+  const res = await window.storage.get('request:' + id);
+  return res ? JSON.parse(res.value) : null;
+}
+async function saveRequest(record){
+  await window.storage.set('request:' + record.id, JSON.stringify(record));
+}
+
+async function approveAsManager(id){
+  const record = await loadRequest(id);
+  if(!record) return;
+
+  const ledgerEntry = await getLedgerEntry(record.recipName);
+  const result = evaluate(record, ledgerEntry);
+
+  record.status = result.decision;
+  record.citations = result.citations;
+  record.routing = result.routing;
+  record.reasoning = result.reasoning;
+  record.decidedTs = new Date().toISOString();
+  record.engineVersion = RULES_ENGINE_VERSION;
+
+  if(result.decision === 'approved'){
+    ledgerEntry.total += record.value;
+    if(record.txnType === 'entertainment' || record.txnType === 'travel'){
+      ledgerEntry.entertainmentCount += 1;
+    }
+    ledgerEntry.name = record.recipName;
+    await saveLedgerEntry(record.recipName, ledgerEntry);
+  }
+
+  await saveRequest(record);
+
+  await appendAudit({
+    ts: record.decidedTs, requestor: record.reqName, manager: record.managerName,
+    recipient: record.recipName, category: record.recipCategory, type: record.txnType,
+    value: record.value, decision: 'MANAGER APPROVED → ' + stampLabel(result.decision).text,
+    engineVersion: RULES_ENGINE_VERSION
+  });
+
+  await renderQueue();
+  await renderDeterminations();
+  await renderLedger();
+  await renderAudit();
+}
+
+async function rejectAsManager(id){
+  const record = await loadRequest(id);
+  if(!record) return;
+
+  record.status = 'denied_by_manager';
+  record.citations = ['Manager did not authorize the request — first-line control'];
+  record.routing = [{who: record.managerName, action:'Declined to authorize'}, {who:'Requestor', action:'Notified — request denied, does not proceed to Compliance review'}];
+  record.reasoning = 'The requestor\'s manager did not authorize this request at the first line of defense. Per firm policy, requests without manager authorization do not proceed to independent second-line review.';
+  record.decidedTs = new Date().toISOString();
+  record.engineVersion = RULES_ENGINE_VERSION;
+
+  await saveRequest(record);
+
+  await appendAudit({
+    ts: record.decidedTs, requestor: record.reqName, manager: record.managerName,
+    recipient: record.recipName, category: record.recipCategory, type: record.txnType,
+    value: record.value, decision: 'MANAGER REJECTED — request denied', engineVersion: RULES_ENGINE_VERSION
+  });
+
+  await renderQueue();
+  await renderDeterminations();
+  await renderAudit();
+}
+
+async function getAllRequests(){
+  const out = [];
+  try{
+    const res = await window.storage.list('request:');
+    if(res && res.keys){
+      for(const k of res.keys){
+        try{
+          const entry = await window.storage.get(k);
+          if(entry) out.push(JSON.parse(entry.value));
+        }catch(e){}
+      }
+    }
+  }catch(e){}
+  return out;
+}
+
+async function renderQueue(){
+  const container = document.getElementById('queueList');
+  const all = await getAllRequests();
+  const pending = all.filter(r => r.status === 'pending_manager').sort((a,b) => new Date(b.ts) - new Date(a.ts));
+  if(pending.length === 0){
+    container.innerHTML = '<div class="queue-empty">No requests pending manager approval.</div>';
+    return;
+  }
+  container.innerHTML = pending.map(r => {
+    const flagged = r.flagPending || r.flagSolicited;
+    return '<div class="queue-card">' +
+      (flagged ? '<div class="flag-warning">⚠ Red flag marked — approving this will route directly to Legal for review, regardless of category or value.</div>' : '') +
+      '<div class="queue-meta">' +
+        '<strong>' + r.reqName + '</strong> (' + r.reqTitle + ') → manager <strong>' + r.managerName + '</strong><br>' +
+        r.txnType + ' · $' + r.value.toFixed(2) + ' · recipient: ' + r.recipName + ' [' + r.recipCategory + ']<br>' +
+        categoryDetailLine(r) + '<br>' +
+        'Purpose: ' + r.purpose +
+      '</div>' +
+      '<button class="approve" onclick="approveAsManager(\'' + r.id + '\')">Approve — Send to Compliance/Legal Review</button>' +
+      '<button class="reject" onclick="rejectAsManager(\'' + r.id + '\')">Reject — Deny Request</button>' +
+    '</div>';
+  }).join('');
+}
+
+async function renderDeterminations(){
+  const container = document.getElementById('detList');
+  const all = await getAllRequests();
+  const decided = all.filter(r => r.status !== 'pending_manager').sort((a,b) => new Date(b.decidedTs) - new Date(a.decidedTs)).slice(0, 10);
+  if(decided.length === 0){
+    container.innerHTML = '<div class="det-empty">No requests have completed second-line review yet.</div>';
+    return;
+  }
+  container.innerHTML = decided.map(r => {
+    const stamp = stampLabel(r.status);
+    let html = '<div class="det-card">';
+    html += '<div class="stamp ' + stamp.cls + '">' + stamp.text + '</div>';
+    html += '<div style="font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;" class="mono">' + r.recipName + ' · ' + r.txnType + ' · $' + r.value.toFixed(2) + ' · requestor: ' + r.reqName + ' · manager: ' + r.managerName + ' · ' + new Date(r.decidedTs).toLocaleString() + '<br>' + categoryDetailLine(r) + '</div>';
+    html += '<ul class="cite-list">' + r.citations.map(c => '<li>' + c + '</li>').join('') + '</ul>';
+    html += '<div class="reasoning">' + r.reasoning + '</div>';
+    html += '<table class="routing-table"><thead><tr><th>Notified</th><th>Action</th></tr></thead><tbody>';
+    html += r.routing.map(x => '<tr><td>' + x.who + '</td><td>' + x.action + '</td></tr>').join('');
+    html += '</tbody></table>';
+    html += '</div>';
+    return html;
+  }).join('');
+}
+
+async function renderLedger(){
+  const container = document.getElementById('ledgerList');
+  try{
+    const res = await window.storage.list('ledger:');
+    if(!res || !res.keys || res.keys.length === 0){
+      container.innerHTML = '<div class="ledger-empty">No recipients tracked yet.</div>';
+      return;
+    }
+    let rows = [];
+    for(const k of res.keys){
+      try{
+        const entry = await window.storage.get(k);
+        if(entry){
+          const data = JSON.parse(entry.value);
+          rows.push('<div class="ledger-row"><span>' + data.name + '</span><span>$' + data.total.toFixed(2) + ' YTD' + (data.entertainmentCount ? ' · ' + data.entertainmentCount + ' entertainment event(s)' : '') + '</span></div>');
+        }
+      }catch(e){}
+    }
+    container.innerHTML = rows.length ? rows.join('') : '<div class="ledger-empty">No recipients tracked yet.</div>';
+  }catch(e){
+    container.innerHTML = '<div class="ledger-empty">No recipients tracked yet.</div>';
+  }
+}
+
+async function renderAudit(){
+  const container = document.getElementById('auditList');
+  try{
+    const res = await window.storage.list('audit:');
+    if(!res || !res.keys || res.keys.length === 0){
+      container.innerHTML = '<div class="ledger-empty">No entries yet.</div>';
+      return;
+    }
+    const sortedKeys = res.keys.sort().reverse().slice(0, 40);
+    let rows = [];
+    for(const k of sortedKeys){
+      try{
+        const entry = await window.storage.get(k);
+        if(entry){
+          const d = JSON.parse(entry.value);
+          rows.push('<div class="audit-entry">' + new Date(d.ts).toLocaleString() + ' — ' + d.requestor + ' (mgr: ' + d.manager + ') · ' + d.type + ' ($' + d.value.toFixed(2) + ') for ' + d.recipient + ' [' + d.category + '] → <span class="outcome">' + d.decision + '</span> <span class="mono" style="opacity:0.6;">[' + (d.engineVersion || '—') + ']</span></div>');
+        }
+      }catch(e){}
+    }
+    container.innerHTML = rows.length ? rows.join('') : '<div class="ledger-empty">No entries yet.</div>';
+  }catch(e){
+    container.innerHTML = '<div class="ledger-empty">No entries yet.</div>';
+  }
+}
+
+async function resetAll(){
+  if(!confirm('This clears all stored requests, ledger, and audit-log data for this demo session. Continue?')) return;
+  try{
+    for(const prefix of ['request:', 'ledger:', 'audit:']){
+      const l = await window.storage.list(prefix);
+      if(l && l.keys) for(const k of l.keys) await window.storage.delete(k);
+    }
+  }catch(e){ console.error(e); }
+  await renderQueue();
+  await renderDeterminations();
+  await renderLedger();
+  await renderAudit();
+}
+
+toggleCategoryFields();
+renderQueue();
+renderDeterminations();
+renderLedger();
+renderAudit();
+</script>
+
+</body>
+</html>
