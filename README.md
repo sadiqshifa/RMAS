@@ -2,7 +2,7 @@
 
 **A methodology for connecting regulatory requirements to compliance controls — built with AI, applied as AI agents where the control needs one and as deterministic software where it doesn't — with governance as a first-class concern either way.**
 
-[**→ Try the SCRA DMDC Agent (live)**](https://sadiqshifa.github.io/RMAS/agents/scra-dmdc-agent.html) · [**→ Try the SCRA Calculations Agent (live)**](https://sadiqshifa.github.io/RMAS/agents/scra-calculations-agent.html) · [**→ Try the Regulatory Change Monitor (live)**](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html) · [**→ Try the Pre-Clearance Determination System (live, no AI)**](https://sadiqshifa.github.io/RMAS/tools/pre-clearance-tool.html)
+[**→ Try the SCRA DMDC Agent (live)**](https://sadiqshifa.github.io/RMAS/agents/scra-dmdc-agent.html) · [**→ Try the SCRA Calculations Agent (live)**](https://sadiqshifa.github.io/RMAS/agents/scra-calculations-agent.html) · [**→ Try the Regulatory Change Monitor (live)**](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html) · [**→ Try the Pre-Clearance Determination System (live, no AI)**](https://sadiqshifa.github.io/RMAS/tools/pre-clearance-tool.html) · [**→ Try the Regulation O Insider Credit Threshold Tool (live, no AI)**](https://sadiqshifa.github.io/RMAS/tools/reg-o-insider-credit-tool.html)
 
 ---
 
@@ -189,6 +189,34 @@ non-deterministic.
 
 ---
 
+### Tool 2 — Regulation O Insider Credit Threshold Tool
+
+[**→ Open tool**](https://sadiqshifa.github.io/RMAS/tools/reg-o-insider-credit-tool.html)
+
+A deterministic threshold calculator for extensions of credit and overdrafts to bank insiders (executive officers, directors, principal shareholders) under 12 C.F.R. Part 215. Same no-AI-at-runtime design as Tool 1, applied to a domain with real percentage-of-capital math rather than fixed dollar limits.
+
+- **Bank-level configuration drives every threshold.** Unlike Tool 1's fixed dollar limits, every Reg O threshold is a function of the bank's own unimpaired capital and surplus — set it once in § 1, and the board-approval trigger, the executive-officer sub-cap, and the bank-wide aggregate ceiling are all computed from it and shown before you run a single request.
+- **Distinguishes an escalation from a prohibition.** The general board-approval trigger (§ 215.4(b)) can be approved past by the board. The executive-officer "other purpose" sub-cap (§ 215.5(c)(4)) cannot — it's an absolute statutory ceiling. The tool produces a different outcome (`ESCALATED` vs. `PROHIBITED`) for each, rather than treating every threshold breach the same way.
+- **Insider category changes which rules even apply.** A director or principal shareholder can never hit the executive-officer sub-cap, because Reg O itself doesn't apply that provision to them — the tool reflects that by category, not by writing one blanket rule for every insider type.
+- **Identity resolves against a 12-person roster, not free text.** Selecting a known insider auto-fills their Reg O category and shows their current standing before you submit — closing a real bug the free-text version of Tool 1 originally had, where two slightly different spellings of the same name would have been tracked as two different people.
+- **Seeded with a demo baseline**, not just an empty ledger, so the interesting cases (someone already close to a threshold, someone already over a sub-cap) are visible immediately rather than requiring several manual submissions to build up history first.
+
+[→ Demo-to-production gap register](docs/reg-o-tool-demo-to-production-gap-register.md) — 14 gaps (5 blocking) between this demo and anything that could touch a real insider's real credit file, including an honest finding that Reg O itself specifies no record-retention period at all.
+
+> **Open item:** the specific Reg O thresholds this tool implements — the
+> $25,000-or-5%-of-capital board-approval trigger, the $100,000
+> executive-officer sub-cap, the bank-wide aggregate ceiling — were
+> researched and verified against eCFR primary text, but that detail has
+> not yet been written back into
+> [`docs/layer1-anti-bribery-coi.md`](docs/layer1-anti-bribery-coi.md) or
+> [`docs/layer2-anti-bribery-coi.md`](docs/layer2-anti-bribery-coi.md).
+> Those two docs still describe Regulation O only at the general level they
+> were originally drafted at. The tool is ahead of its own Layer 1/2
+> documentation right now — flagged here rather than left for someone to
+> notice the mismatch later.
+
+---
+
 ## The methodology
 
 Four layers, each a prerequisite for the next. The agents are only as good as the control identification they're built from, which is only as good as the process map, which is only as good as the regulatory requirements it's derived from.
@@ -277,7 +305,8 @@ RMAS/
 │   └── adverse-action-validator.html    # Fair Lending — adverse action notice validator (Type 1 + 4)
 │
 ├── tools/                               # Track B — deterministic workflow tools, no AI at runtime
-│   └── pre-clearance-tool.html          # Gifts/entertainment/anti-bribery pre-clearance rules engine
+│   ├── pre-clearance-tool.html          # Gifts/entertainment/anti-bribery pre-clearance rules engine
+│   └── reg-o-insider-credit-tool.html   # Regulation O insider credit threshold calculator
 │
 ├── governance/                          # Layer 4 artifacts (cross-domain, not agent- or tool-specific)
 │   └── model-risk-register.html         # SR 11-7-inspired inventory of every AI component as a model
@@ -296,6 +325,7 @@ RMAS/
 │   ├── eval-suites-fair-lending-agents.md  # Fair Lending — MRM-004/MRM-005 eval suite specs
 │   ├── layer1-anti-bribery-coi.md       # Anti-Bribery/Corruption & COI — regulatory map
 │   ├── layer2-anti-bribery-coi.md       # Anti-Bribery/Corruption & COI — control matrix
+│   ├── reg-o-tool-demo-to-production-gap-register.md  # Reg O tool — demo → production gap register
 │   └── model-risk-management-framework.md  # Cross-domain model risk management framework
 │
 └── README.md
@@ -323,7 +353,7 @@ SCRA is an open item, not a design decision to leave as-is indefinitely.
 
 **Working agent execution.** Five live AI-powered agents across three domains: Type 1 (DMDC integration) and Type 4 (language recognition) in the SCRA DMDC agent; Type 3 (deterministic calculations) in the SCRA Calculations agent and the HMDA Reportability Calculator; Type 1 + 4 in the Adverse Action Notice Validator; and a cross-domain classification agent in the Regulatory Change Monitor — with real compliance logic, AI analysis available live via your own API key (fallback mode by default), and working or specified eval suites.
 
-**Working non-AI execution.** One deterministic workflow tool — the Pre-Clearance Determination System — built the same way (AI-assisted engineering) but running with zero AI at runtime, demonstrating that the engineering process on display here isn't specific to building AI systems.
+**Working non-AI execution.** Two deterministic workflow tools — the Pre-Clearance Determination System and the Regulation O Insider Credit Threshold Tool — built the same way (AI-assisted engineering) but running with zero AI at runtime, demonstrating that the engineering process on display here isn't specific to building AI systems. The second tool also demonstrates the harder case: percentage-of-capital thresholds computed from a bank-level configuration, and a real distinction between an escalation a board can approve past and a statutory prohibition it cannot.
 
 **Production governance thinking.** Eval suite design, version pinning, human-in-the-loop boundaries, drift monitoring, incident response, data dependency governance, and business continuity — specified at operational precision, not policy-document level.
 
@@ -374,6 +404,9 @@ The methodology transfers, including the judgment about when *not* to reach for 
 | Fair Lending Eval Suites (MRM-004: 14 cases, MRM-005: 16 cases) | 🚧 Designed — not yet executed |
 | Anti-Bribery/Corruption & COI — Layer 1 & Layer 2 | ✅ Committed |
 | Anti-Bribery/COI Tool — Pre-Clearance Determination System (Track B, no AI at runtime) | ✅ Working demo · rules-engine v1.1.0 |
+| Anti-Bribery/COI Tool — Regulation O Insider Credit Threshold Tool (Track B, no AI at runtime) | ✅ Working demo · rules-engine v1.0.0 |
+| Reg O Tool — Demo-to-production gap register (14 gaps, 5 blocking) | ✅ Complete |
+| Layer 1/2 Anti-Bribery/COI docs — Reg O-specific threshold detail | 🚧 Researched and verified, not yet written back into the docs |
 | Model Risk Register (cross-domain, SR 11-7-inspired) | ✅ v0 complete |
 | All AI agents — BYOK live AI (bring-your-own Anthropic API key) | ✅ Implemented; fallback-by-default outside Claude.ai's runtime |
 | Vendor / Third-Party Risk Management | 🚧 Planned, not started |
