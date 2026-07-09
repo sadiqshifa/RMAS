@@ -579,6 +579,42 @@
 const RULES_ENGINE_VERSION = 'v1.1.0';
 document.getElementById('engineVersionFooter').textContent = RULES_ENGINE_VERSION;
 
+// window.storage only exists inside Claude's own Artifact preview. Outside that —
+// opening this file directly, or hosting it on GitHub Pages, which is this tool's
+// actual deployment target — window.storage is undefined and every persistence
+// call would silently fail. This adapter uses window.storage when present and
+// falls back to localStorage otherwise, so the same file works in both contexts
+// without changing any of the get/set/list/delete call sites below.
+const Storage = (function(){
+  const hasNative = (typeof window !== 'undefined' && window.storage && typeof window.storage.get === 'function');
+  const ns = 'rmas-preclearance:';
+  if(hasNative) return window.storage;
+  return {
+    async get(key){
+      const raw = localStorage.getItem(ns + key);
+      if(raw === null) throw new Error('not found');
+      return { key, value: raw, shared: false };
+    },
+    async set(key, value){
+      localStorage.setItem(ns + key, value);
+      return { key, value, shared: false };
+    },
+    async delete(key){
+      localStorage.removeItem(ns + key);
+      return { key, deleted: true, shared: false };
+    },
+    async list(prefix){
+      const keys = [];
+      const full = ns + (prefix || '');
+      for(let i = 0; i < localStorage.length; i++){
+        const k = localStorage.key(i);
+        if(k && k.startsWith(full)){ keys.push(k.substring(ns.length)); }
+      }
+      return { keys, prefix, shared: false };
+    }
+  };
+})();
+
 const FINRA_GIFT_LIMIT = 300;
 const FED_OFFICIAL_OCCASION = 20;
 const FED_OFFICIAL_ANNUAL = 50;
@@ -592,7 +628,7 @@ function ledgerKey(name){
 
 async function getLedgerEntry(name){
   try{
-    const res = await window.storage.get(ledgerKey(name));
+    const res = await Storage.get(ledgerKey(name));
     return res ? JSON.parse(res.value) : { total: 0, entertainmentCount: 0, name: name };
   }catch(e){
     return { total: 0, entertainmentCount: 0, name: name };
@@ -600,13 +636,13 @@ async function getLedgerEntry(name){
 }
 
 async function saveLedgerEntry(name, entry){
-  try{ await window.storage.set(ledgerKey(name), JSON.stringify(entry)); }catch(e){ console.error('ledger save failed', e); }
+  try{ await Storage.set(ledgerKey(name), JSON.stringify(entry)); }catch(e){ console.error('ledger save failed', e); }
 }
 
 async function appendAudit(record){
   try{
     const key = 'audit:' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
-    await window.storage.set(key, JSON.stringify(record));
+    await Storage.set(key, JSON.stringify(record));
   }catch(e){ console.error('audit save failed', e); }
 }
 
@@ -858,7 +894,7 @@ async function submitRequest(){
     privRelationship: document.getElementById('priv_relationship').value
   };
 
-  try{ await window.storage.set('request:' + id, JSON.stringify(record)); }catch(e){ console.error(e); }
+  try{ await Storage.set('request:' + id, JSON.stringify(record)); }catch(e){ console.error(e); }
 
   await appendAudit({
     ts: record.ts, requestor: record.reqName, manager: record.managerName,
@@ -871,11 +907,11 @@ async function submitRequest(){
 }
 
 async function loadRequest(id){
-  const res = await window.storage.get('request:' + id);
+  const res = await Storage.get('request:' + id);
   return res ? JSON.parse(res.value) : null;
 }
 async function saveRequest(record){
-  await window.storage.set('request:' + record.id, JSON.stringify(record));
+  await Storage.set('request:' + record.id, JSON.stringify(record));
 }
 
 async function approveAsManager(id){
@@ -943,11 +979,11 @@ async function rejectAsManager(id){
 async function getAllRequests(){
   const out = [];
   try{
-    const res = await window.storage.list('request:');
+    const res = await Storage.list('request:');
     if(res && res.keys){
       for(const k of res.keys){
         try{
-          const entry = await window.storage.get(k);
+          const entry = await Storage.get(k);
           if(entry) out.push(JSON.parse(entry.value));
         }catch(e){}
       }
@@ -1006,7 +1042,7 @@ async function renderDeterminations(){
 async function renderLedger(){
   const container = document.getElementById('ledgerList');
   try{
-    const res = await window.storage.list('ledger:');
+    const res = await Storage.list('ledger:');
     if(!res || !res.keys || res.keys.length === 0){
       container.innerHTML = '<div class="ledger-empty">No recipients tracked yet.</div>';
       return;
@@ -1014,7 +1050,7 @@ async function renderLedger(){
     let rows = [];
     for(const k of res.keys){
       try{
-        const entry = await window.storage.get(k);
+        const entry = await Storage.get(k);
         if(entry){
           const data = JSON.parse(entry.value);
           rows.push('<div class="ledger-row"><span>' + data.name + '</span><span>$' + data.total.toFixed(2) + ' YTD' + (data.entertainmentCount ? ' · ' + data.entertainmentCount + ' entertainment event(s)' : '') + '</span></div>');
@@ -1030,7 +1066,7 @@ async function renderLedger(){
 async function renderAudit(){
   const container = document.getElementById('auditList');
   try{
-    const res = await window.storage.list('audit:');
+    const res = await Storage.list('audit:');
     if(!res || !res.keys || res.keys.length === 0){
       container.innerHTML = '<div class="ledger-empty">No entries yet.</div>';
       return;
@@ -1039,7 +1075,7 @@ async function renderAudit(){
     let rows = [];
     for(const k of sortedKeys){
       try{
-        const entry = await window.storage.get(k);
+        const entry = await Storage.get(k);
         if(entry){
           const d = JSON.parse(entry.value);
           rows.push('<div class="audit-entry">' + new Date(d.ts).toLocaleString() + ' — ' + d.requestor + ' (mgr: ' + d.manager + ') · ' + d.type + ' ($' + d.value.toFixed(2) + ') for ' + d.recipient + ' [' + d.category + '] → <span class="outcome">' + d.decision + '</span> <span class="mono" style="opacity:0.6;">[' + (d.engineVersion || '—') + ']</span></div>');
@@ -1056,8 +1092,8 @@ async function resetAll(){
   if(!confirm('This clears all stored requests, ledger, and audit-log data for this demo session. Continue?')) return;
   try{
     for(const prefix of ['request:', 'ledger:', 'audit:']){
-      const l = await window.storage.list(prefix);
-      if(l && l.keys) for(const k of l.keys) await window.storage.delete(k);
+      const l = await Storage.list(prefix);
+      if(l && l.keys) for(const k of l.keys) await Storage.delete(k);
     }
   }catch(e){ console.error(e); }
   await renderQueue();

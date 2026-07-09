@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regulation O Insider Credit Threshold Tool — RMAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF7EF; --paper-dark:#F0ECDF; --ink:#1C1B18; --ink-soft:#4A473E;
+    --rule:#C9C2AC; --federal-blue:#1B3A5C; --federal-blue-soft:#3D5A7A;
+    --stamp-green:#2B5D34; --stamp-amber:#8A5A12; --stamp-red:#8C2A22; --field-bg:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:'Source Serif 4', Georgia, serif; line-height:1.5; -webkit-font-smoothing:antialiased; }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  .masthead{ border-bottom:3px double var(--ink); padding:28px 24px 18px; text-align:center; background:var(--paper); }
+  .masthead .kicker{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--federal-blue); margin-bottom:8px; }
+  .masthead h1{ font-size:clamp(22px,3.4vw,32px); font-weight:700; margin:0 0 6px; letter-spacing:-0.01em; }
+  .masthead .sub{ font-size:14px; color:var(--ink-soft); font-style:italic; }
+  .badge-row{ display:flex; justify-content:center; gap:10px; margin-top:14px; flex-wrap:wrap; }
+  .badge{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase; border:1px solid var(--ink); padding:4px 10px; background:var(--paper-dark); }
+  .badge.rules{ border-color:var(--federal-blue); color:var(--federal-blue); }
+  .wrap{ max-width:1180px; margin:0 auto; padding:32px 24px 80px; }
+  .section-label{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--federal-blue); border-bottom:1px solid var(--rule); padding-bottom:6px; margin:0 0 18px; display:flex; justify-content:space-between; align-items:baseline; }
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:36px; align-items:start; }
+  @media (max-width:880px){ .grid{ grid-template-columns:1fr; } }
+  fieldset{ border:1px solid var(--rule); border-radius:2px; padding:16px 18px 18px; margin:0 0 16px; }
+  legend{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); padding:0 6px; }
+  label{ display:block; font-size:13px; font-weight:600; margin:12px 0 5px; }
+  label:first-child{ margin-top:0; }
+  .hint{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--ink-soft); font-weight:400; display:block; margin-top:2px; }
+  input[type=text], input[type=number], select{ width:100%; padding:8px 10px; border:1px solid #A9A290; background:var(--field-bg); font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--ink); border-radius:1px; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .checks{ display:flex; flex-direction:column; gap:8px; margin-top:4px; }
+  .checks label{ display:flex; align-items:flex-start; gap:8px; font-weight:400; font-size:12.5px; margin:0; cursor:pointer; }
+  .checks input{ margin-top:3px; width:auto; }
+  button.submit{ width:100%; margin-top:6px; padding:12px; background:var(--federal-blue); color:#fff; border:none; font-family:'IBM Plex Mono', monospace; font-size:12.5px; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; border-radius:2px; }
+  button.submit:hover{ background:var(--federal-blue-soft); }
+  button.ghost{ background:transparent; border:1px solid var(--rule); color:var(--ink-soft); font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase; padding:6px 10px; cursor:pointer; border-radius:2px; }
+  button.ghost:hover{ border-color:var(--ink); color:var(--ink); }
+  button.save{ background:var(--stamp-green); color:#fff; border:none; font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.05em; text-transform:uppercase; padding:8px 12px; cursor:pointer; border-radius:2px; margin-top:8px; }
+  .det-card{ border:1px solid var(--rule); background:#fff; padding:20px; margin-bottom:16px; position:relative; overflow:hidden; }
+  .det-empty{ color:var(--ink-soft); font-size:13px; font-style:italic; }
+  .stamp{ display:inline-block; font-family:'IBM Plex Mono', monospace; font-weight:600; font-size:14px; letter-spacing:0.05em; text-transform:uppercase; border:3px solid var(--stamp-green); color:var(--stamp-green); padding:7px 14px; transform:rotate(-3deg); border-radius:3px; margin-bottom:14px; }
+  .stamp.amber{ border-color:var(--stamp-amber); color:var(--stamp-amber); transform:rotate(2deg); }
+  .stamp.red{ border-color:var(--stamp-red); color:var(--stamp-red); transform:rotate(-2deg); }
+  .cite-list{ margin:12px 0; padding-left:0; list-style:none; }
+  .cite-list li{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--ink-soft); padding:5px 0 5px 14px; border-left:2px solid var(--rule); margin-bottom:4px; }
+  .routing-table{ width:100%; border-collapse:collapse; margin-top:10px; font-size:12.5px; }
+  .routing-table th, .routing-table td{ text-align:left; padding:6px 8px; border-bottom:1px solid var(--rule); }
+  .routing-table th{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); }
+  .reasoning{ font-size:13px; margin-top:12px; padding:10px 12px; background:var(--paper-dark); border-left:3px solid var(--federal-blue); }
+  .calc-trace{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--ink-soft); margin-top:10px; padding:10px 12px; background:#fff; border:1px dashed var(--rule); }
+  .calc-trace div{ padding:2px 0; }
+  .ledger-panel{ border:1px solid var(--rule); background:#fff; padding:16px 18px; }
+  .ledger-row{ display:flex; justify-content:space-between; font-family:'IBM Plex Mono', monospace; font-size:12px; padding:7px 0; border-bottom:1px solid #EDE8D8; }
+  .ledger-row:last-child{ border-bottom:none; }
+  .ledger-empty{ color:var(--ink-soft); font-size:13px; font-style:italic; }
+  .audit-panel{ margin-top:28px; }
+  .audit-entry{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--ink-soft); border-bottom:1px dashed var(--rule); padding:8px 0; }
+  .audit-entry .outcome{ font-weight:600; color:var(--ink); }
+  .footnote{ margin-top:40px; padding-top:16px; border-top:1px solid var(--rule); font-size:12px; color:var(--ink-soft); }
+  .footnote h3{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--federal-blue); margin-bottom:8px; }
+  .footnote ul{ padding-left:18px; margin:8px 0; }
+  .footnote li{ margin-bottom:6px; }
+  .policy-tag{ font-family:'IBM Plex Mono', monospace; font-size:9.5px; text-transform:uppercase; background:var(--paper-dark); border:1px solid var(--rule); padding:1px 5px; border-radius:2px; margin-left:4px; }
+  .cat-block{ display:none; }
+  .cat-block.active{ display:block; margin:12px 0 0; padding-top:10px; border-top:1px dashed var(--rule); }
+  .stack{ margin-top:28px; }
+  .bank-config-summary{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--ink-soft); margin-top:8px; }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="kicker">RMAS — Regulatory Systems Studio · Layer 3 Workflow Tool</div>
+  <h1>Regulation O Insider Credit Threshold Tool</h1>
+  <div class="sub">Extensions of Credit &amp; Overdrafts to Executive Officers, Directors, and Principal Shareholders</div>
+  <div class="badge-row">
+    <div class="badge rules">Deterministic rules engine — no AI in the decision path</div>
+    <div class="badge">Every threshold sourced to 12 C.F.R. Part 215</div>
+    <div class="badge">Every determination logged &amp; auditable</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="section-label"><span>§ 1 &nbsp;Bank Capital Configuration</span></div>
+  <fieldset style="margin-bottom:28px;">
+    <legend>Set once, used by every calculation below</legend>
+    <div class="row2">
+      <div>
+        <label>Unimpaired capital and surplus (USD) <span class="hint">12 C.F.R. § 215.2(i) — the base figure every Reg O threshold below is calculated from</span></label>
+        <input type="number" id="bankCapital" min="0" step="1000" placeholder="e.g. 40000000">
+      </div>
+      <div>
+        <label>Total deposits (USD) <span class="hint">Determines eligibility for the small-bank aggregate-limit increase</span></label>
+        <input type="number" id="bankDeposits" min="0" step="1000" placeholder="e.g. 80000000">
+      </div>
+    </div>
+    <div class="checks">
+      <label><input type="checkbox" id="smallBankException"> Bank has deposits under $100 million AND has adopted the required annual board resolution to raise the aggregate insider-lending ceiling to 2× unimpaired capital and surplus (12 C.F.R. § 215.4(d)(2))</label>
+    </div>
+    <button class="save" onclick="saveBankConfig()">Save Bank Configuration</button>
+    <button class="ghost" onclick="loadDemoBaseline()" style="margin-top:8px; margin-left:8px;">Load Demo Baseline (sample history for the 6 insiders)</button>
+    <div class="bank-config-summary" id="bankConfigSummary"></div>
+  </fieldset>
+
+  <div class="grid">
+
+    <div>
+      <div class="section-label"><span>§ 2 &nbsp;New Extension of Credit / Overdraft</span></div>
+
+      <fieldset>
+        <legend>Insider</legend>
+        <label>Insider name <span class="hint">Select from the bank's roster, or add a new person</span></label>
+        <select id="insiderSelect" onchange="onInsiderSelect()"></select>
+        <div id="newInsiderWrap" style="display:none; margin-top:10px;">
+          <label>New person's name</label>
+          <input type="text" id="insiderNameNew" placeholder="e.g. new hire not yet in the roster">
+        </div>
+        <div class="bank-config-summary" id="selectedInsiderStanding"></div>
+        <label>Insider type <span class="hint">Auto-set from the roster where known — override only if this request involves a different capacity (e.g. a related interest)</span></label>
+        <select id="insiderType">
+          <option value="executive_officer">Executive officer</option>
+          <option value="director">Director</option>
+          <option value="principal_shareholder">Principal shareholder</option>
+          <option value="related_interest">Related interest of an insider</option>
+        </select>
+      </fieldset>
+
+      <fieldset>
+        <legend>Transaction</legend>
+        <label>Transaction type</label>
+        <select id="txnType" onchange="toggleTxnFields()">
+          <option value="credit">Extension of credit</option>
+          <option value="overdraft">Overdraft payment</option>
+        </select>
+
+        <div class="cat-block active" data-txn="credit">
+          <label>Purpose</label>
+          <select id="creditPurpose">
+            <option value="education">Children's education</option>
+            <option value="home">Home purchase or improvement (first lien)</option>
+            <option value="secured">Fully secured (per § 215.4(d)(3) collateral types)</option>
+            <option value="other">Other purpose</option>
+          </select>
+          <label>Amount of this extension (USD)</label>
+          <input type="number" id="creditAmount" min="0" step="1" placeholder="0">
+          <label>Terms comparison <span class="hint">Required by § 215.4(a) for every insider extension, regardless of amount</span></label>
+          <select id="termsComparison">
+            <option value="yes">Substantially the same terms and underwriting as a comparable non-insider transaction</option>
+            <option value="no">Not on comparable terms</option>
+            <option value="unsure">Unsure / not yet documented</option>
+          </select>
+        </div>
+
+        <div class="cat-block" data-txn="overdraft">
+          <label>Overdraft amount (USD)</label>
+          <input type="number" id="odAmount" min="0" step="1" placeholder="0">
+          <label>Days outstanding</label>
+          <input type="number" id="odDays" min="0" step="1" placeholder="0">
+          <div class="checks">
+            <label><input type="checkbox" id="odPlan"> Covered by a pre-authorized, interest-bearing repayment plan or pre-authorized transfer</label>
+            <label><input type="checkbox" id="odSameFee"> Same fee charged as any other customer in similar circumstances</label>
+          </div>
+        </div>
+      </fieldset>
+
+      <button class="submit" onclick="runDetermination()">Get Determination</button>
+      <div style="display:flex; justify-content:flex-end; margin-top:10px; gap:8px;">
+        <button class="ghost" onclick="resetAll()">Reset all stored data</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label"><span>§ 3 &nbsp;Determination</span></div>
+      <div class="det-card" id="detCard">
+        <div class="det-empty">No request submitted yet. Set bank configuration in § 1, complete § 2, and run the check.</div>
+      </div>
+
+      <div class="ledger-panel" style="margin-top:20px;">
+        <div class="section-label" style="border:none; margin-bottom:10px;"><span>§ 4 &nbsp;Insider Ledger (aggregate outstanding)</span></div>
+        <div id="ledgerList"><div class="ledger-empty">No insiders tracked yet.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="audit-panel">
+    <div class="section-label"><span>§ 5 &nbsp;Audit Log</span><span class="mono" style="font-size:10.5px;">most recent first</span></div>
+    <div id="auditList"><div class="ledger-empty">No entries yet.</div></div>
+  </div>
+
+  <div class="footnote">
+    <h3>Methodology &amp; sourcing notes</h3>
+    <ul>
+      <li><strong>This tool contains no AI.</strong> Three of the four Reg O sub-rules encoded here — the board-approval trigger, the executive-officer "other purpose" sub-cap, and the bank-wide aggregate ceiling — are pure arithmetic against a citable dollar or percentage threshold. No language interpretation is involved.</li>
+      <li><strong>Unlike the gifts/entertainment pre-clearance tool, this one has no manager-approval gate.</strong> That was a deliberate omission, not an oversight — Reg O already defines its own escalation trigger (the board-approval threshold below), so layering a firm-policy first-line gate on top would add a step the regulation doesn't call for.</li>
+      <li><strong>The executive-officer "other purpose" sub-cap is an absolute prohibition, not an escalation.</strong> Unlike the general board-approval trigger, 12 C.F.R. § 215.5(c)(4) does not give the board authority to approve past this cap — the determination reflects that distinction rather than treating every threshold breach the same way.</li>
+      <li><strong>The terms-comparison requirement (§ 215.4(a)) is the one genuine judgment call in this domain</strong> and is treated as such: any answer other than "yes" routes to Compliance/Legal regardless of dollar amount, the same pattern used for corrupt-intent red flags in the pre-clearance tool.</li>
+      <li>Thresholds sourced to eCFR primary text as of 2026-07-09: 12 C.F.R. §§ 215.4(a), (b), (d), (e), and 215.5(c)(4).</li>
+      <li><strong>Insider identity now resolves against a fixed 12-person roster</strong> rather than free-typed text. This isn't just a convenience — the earlier free-text version had a real bug: "Art Vandelay" and "art vandelay " (trailing space) would have been tracked as two different people with two separate aggregate totals, silently understating actual exposure. Selecting from a roster by a stable ID closes that gap. The "+ Add a new person" option still exists for anyone not yet in the roster, with the same free-text limitation disclosed rather than hidden.</li>
+      <li>Rules engine version <span class="mono" id="engineVersionFooter"></span>, tracked on every audit entry — same version-pinning discipline as the pre-clearance tool and the AI agents elsewhere in this project.</li>
+      <li>Data entered here is stored only for this demonstration session/browser and is not shared. Use "Reset all stored data" to clear it.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const RULES_ENGINE_VERSION = 'v1.0.0';
+document.getElementById('engineVersionFooter').textContent = RULES_ENGINE_VERSION;
+
+// window.storage only exists inside Claude's own Artifact preview. Outside that —
+// opening this file directly, or hosting it on GitHub Pages, which is this tool's
+// actual deployment target — window.storage is undefined and every persistence
+// call would silently fail. This adapter uses window.storage when present and
+// falls back to localStorage otherwise, so the same file works in both contexts
+// without changing any of the get/set/list/delete call sites below.
+const Storage = (function(){
+  const hasNative = (typeof window !== 'undefined' && window.storage && typeof window.storage.get === 'function');
+  const ns = 'rmas-rego:';
+  if(hasNative) return window.storage;
+  return {
+    async get(key){
+      const raw = localStorage.getItem(ns + key);
+      if(raw === null) throw new Error('not found');
+      return { key, value: raw, shared: false };
+    },
+    async set(key, value){
+      localStorage.setItem(ns + key, value);
+      return { key, value, shared: false };
+    },
+    async delete(key){
+      localStorage.removeItem(ns + key);
+      return { key, deleted: true, shared: false };
+    },
+    async list(prefix){
+      const keys = [];
+      const full = ns + (prefix || '');
+      for(let i = 0; i < localStorage.length; i++){
+        const k = localStorage.key(i);
+        if(k && k.startsWith(full)){ keys.push(k.substring(ns.length)); }
+      }
+      return { keys, prefix, shared: false };
+    }
+  };
+})();
+
+const ROSTER = [
+  { id:'george_costanza',  name:'George Costanza',  title:'Chief Executive Officer',        insiderType:'executive_officer',   reportsTo:null },
+  { id:'cosmo_kramer',     name:'Cosmo Kramer',      title:'Chief Technology Officer',       insiderType:'executive_officer',   reportsTo:'george_costanza' },
+  { id:'cheryl_david',     name:'Cheryl David',      title:'Chief Financial Officer',        insiderType:'executive_officer',   reportsTo:'george_costanza' },
+  { id:'frank_costanza',   name:'Frank Costanza',    title:'Independent Director',           insiderType:'director',            reportsTo:null },
+  { id:'marty_funkhouser', name:'Marty Funkhouser',  title:'Independent Director',           insiderType:'director',            reportsTo:null },
+  { id:'j_peterman',       name:'J. Peterman',       title:'Principal Shareholder (12%)',    insiderType:'principal_shareholder', reportsTo:null },
+  { id:'elaine_benes',     name:'Elaine Benes',      title:'Chief Compliance Officer',       insiderType:null,                  reportsTo:'george_costanza' },
+  { id:'jackie_chiles',    name:'Jackie Chiles',     title:'General Counsel',                insiderType:null,                  reportsTo:'george_costanza' },
+  { id:'newman',           name:'Newman',            title:'Vendor Management Lead',         insiderType:null,                  reportsTo:'elaine_benes' },
+  { id:'jeff_greene',      name:'Jeff Greene',       title:'SVP, Commercial Lending',        insiderType:null,                  reportsTo:'george_costanza' },
+  { id:'susie_greene',     name:'Susie Greene',      title:'Relationship Manager',           insiderType:null,                  reportsTo:'jeff_greene' },
+  { id:'leon_black',       name:'Leon Black',        title:'Vendor Relations Associate',     insiderType:null,                  reportsTo:'newman' }
+];
+
+function populateRosterDropdown(){
+  const sel = document.getElementById('insiderSelect');
+  sel.innerHTML = ROSTER.map(p => '<option value="' + p.id + '">' + p.name + ' — ' + p.title + '</option>').join('')
+    + '<option value="__new__">+ Add a new person (not yet in the roster)</option>';
+  onInsiderSelect();
+}
+
+function rosterPerson(id){
+  return ROSTER.find(p => p.id === id) || null;
+}
+
+async function onInsiderSelect(){
+  const val = document.getElementById('insiderSelect').value;
+  const newWrap = document.getElementById('newInsiderWrap');
+  const standingBox = document.getElementById('selectedInsiderStanding');
+
+  if(val === '__new__'){
+    newWrap.style.display = 'block';
+    standingBox.innerHTML = 'New person — no roster record, no prior standing to display.';
+    return;
+  }
+  newWrap.style.display = 'none';
+  const person = rosterPerson(val);
+  if(!person){ standingBox.innerHTML = ''; return; }
+
+  if(person.insiderType){
+    document.getElementById('insiderType').value = person.insiderType;
+  }
+
+  const entry = await getLedgerEntry(person.name);
+  let html = '<strong>' + person.name + '</strong> — ' + person.title;
+  if(!person.insiderType){
+    html += '<br>⚠ Not a designated Reg O insider in this roster. Confirm the capacity manually before proceeding (e.g., only relevant if acting as a related interest of an insider).';
+  }
+  html += '<br>Current standing: $' + entry.total.toFixed(2) + ' total outstanding' + (entry.otherPurposeTotal ? ' · $' + entry.otherPurposeTotal.toFixed(2) + ' "other purpose"' : '');
+  standingBox.innerHTML = html;
+}
+
+function currentInsiderName(){
+  const val = document.getElementById('insiderSelect').value;
+  if(val === '__new__'){
+    return document.getElementById('insiderNameNew').value.trim();
+  }
+  const person = rosterPerson(val);
+  return person ? person.name : '';
+}
+
+const DEMO_BANK_CONFIG = { capital: 50000000, deposits: 600000000, smallBank: false };
+
+const DEMO_LEDGER = {
+  george_costanza:   { name:'George Costanza',  total: 1800000, otherPurposeTotal: 95000 },
+  cosmo_kramer:      { name:'Cosmo Kramer',      total: 450000,  otherPurposeTotal: 40000 },
+  cheryl_david:      { name:'Cheryl David',      total: 2100000, otherPurposeTotal: 15000 },
+  frank_costanza:    { name:'Frank Costanza',    total: 300000,  otherPurposeTotal: 0 },
+  marty_funkhouser:  { name:'Marty Funkhouser',  total: 150000,  otherPurposeTotal: 0 },
+  j_peterman:        { name:'J. Peterman',       total: 600000,  otherPurposeTotal: 0 }
+};
+
+// Backdated audit history whose amounts sum exactly to each person's DEMO_LEDGER totals above,
+// so the ledger and the audit trail agree with each other rather than the ledger being an
+// unexplained number. Marked with seed:true so the audit log can visibly distinguish these
+// from determinations the engine actually produced during this session.
+const DEMO_AUDIT_HISTORY = [
+  { ts:'2025-09-15T14:00:00Z', insider:'George Costanza',  insiderType:'executive_officer', txnType:'credit', purpose:'home',    amount:1600000, decision:'APPROVED — MANAGEMENT LEVEL' },
+  { ts:'2026-01-10T14:00:00Z', insider:'George Costanza',  insiderType:'executive_officer', txnType:'credit', purpose:'other',   amount:95000,   decision:'APPROVED — MANAGEMENT LEVEL' },
+  { ts:'2026-04-22T14:00:00Z', insider:'George Costanza',  insiderType:'executive_officer', txnType:'credit', purpose:'secured', amount:105000,  decision:'APPROVED — MANAGEMENT LEVEL' },
+
+  { ts:'2025-11-03T14:00:00Z', insider:'Cosmo Kramer',     insiderType:'executive_officer', txnType:'credit', purpose:'secured', amount:410000,  decision:'APPROVED — MANAGEMENT LEVEL' },
+  { ts:'2026-03-18T14:00:00Z', insider:'Cosmo Kramer',     insiderType:'executive_officer', txnType:'credit', purpose:'other',   amount:40000,   decision:'APPROVED — MANAGEMENT LEVEL' },
+
+  { ts:'2025-08-27T14:00:00Z', insider:'Cheryl David',     insiderType:'executive_officer', txnType:'credit', purpose:'home',    amount:2000000, decision:'APPROVED — MANAGEMENT LEVEL' },
+  { ts:'2026-02-05T14:00:00Z', insider:'Cheryl David',     insiderType:'executive_officer', txnType:'credit', purpose:'other',   amount:15000,   decision:'APPROVED — MANAGEMENT LEVEL' },
+  { ts:'2026-05-14T14:00:00Z', insider:'Cheryl David',     insiderType:'executive_officer', txnType:'credit', purpose:'secured', amount:85000,   decision:'APPROVED — MANAGEMENT LEVEL' },
+
+  { ts:'2025-12-01T14:00:00Z', insider:'Frank Costanza',   insiderType:'director',            txnType:'credit', purpose:'secured', amount:300000, decision:'APPROVED — MANAGEMENT LEVEL' },
+  { ts:'2026-01-20T14:00:00Z', insider:'Marty Funkhouser', insiderType:'director',            txnType:'credit', purpose:'secured', amount:150000, decision:'APPROVED — MANAGEMENT LEVEL' },
+  { ts:'2025-10-09T14:00:00Z', insider:'J. Peterman',      insiderType:'principal_shareholder', txnType:'credit', purpose:'secured', amount:600000, decision:'APPROVED — MANAGEMENT LEVEL' }
+];
+
+async function loadDemoBaseline(){
+  if(!confirm('This overwrites the bank configuration and ledger/audit history for the six insiders with sample data. Continue?')) return;
+
+  document.getElementById('bankCapital').value = DEMO_BANK_CONFIG.capital;
+  document.getElementById('bankDeposits').value = DEMO_BANK_CONFIG.deposits;
+  document.getElementById('smallBankException').checked = DEMO_BANK_CONFIG.smallBank;
+  try{ await Storage.set('bank-config', JSON.stringify(DEMO_BANK_CONFIG)); }catch(e){ console.error(e); }
+
+  for(const key of Object.keys(DEMO_LEDGER)){
+    try{ await Storage.set(ledgerKey(DEMO_LEDGER[key].name), JSON.stringify(DEMO_LEDGER[key])); }catch(e){ console.error(e); }
+  }
+
+  for(const record of DEMO_AUDIT_HISTORY){
+    await appendAudit({
+      ts: record.ts, insider: record.insider, insiderType: record.insiderType,
+      txnType: record.txnType, amount: record.amount,
+      decision: record.decision, engineVersion: RULES_ENGINE_VERSION, seed: true
+    });
+  }
+
+  await renderBankConfigSummary();
+  await renderLedger();
+  await renderAudit();
+  await onInsiderSelect();
+}
+
+function toggleTxnFields(){
+  const t = document.getElementById('txnType').value;
+  document.querySelectorAll('.cat-block').forEach(el => {
+    el.classList.toggle('active', el.dataset.txn === t);
+  });
+}
+
+async function getBankConfig(){
+  try{
+    const res = await Storage.get('bank-config');
+    return res ? JSON.parse(res.value) : null;
+  }catch(e){ return null; }
+}
+async function saveBankConfig(){
+  const capital = parseFloat(document.getElementById('bankCapital').value) || 0;
+  const deposits = parseFloat(document.getElementById('bankDeposits').value) || 0;
+  const smallBank = document.getElementById('smallBankException').checked;
+  if(capital <= 0){
+    alert('Enter the bank\'s unimpaired capital and surplus — every threshold below is calculated from it.');
+    return;
+  }
+  try{
+    await Storage.set('bank-config', JSON.stringify({capital, deposits, smallBank}));
+  }catch(e){ console.error(e); }
+  await renderBankConfigSummary();
+}
+async function renderBankConfigSummary(){
+  const cfg = await getBankConfig();
+  const el = document.getElementById('bankConfigSummary');
+  if(!cfg){
+    el.textContent = 'No bank configuration saved yet — set and save it before running a determination.';
+    return;
+  }
+  const ceiling = cfg.smallBank ? cfg.capital * 2 : cfg.capital;
+  el.innerHTML = 'Saved: capital $' + cfg.capital.toLocaleString() + ' · deposits $' + cfg.deposits.toLocaleString() +
+    ' · board-approval trigger $' + Math.max(25000, cfg.capital * 0.05).toLocaleString() +
+    ' · exec-officer "other purpose" cap $' + Math.min(Math.max(25000, cfg.capital * 0.025), 100000).toLocaleString() +
+    ' · bank-wide aggregate ceiling $' + ceiling.toLocaleString() + (cfg.smallBank ? ' (small-bank 2× exception applied)' : '');
+}
+
+function ledgerKey(name){
+  return 'insider-ledger:' + name.trim().toLowerCase().replace(/\s+/g,'_');
+}
+async function getLedgerEntry(name){
+  try{
+    const res = await Storage.get(ledgerKey(name));
+    return res ? JSON.parse(res.value) : { name, total: 0, otherPurposeTotal: 0 };
+  }catch(e){ return { name, total: 0, otherPurposeTotal: 0 }; }
+}
+async function saveLedgerEntry(name, entry){
+  try{ await Storage.set(ledgerKey(name), JSON.stringify(entry)); }catch(e){ console.error(e); }
+}
+async function getBankWideTotal(){
+  let total = 0;
+  try{
+    const res = await Storage.list('insider-ledger:');
+    if(res && res.keys){
+      for(const k of res.keys){
+        try{
+          const entry = await Storage.get(k);
+          if(entry) total += JSON.parse(entry.value).total;
+        }catch(e){}
+      }
+    }
+  }catch(e){}
+  return total;
+}
+
+async function appendAudit(record){
+  try{
+    const key = 'audit:' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    await Storage.set(key, JSON.stringify(record));
+  }catch(e){ console.error(e); }
+}
+
+function stampLabel(decision){
+  switch(decision){
+    case 'approved': return { text: 'APPROVED — MANAGEMENT LEVEL', cls: '' };
+    case 'board_approval': return { text: 'ESCALATED — BOARD APPROVAL REQUIRED', cls: 'amber' };
+    case 'prohibited': return { text: 'PROHIBITED — CANNOT BE EXTENDED', cls: 'red' };
+    case 'blocked_aggregate': return { text: 'BLOCKED — BANK-WIDE CEILING EXCEEDED', cls: 'red' };
+    case 'escalate_terms': return { text: 'ESCALATED — COMPLIANCE/LEGAL REVIEW', cls: 'red' };
+    default: return { text: 'DENIED', cls: 'red' };
+  }
+}
+
+function evaluate(input, cfg, ledgerEntry, bankWideTotal){
+  const citations = [];
+  const routing = [];
+  const trace = [];
+  let decision = 'approved';
+  let reasoning = '';
+
+  if(input.txnType === 'overdraft'){
+    citations.push('12 C.F.R. § 215.4(e) — overdraft prohibition for executive officers and directors');
+    if(input.insiderType === 'principal_shareholder'){
+      routing.push({who:'Compliance (register only)', action:'Logged — overdraft prohibition does not apply to a principal shareholder who is not also an officer or director'});
+      decision = 'approved';
+      reasoning = 'The § 215.4(e) overdraft prohibition applies to executive officers and directors, not to a principal shareholder unless they also hold one of those roles. Logged, no restriction applies at this determination.';
+    } else if(input.odPlan){
+      routing.push({who:'Compliance (register only)', action:'Logged — covered by a pre-authorized repayment plan'});
+      decision = 'approved';
+      reasoning = 'A pre-authorized, interest-bearing repayment plan (or pre-authorized transfer) is in place, satisfying § 215.4(e). Permitted.';
+    } else if(input.odAmount <= 1000 && input.odDays <= 5 && input.odSameFee){
+      routing.push({who:'Compliance (register only)', action:'Logged — qualifies for the inadvertent-overdraft exception'});
+      decision = 'approved';
+      reasoning = 'No pre-authorized plan is in place, but the overdraft is $1,000 or less, outstanding no more than 5 business days, and charged the same fee as any other customer — the narrow exception in § 215.4(e) applies.';
+    } else {
+      routing.push({who:'Compliance Officer', action:'Payment cannot proceed without a qualifying repayment plan or the inadvertent-overdraft exception'});
+      decision = 'prohibited';
+      reasoning = 'No pre-authorized repayment plan is in place, and this overdraft does not qualify for the narrow inadvertent-overdraft exception (must be $1,000 or less, outstanding no more than 5 business days, and charged the standard customer fee). § 215.4(e) does not permit the bank to pay it as structured.';
+    }
+    return { decision, citations, routing, reasoning, trace };
+  }
+
+  // Extension of credit path
+  citations.push('12 C.F.R. § 215.4(a) — insider extensions must be on substantially the same terms as comparable non-insider transactions');
+  if(input.termsComparison !== 'yes'){
+    routing.push({who:'Compliance Officer / Legal', action:'Review required before this extension can proceed — terms comparison not confirmed'});
+    decision = 'escalate_terms';
+    reasoning = 'The terms-comparison requirement under § 215.4(a) was answered "' + input.termsComparison + '," not "yes." This is the one judgment call in Reg O rather than a threshold, and any answer short of confirmed comparability routes to Compliance/Legal regardless of dollar amount.';
+    return { decision, citations, routing, reasoning, trace };
+  }
+
+  const newOtherTotal = ledgerEntry.otherPurposeTotal + (input.creditPurpose === 'other' ? input.creditAmount : 0);
+  const execCap = Math.min(Math.max(25000, cfg.capital * 0.025), 100000);
+  if(input.insiderType === 'executive_officer' && input.creditPurpose === 'other'){
+    citations.push('12 C.F.R. § 215.5(c)(4) — executive-officer "other purpose" credit sub-cap (higher of 2.5% of capital or $25,000, never more than $100,000)');
+    trace.push('Exec-officer "other purpose" cap = min(max(2.5% × $' + cfg.capital.toLocaleString() + ', $25,000), $100,000) = $' + execCap.toLocaleString());
+    trace.push('Existing "other purpose" aggregate to this officer: $' + ledgerEntry.otherPurposeTotal.toLocaleString() + ' + this request $' + input.creditAmount.toLocaleString() + ' = $' + newOtherTotal.toLocaleString());
+    if(newOtherTotal > execCap){
+      routing.push({who:'Compliance Officer', action:'Cannot be extended for this purpose at this amount — no board override available under § 215.5(c)(4)'});
+      decision = 'prohibited';
+      reasoning = 'This is an executive officer borrowing for a purpose outside the specifically authorized categories (education, first-lien home loan, fully secured). § 215.5(c)(4) caps aggregate "other purpose" credit to an executive officer at $' + execCap.toLocaleString() + ' — unlike the general insider board-approval trigger, this is an absolute statutory ceiling the board cannot approve past. The new aggregate of $' + newOtherTotal.toLocaleString() + ' exceeds it.';
+      return { decision, citations, routing, reasoning, trace };
+    }
+  }
+
+  const boardTrigger = Math.max(25000, cfg.capital * 0.05);
+  const newInsiderTotal = ledgerEntry.total + input.creditAmount;
+  trace.push('Board-approval trigger = max($25,000, 5% × $' + cfg.capital.toLocaleString() + ') = $' + boardTrigger.toLocaleString());
+  trace.push('Existing aggregate to this insider: $' + ledgerEntry.total.toLocaleString() + ' + this request $' + input.creditAmount.toLocaleString() + ' = $' + newInsiderTotal.toLocaleString());
+
+  const ceiling = cfg.smallBank ? cfg.capital * 2 : cfg.capital;
+  const newBankWideTotal = bankWideTotal + input.creditAmount;
+  trace.push('Bank-wide aggregate ceiling = ' + (cfg.smallBank ? '2× ' : '') + 'unimpaired capital = $' + ceiling.toLocaleString());
+  trace.push('Existing bank-wide insider total: $' + bankWideTotal.toLocaleString() + ' + this request $' + input.creditAmount.toLocaleString() + ' = $' + newBankWideTotal.toLocaleString());
+
+  if(newBankWideTotal > ceiling){
+    citations.push('12 C.F.R. § 215.4(d) — aggregate insider-lending ceiling (bank-wide)');
+    routing.push({who:'Chief Credit Officer / Board', action:'Cannot proceed — bank-wide aggregate insider-lending ceiling would be exceeded'});
+    decision = 'blocked_aggregate';
+    reasoning = 'Bank-wide outstanding credit to all insiders combined, including this request, would reach $' + newBankWideTotal.toLocaleString() + ', exceeding the § 215.4(d) ceiling of $' + ceiling.toLocaleString() + '. This is a bank-wide safety-and-soundness limit — individual board approval of this specific extension cannot override it.';
+    return { decision, citations, routing, reasoning, trace };
+  }
+
+  if(newInsiderTotal > boardTrigger){
+    citations.push('12 C.F.R. § 215.4(b) — board pre-approval required above the higher of $25,000 or 5% of unimpaired capital and surplus');
+    routing.push({who:'Board of Directors', action:'Prior approval required by majority of the entire board — insider must abstain from the vote'});
+    routing.push({who:'Compliance (register only)', action:'Logged pending board action'});
+    decision = 'board_approval';
+    reasoning = 'This insider\'s aggregate outstanding credit, including this request, would reach $' + newInsiderTotal.toLocaleString() + ', exceeding the board-approval trigger of $' + boardTrigger.toLocaleString() + '. Per § 215.4(b), this requires advance approval by a majority of the entire board with the insider abstaining from the vote — this can proceed once that approval is obtained, unlike the absolute caps above.';
+    return { decision, citations, routing, reasoning, trace };
+  }
+
+  routing.push({who:'Compliance (register only)', action:'Logged — within all applicable Reg O thresholds at the management level'});
+  decision = 'approved';
+  reasoning = 'This insider\'s aggregate outstanding credit, including this request, is $' + newInsiderTotal.toLocaleString() + ' — within the board-approval trigger of $' + boardTrigger.toLocaleString() + ' — and the bank-wide aggregate stays within its § 215.4(d) ceiling. No board action required at this level; still logged and counted toward future determinations.';
+  return { decision, citations, routing, reasoning, trace };
+}
+
+async function runDetermination(){
+  const cfg = await getBankConfig();
+  if(!cfg){
+    alert('Set and save the bank capital configuration in § 1 first — every threshold is calculated from it.');
+    return;
+  }
+  const insiderName = currentInsiderName();
+  if(!insiderName){
+    alert('Select an insider from the roster, or enter a name for a new person.');
+    return;
+  }
+  const txnType = document.getElementById('txnType').value;
+  const input = {
+    insiderName,
+    insiderType: document.getElementById('insiderType').value,
+    txnType,
+    creditPurpose: document.getElementById('creditPurpose').value,
+    creditAmount: parseFloat(document.getElementById('creditAmount').value) || 0,
+    termsComparison: document.getElementById('termsComparison').value,
+    odAmount: parseFloat(document.getElementById('odAmount').value) || 0,
+    odDays: parseFloat(document.getElementById('odDays').value) || 0,
+    odPlan: document.getElementById('odPlan').checked,
+    odSameFee: document.getElementById('odSameFee').checked
+  };
+
+  const ledgerEntry = await getLedgerEntry(insiderName);
+  const bankWideTotal = await getBankWideTotal();
+  const result = evaluate(input, cfg, ledgerEntry, bankWideTotal);
+
+  if(result.decision === 'approved' && txnType === 'credit'){
+    ledgerEntry.total += input.creditAmount;
+    if(input.creditPurpose === 'other'){ ledgerEntry.otherPurposeTotal += input.creditAmount; }
+    ledgerEntry.name = insiderName;
+    await saveLedgerEntry(insiderName, ledgerEntry);
+  }
+  if(result.decision === 'board_approval'){
+    // Logged pending board action; not yet counted as outstanding until approved in a real system.
+    // Left out of the ledger total here deliberately — see footnote on scope.
+  }
+
+  renderDetermination(input, result);
+  await appendAudit({
+    ts: new Date().toISOString(), insider: insiderName, insiderType: input.insiderType,
+    txnType, amount: txnType === 'credit' ? input.creditAmount : input.odAmount,
+    decision: stampLabel(result.decision).text, engineVersion: RULES_ENGINE_VERSION
+  });
+
+  await renderLedger();
+  await renderAudit();
+}
+
+function renderDetermination(input, result){
+  const stamp = stampLabel(result.decision);
+  const card = document.getElementById('detCard');
+  let html = '<div class="stamp ' + stamp.cls + '">' + stamp.text + '</div>';
+  html += '<div style="font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;" class="mono">' + input.insiderName + ' (' + input.insiderType + ') · ' + input.txnType + ' · $' + (input.txnType === 'credit' ? input.creditAmount.toFixed(2) : input.odAmount.toFixed(2)) + ' · ' + new Date().toLocaleString() + '</div>';
+  html += '<ul class="cite-list">' + result.citations.map(c => '<li>' + c + '</li>').join('') + '</ul>';
+  html += '<div class="reasoning">' + result.reasoning + '</div>';
+  if(result.trace && result.trace.length){
+    html += '<div class="calc-trace">' + result.trace.map(t => '<div>' + t + '</div>').join('') + '</div>';
+  }
+  html += '<table class="routing-table"><thead><tr><th>Notified</th><th>Action</th></tr></thead><tbody>';
+  html += result.routing.map(x => '<tr><td>' + x.who + '</td><td>' + x.action + '</td></tr>').join('');
+  html += '</tbody></table>';
+  card.innerHTML = html;
+}
+
+async function renderLedger(){
+  const container = document.getElementById('ledgerList');
+  try{
+    const res = await Storage.list('insider-ledger:');
+    if(!res || !res.keys || res.keys.length === 0){
+      container.innerHTML = '<div class="ledger-empty">No insiders tracked yet.</div>';
+      return;
+    }
+    let rows = [];
+    for(const k of res.keys){
+      try{
+        const entry = await Storage.get(k);
+        if(entry){
+          const data = JSON.parse(entry.value);
+          rows.push('<div class="ledger-row"><span>' + data.name + '</span><span>$' + data.total.toFixed(2) + ' total' + (data.otherPurposeTotal ? ' · $' + data.otherPurposeTotal.toFixed(2) + ' other-purpose' : '') + '</span></div>');
+        }
+      }catch(e){}
+    }
+    container.innerHTML = rows.length ? rows.join('') : '<div class="ledger-empty">No insiders tracked yet.</div>';
+  }catch(e){
+    container.innerHTML = '<div class="ledger-empty">No insiders tracked yet.</div>';
+  }
+}
+
+async function renderAudit(){
+  const container = document.getElementById('auditList');
+  try{
+    const res = await Storage.list('audit:');
+    if(!res || !res.keys || res.keys.length === 0){
+      container.innerHTML = '<div class="ledger-empty">No entries yet.</div>';
+      return;
+    }
+    const sortedKeys = res.keys.sort().reverse().slice(0, 40);
+    let rows = [];
+    for(const k of sortedKeys){
+      try{
+        const entry = await Storage.get(k);
+        if(entry){
+          const d = JSON.parse(entry.value);
+          const seedTag = d.seed ? '<span class="mono" style="opacity:0.6;">[DEMO BASELINE] </span>' : '';
+          rows.push('<div class="audit-entry">' + seedTag + new Date(d.ts).toLocaleString() + ' — ' + d.insider + ' (' + d.insiderType + ') · ' + d.txnType + ' ($' + d.amount.toFixed(2) + ') → <span class="outcome">' + d.decision + '</span> <span class="mono" style="opacity:0.6;">[' + (d.engineVersion || '—') + ']</span></div>');
+        }
+      }catch(e){}
+    }
+    container.innerHTML = rows.length ? rows.join('') : '<div class="ledger-empty">No entries yet.</div>';
+  }catch(e){
+    container.innerHTML = '<div class="ledger-empty">No entries yet.</div>';
+  }
+}
+
+async function resetAll(){
+  if(!confirm('This clears all stored bank configuration, insider ledger, and audit-log data for this demo session. Continue?')) return;
+  try{
+    for(const prefix of ['insider-ledger:', 'audit:']){
+      const l = await Storage.list(prefix);
+      if(l && l.keys) for(const k of l.keys) await Storage.delete(k);
+    }
+    await Storage.delete('bank-config');
+  }catch(e){ console.error(e); }
+  await renderBankConfigSummary();
+  await renderLedger();
+  await renderAudit();
+  document.getElementById('detCard').innerHTML = '<div class="det-empty">No request submitted yet. Set bank configuration in § 1, complete § 2, and run the check.</div>';
+}
+
+populateRosterDropdown();
+toggleTxnFields();
+renderBankConfigSummary();
+renderLedger();
+renderAudit();
+</script>
+
+</body>
+</html>
