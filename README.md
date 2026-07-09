@@ -139,7 +139,7 @@ Four calculation tabs implementing Regulation C (HMDA) reportability logic — s
 
 Validates a drafted adverse action notice against Regulation B's requirements — timing (30/90-day windows depending on application status), required content (action taken, creditor identity, ECOA notice provision, regulator identity), and, where AI is available, flags notices that read as boilerplate or omit a specific reason for denial. Deterministic fallback mode covers the structural/timing checks regardless of AI availability; the language-quality check is the part that genuinely needs a model, and is clearly labeled as such when running without an API key.
 
-**Eval suites for both Fair Lending agents (MRM-004, MRM-005)** are specified — 14 and 16 cases respectively, split between deterministic checks and rubric-based AI-output review — but not yet executed. That status is stated as such rather than rounded up; see [Fair Lending eval suite spec](docs/eval-suites-fair-lending-agents.md).
+**Eval suites for both Fair Lending agents (FL-EVAL-01, FL-EVAL-02)** are specified — 14 and 16 cases respectively, split between deterministic checks and rubric-based AI-output review — but not yet executed. That status is stated as such rather than rounded up; see [Fair Lending eval suite spec](docs/eval-suites-fair-lending-agents.md). The one sub-suite that exercises an actual AI model (FL-EVAL-02's 5c) is also tracked as **MRM-005** in the [Model Risk Register](governance/model-risk-register.html).
 
 ---
 
@@ -186,6 +186,8 @@ non-deterministic.
   has none.
 
 [→ Layer 1 (Anti-Bribery/COI)](docs/layer1-anti-bribery-coi.md) · [→ Layer 2 (Control Matrix)](docs/layer2-anti-bribery-coi.md)
+
+[→ Demo-to-production gap register](docs/pre-clearance-tool-demo-to-production-gap-register.md) — 14 gaps (5 blocking) between this demo and anything that could touch a real gift, entertainment, or anti-bribery pre-clearance request, including the free-text recipient-identity gap that Tool 2's roster design was built to avoid repeating.
 
 ---
 
@@ -276,8 +278,11 @@ This framework was built SCRA-first, but its core disciplines — version
 pinning, eval gates, audit logging — are domain-agnostic and already extend
 beyond SCRA: the [Model Risk Register](governance/model-risk-register.html)
 under [`governance/`](governance) inventories every AI component across all
-domains as a model under an SR 11-7-inspired framework, and the rules-engine
-versioning built into the Pre-Clearance Determination System (see above)
+domains as a model under an SR 11-7-inspired framework (see the
+[framework doc](docs/model-risk-management-framework.md) for the reasoning
+behind what counts as a model here and what doesn't), and the rules-engine
+versioning built into the Pre-Clearance Determination System (see above,
+and its own [demo-to-production gap register](docs/pre-clearance-tool-demo-to-production-gap-register.md))
 applies the same discipline to a Track B tool that has no model to version
 at all.
 
@@ -322,7 +327,7 @@ RMAS/
 │   ├── layer2-aml-kyc.md                # AML/KYC/Sanctions — control matrix
 │   ├── layer1-fair-lending.md           # Fair Lending (Reg B/HMDA) — regulatory map
 │   ├── layer2-fair-lending.md           # Fair Lending (Reg B/HMDA) — control matrix
-│   ├── eval-suites-fair-lending-agents.md  # Fair Lending — MRM-004/MRM-005 eval suite specs
+│   ├── eval-suites-fair-lending-agents.md  # Fair Lending — FL-EVAL-01/FL-EVAL-02 eval suite specs
 │   ├── layer1-anti-bribery-coi.md       # Anti-Bribery/Corruption & COI — regulatory map
 │   ├── layer2-anti-bribery-coi.md       # Anti-Bribery/Corruption & COI — control matrix
 │   ├── reg-o-tool-demo-to-production-gap-register.md  # Reg O tool — demo → production gap register
@@ -367,8 +372,8 @@ SCRA is an open item, not a design decision to leave as-is indefinitely.
 
 SCRA was chosen as the template domain because its requirements are discrete and its process touchpoints are bounded — it's a good domain to build the methodology in. The same four-layer approach, and the same Track A/Track B judgment about which controls need AI, applies to:
 
-- AML/KYC/Sanctions — Layer 1 and Layer 2 committed; covered by the cross-domain [Regulatory Change Monitor](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html) agent (Track A)
-- Fair Lending / HMDA (Reg B / Reg C) — Layer 1 and Layer 2 committed; two dedicated Track A agents (HMDA Reportability Calculator, Adverse Action Notice Validator), eval suites specified but not yet executed
+- AML/KYC/Sanctions — [Layer 1](docs/layer1-aml-kyc.md) and [Layer 2](docs/layer2-aml-kyc.md) committed; covered by the cross-domain [Regulatory Change Monitor](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html) agent (Track A)
+- Fair Lending / HMDA (Reg B / Reg C) — [Layer 1](docs/layer1-fair-lending.md) and [Layer 2](docs/layer2-fair-lending.md) committed; two dedicated Track A agents (HMDA Reportability Calculator, Adverse Action Notice Validator), eval suites specified but not yet executed
 - Anti-Bribery/Corruption & Conflicts of Interest — Layer 1 and Layer 2 committed; first Track B artifact in the project (Pre-Clearance Determination System) — the domain where the "not everything should be an agent" argument is made concretely, since most of its controls are deterministic threshold checks rather than language tasks
 - Healthcare privacy (HIPAA, 42 CFR Part 2)
 - Insurance regulatory compliance
@@ -401,13 +406,13 @@ The methodology transfers, including the judgment about when *not* to reach for 
 | Fair Lending / HMDA — Layer 1 & Layer 2 | ✅ Committed |
 | Fair Lending Agent — HMDA Reportability Calculator (Type 3) | ✅ Working demo · fallback mode |
 | Fair Lending Agent — Adverse Action Notice Validator (Type 1 + 4) | ✅ Working demo · fallback mode |
-| Fair Lending Eval Suites (MRM-004: 14 cases, MRM-005: 16 cases) | 🚧 Designed — not yet executed |
+| Fair Lending Eval Suites (FL-EVAL-01: 14 cases, FL-EVAL-02: 16 cases) | 🚧 Designed — not yet executed |
 | Anti-Bribery/Corruption & COI — Layer 1 & Layer 2 | ✅ Committed |
 | Anti-Bribery/COI Tool — Pre-Clearance Determination System (Track B, no AI at runtime) | ✅ Working demo · rules-engine v1.1.0 |
 | Anti-Bribery/COI Tool — Regulation O Insider Credit Threshold Tool (Track B, no AI at runtime) | ✅ Working demo · rules-engine v1.0.0 |
 | Reg O Tool — Demo-to-production gap register (14 gaps, 5 blocking) | ✅ Complete |
-| Layer 1/2 Anti-Bribery/COI docs — Reg O-specific threshold detail | 🚧 Researched and verified, not yet written back into the docs |
-| Model Risk Register (cross-domain, SR 11-7-inspired) | ✅ v0 complete |
+| Layer 1/2 Anti-Bribery/COI docs — Reg O-specific threshold detail | ✅ Written back into the docs, verified against eCFR primary text (2026-07-09) |
+| Model Risk Register (cross-domain, SR 11-7-inspired, 5 models / 4 agents) | ✅ v0.1 — added MRM-005 (Adverse Action Validator) after an audit found it missing |
 | All AI agents — BYOK live AI (bring-your-own Anthropic API key) | ✅ Implemented; fallback-by-default outside Claude.ai's runtime |
 | Vendor / Third-Party Risk Management | 🚧 Planned, not started |
 
@@ -420,5 +425,7 @@ Built independently by Sadiq as a hands-on exploration of applied AI governance 
 The goal was to go deep enough on a real compliance domain to demonstrate working judgment — not to produce a polished demo that stops at the automation.
 
 ---
+
+*Regulatory content verified against OCC Comptroller's Handbook v1.1 (November 2025) and 50 U.S.C. statutory text. DMDC API is mocked in the demonstration agents. See the gap register for full production readiness assessment.*
 
 *Regulatory content verified against OCC Comptroller's Handbook v1.1 (November 2025) and 50 U.S.C. statutory text. DMDC API is mocked in the demonstration agents. See the gap register for full production readiness assessment.*
