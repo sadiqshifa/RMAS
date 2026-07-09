@@ -77,6 +77,34 @@ actually needs to own it.
 
 ---
 
+## Governance ownership and policy home — not asserted here
+
+This register does not claim these tools would be governed under any
+specific existing bank policy — End User Computing (EUC), IT-owned
+application governance, or otherwise. That determination depends on a
+materiality-based tiering process specific to the institution, informed by
+its existing EUC population, SDLC capacity, and risk appetite — none of
+which this project has visibility into.
+
+What can be said: EUC frameworks exist partly to *find* the tools that
+shouldn't remain EUCs, not to permanently govern everything that started
+out as one. This tool produces binding determinations (`ESCALATED`,
+`PROHIBITED`) that route directly into an approval workflow, not a
+reference number a human independently re-derives before acting — and a
+real institution's EUC risk-tiering process would likely rate that above
+the threshold where EUC governance is the steady-state answer. That points
+toward migration to IT-owned SDLC governance (formal code review, a
+controlled release process, IT General Controls) as the more appropriate
+destination, with EUC status as, at most, an interim classification during
+that transition.
+
+Which policy actually applies in production, and which function ultimately
+owns it — Operational Risk, IT Application Risk Management, Compliance, or
+some combination — is an institutional decision made at deployment time.
+This register states the question and the reasoning; it does not answer it.
+
+---
+
 ## What this register deliberately does not attempt
 
 This document does not propose specific vendor products, a specific cloud
