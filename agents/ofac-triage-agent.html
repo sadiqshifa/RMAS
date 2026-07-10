@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OFAC Screening Triage Agent — RMAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F6F1; --paper-raised:#FFFFFF; --ink:#151A22; --ink-soft:#3F4756;
+    --slate:#3F5064; --slate-soft:#6B7A8F; --brass:#8C6D33; --brass-soft:#B99A5B;
+    --seal-red:#8C2F22; --pass:#2F6B4F; --fail:#8C2F22; --amber:#9C7A21;
+    --rule:#D8D5C8; --rule-soft:#E7E4D8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:900px;margin:0 auto;padding:0 24px 80px;}
+
+  header{border-bottom:3px double var(--ink);padding:36px 0 18px;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--brass);margin-bottom:10px;}
+  h1{font-family:'Source Serif 4',serif;font-weight:700;font-size:clamp(28px,4vw,40px);line-height:1.15;margin:0 0 10px;letter-spacing:-0.01em;}
+  .dek{font-size:15px;color:var(--ink-soft);max-width:64ch;line-height:1.55;margin:0;}
+  .citebar{display:flex;gap:18px;margin-top:18px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--slate-soft);flex-wrap:wrap;}
+  .citebar span{border-left:2px solid var(--rule);padding-left:10px;}
+
+  .rulebanner{
+    margin-top:20px;padding:14px 16px;background:#FBF6EB;border:1px solid var(--brass-soft);
+    font-size:13px;color:var(--ink-soft);line-height:1.55;
+  }
+  .rulebanner b{color:var(--ink);}
+
+  nav.tabs{display:flex;border-bottom:1px solid var(--ink);margin-top:24px;overflow-x:auto;}
+  nav.tabs button{font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:0.04em;text-transform:uppercase;background:none;border:none;padding:14px 18px;color:var(--slate-soft);cursor:pointer;white-space:nowrap;position:relative;top:1px;}
+  nav.tabs button .num{color:var(--brass-soft);margin-right:8px;}
+  nav.tabs button.active{color:var(--ink);border-bottom:3px solid var(--seal-red);}
+  nav.tabs button.active .num{color:var(--seal-red);}
+  nav.tabs button:hover{color:var(--ink);}
+
+  section.panel{display:none;padding-top:32px;}
+  section.panel.active{display:block;}
+
+  h2.section-title{font-family:'Source Serif 4',serif;font-size:22px;font-weight:600;margin:0 0 6px;}
+  p.section-note{color:var(--ink-soft);font-size:14px;line-height:1.6;max-width:66ch;margin:0 0 26px;}
+
+  .test{background:var(--paper-raised);border:1px solid var(--rule);border-left:3px solid var(--brass-soft);padding:20px 22px;margin-bottom:14px;}
+  .test .test-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px;}
+  .test .test-title{font-weight:600;font-size:14.5px;}
+  .test .cite{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--brass);white-space:nowrap;}
+
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:640px){.field-grid{grid-template-columns:1fr;}}
+
+  label.field{display:block;margin-bottom:12px;font-size:13.5px;}
+  label.field .lbl{display:block;margin-bottom:5px;color:var(--ink-soft);}
+  input[type="date"], input[type="text"], input[type="password"]{
+    width:100%;padding:9px 10px;border:1px solid var(--rule);background:#FCFBF8;
+    font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:var(--ink);
+  }
+  input:focus, select:focus{outline:2px solid var(--slate);outline-offset:1px;}
+  select{padding:9px 10px;border:1px solid var(--rule);background:#FCFBF8;font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:var(--ink);width:100%;}
+
+  .checklist-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--rule-soft);}
+  .checklist-item:last-child{border-bottom:none;}
+  .checklist-item input{width:auto;margin-top:3px;}
+  .checklist-item .ci-text{font-size:13.5px;color:var(--ink-soft);line-height:1.5;}
+  .checklist-item .ci-text b{color:var(--ink);}
+
+  .run-btn{font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:0.04em;text-transform:uppercase;background:var(--ink);color:var(--paper);border:none;padding:13px 26px;cursor:pointer;margin-top:8px;}
+  .run-btn:hover{background:var(--slate);}
+  .run-btn:disabled{background:var(--slate-soft);cursor:wait;}
+  .run-btn.secondary{background:none;color:var(--ink);border:1px solid var(--rule);}
+  .run-btn.secondary:hover{background:var(--rule-soft);}
+
+  .determination{margin-top:32px;display:none;grid-template-columns:150px 1fr;gap:28px;align-items:flex-start;}
+  .determination.show{display:grid;}
+  .stamp{border:3px solid var(--seal-red);color:var(--seal-red);font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12.5px;letter-spacing:0.04em;text-align:center;padding:16px 6px;transform:rotate(-6deg);border-radius:3px;position:relative;}
+  .stamp::before, .stamp::after{content:"";position:absolute;left:8px;right:8px;height:1px;background:var(--seal-red);opacity:0.5;}
+  .stamp::before{top:6px;} .stamp::after{bottom:6px;}
+  .stamp.pass{color:var(--pass);border-color:var(--pass);}
+  .stamp.pass::before, .stamp.pass::after{background:var(--pass);}
+  .stamp.amber{color:var(--amber);border-color:var(--amber);}
+  .stamp.amber::before, .stamp.amber::after{background:var(--amber);}
+  .stamp small{display:block;font-size:9px;font-weight:400;margin-top:4px;letter-spacing:0.1em;}
+
+  .trail{font-size:13.5px;}
+  .trail-title{font-weight:600;margin-bottom:10px;font-size:14px;}
+  .trail-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-soft);}
+  .trail-item:last-child{border-bottom:none;}
+  .mark{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px;flex-shrink:0;width:64px;}
+  .mark.pass{color:var(--pass);} .mark.fail{color:var(--fail);} .mark.flag{color:var(--amber);}
+  .trail-text{color:var(--ink-soft);}
+  .trail-text b{color:var(--ink);font-weight:600;}
+
+  .warn-box{border:1px solid var(--brass-soft);background:#FBF6EB;padding:14px 16px;font-size:13px;color:var(--ink-soft);margin-top:20px;line-height:1.55;}
+  .warn-box b{color:var(--ink);}
+
+  .mode-toggle{display:flex;align-items:center;gap:14px;margin-bottom:22px;padding:16px 18px;background:var(--paper-raised);border:1px solid var(--rule);flex-wrap:wrap;}
+  .mode-toggle .mt-label{font-size:13px;color:var(--ink-soft);flex-shrink:0;}
+  .mode-toggle input{flex:1;min-width:200px;}
+  .mode-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--slate-soft);color:var(--slate);}
+  .mode-badge.live{color:var(--pass);border-color:var(--pass);}
+
+  .ai-output{background:var(--paper-raised);border:1px solid var(--rule);padding:20px 22px;margin-top:20px;font-size:13.5px;line-height:1.65;color:var(--ink-soft);display:none;}
+  .ai-output.show{display:block;}
+  .ai-output .ai-tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--slate-soft);margin-bottom:12px;display:block;}
+  .ai-output h4{font-size:13px;color:var(--ink);margin:16px 0 6px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:0.04em;}
+  .ai-output h4:first-child{margin-top:0;}
+  .ai-output ul{margin:0 0 4px;padding-left:20px;}
+  .ai-output li{margin-bottom:6px;}
+
+  .scenario-card{background:var(--paper-raised);border:1px solid var(--rule);padding:18px 20px;margin-bottom:14px;}
+  .scenario-card .sc-title{font-weight:600;font-size:14.5px;margin-bottom:6px;}
+  .scenario-card .sc-desc{font-size:13px;color:var(--ink-soft);line-height:1.55;margin-bottom:12px;}
+
+  .audit-log{font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
+  .audit-row{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--rule-soft);color:var(--ink-soft);}
+  .audit-row:last-child{border-bottom:none;}
+  .audit-row .a-time{color:var(--slate-soft);flex-shrink:0;width:150px;}
+  .audit-row .a-decision{flex-shrink:0;width:190px;font-weight:600;}
+  .audit-row .a-decision.fp{color:var(--pass);}
+  .audit-row .a-decision.rv{color:var(--amber);}
+  .audit-row .a-decision.tp{color:var(--fail);}
+  .audit-empty{color:var(--slate-soft);font-size:12px;text-align:center;padding:24px 0;}
+
+  footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--slate-soft);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+
+  @media (max-width:600px){.determination{grid-template-columns:1fr;} .stamp{width:120px;transform:rotate(-4deg);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">RMAS · AML/KYC Layer 3 Agent · Type 1 + Type 4</div>
+    <h1>OFAC Screening Triage Agent</h1>
+    <p class="dek">Takes a sanctions-screening name match (customer vs. an SDN or Consolidated Sanctions List entry) and triages it — likely false positive, requires manual review, or likely true positive — with reasoning, not just a score. Never clears or blocks a match itself; every determination routes to a BSA Officer for sign-off.</p>
+    <div class="citebar">
+      <span>31 C.F.R. Part 501</span>
+      <span>OFAC SDN &amp; Consolidated Sanctions Lists</span>
+      <span>10-business-day blocking report</span>
+    </div>
+    <div class="rulebanner">
+      <b>Why this agent exists:</b> this domain's own control-matrix analysis (Layer 2, AML/KYC) named OFAC false-positive triage as <b>"the clearest agent use case"</b> in the entire AML/KYC control set — real-time screening already exists as a tool category, but the analyst time it consumes reviewing fuzzy matches that are almost always false positives ("John A. Smith" vs. an SDN entry for "Jon Smith") is a language-and-judgment task, not a screening-technology gap. This agent is that recommendation, built.
+      <br><br>
+      <b>What OFAC actually requires:</b> a confirmed SDN match must be blocked and reported to OFAC within 10 business days. There is no dollar threshold and no materiality exception — sanctions liability is effectively strict liability, which is precisely why a false positive that gets escalated as if it were confirmed is nearly as costly as a true positive that gets waved through. This agent's job is narrowing that judgment call, not automating away the analyst who makes it.
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="triage"><span class="num">01</span>Screening Alert Triage</button>
+    <button class="tab-btn" data-tab="scenarios"><span class="num">02</span>Demo Scenarios</button>
+    <button class="tab-btn" data-tab="audit"><span class="num">03</span>Audit Log</button>
+  </nav>
+
+  <!-- TAB 1: TRIAGE -->
+  <section class="panel active" id="panel-triage">
+    <h2 class="section-title">Screening Alert Triage</h2>
+    <p class="section-note">Enter what the screening system flagged: the customer's details and the matched list entry's details. The more secondary identifiers you can provide on both sides, the more the triage can rely on something other than name similarity alone.</p>
+
+    <div class="field-grid">
+      <div class="test">
+        <div class="test-head"><span class="test-title">Customer / applicant</span></div>
+        <label class="field"><span class="lbl">Full name</span><input type="text" id="custName" placeholder="e.g. Michael J. Chen"></label>
+        <label class="field"><span class="lbl">Date of birth (if known)</span><input type="date" id="custDOB"></label>
+        <label class="field"><span class="lbl">Nationality / country</span><input type="text" id="custCountry" placeholder="e.g. United States"></label>
+        <label class="field"><span class="lbl">ID number — passport or national ID (if known)</span><input type="text" id="custID" placeholder="e.g. 45 0019283"></label>
+      </div>
+      <div class="test">
+        <div class="test-head"><span class="test-title">Matched list entry</span><span class="cite">SDN / Consolidated List</span></div>
+        <label class="field"><span class="lbl">Listed name</span><input type="text" id="entName" placeholder="e.g. Michael Chen"></label>
+        <label class="field"><span class="lbl">Listed DOB or DOB range</span><input type="text" id="entDOB" placeholder="e.g. 13 Jan 1967, or 1965 to 1970"></label>
+        <label class="field"><span class="lbl">Listed nationality / country</span><input type="text" id="entCountry" placeholder="e.g. Russia"></label>
+        <label class="field"><span class="lbl">Listed ID number (if any)</span><input type="text" id="entID" placeholder="leave blank if none listed"></label>
+      </div>
+    </div>
+
+    <div class="test">
+      <div class="test-head"><span class="test-title">Additional context</span></div>
+      <label class="field" style="max-width:none;"><span class="lbl">Sanctions program / list</span>
+        <select id="entProgram">
+          <option value="SDN">SDN List (blocking sanctions)</option>
+          <option value="SSI">Sectoral Sanctions Identifications (SSI) List</option>
+          <option value="FSE">Foreign Sanctions Evaders (FSE) List</option>
+          <option value="NS-CMIC">Non-SDN Chinese Military-Industrial Complex Companies List</option>
+          <option value="Other">Other Consolidated Sanctions List entry</option>
+        </select>
+      </label>
+      <div class="checklist-item"><input type="checkbox" id="aliasHit"><span class="ci-text">Match is against a listed <b>alias (AKA)</b>, not the entry's primary name</span></div>
+    </div>
+
+    <div class="mode-toggle">
+      <span class="mt-label">Anthropic API key (optional — leave blank to use fallback mode)</span>
+      <input type="password" id="api-key" placeholder="sk-ant-..." autocomplete="off">
+      <span class="mode-badge" id="mode-badge">FALLBACK MODE</span>
+    </div>
+
+    <button class="run-btn" onclick="runTriage()" id="run-btn">Run Triage</button>
+
+    <div class="determination" id="triage-result">
+      <div class="stamp" id="triage-stamp">—</div>
+      <div class="trail">
+        <div class="trail-title">Deterministic identifier comparison</div>
+        <div id="triage-trail"></div>
+      </div>
+    </div>
+
+    <div class="ai-output" id="ai-output"></div>
+
+    <div class="warn-box"><b>Scope:</b> this agent triages — it never clears a match or authorizes a transaction. Every determination, including "likely false positive," is logged and routed to a BSA Officer for sign-off. Fallback mode compares only the identifiers entered above; it has no access to internal customer records, transaction history, or the full OFAC list beyond what you type in.</div>
+  </section>
+
+  <!-- TAB 2: DEMO SCENARIOS -->
+  <section class="panel" id="panel-scenarios">
+    <h2 class="section-title">Demo Scenarios</h2>
+    <p class="section-note">Three illustrative alerts, one per triage outcome. Names and ID numbers are fabricated for demonstration — they are not real screening data or real sanctioned individuals. Loading a scenario switches you to Tab 1 with the fields pre-filled; run it from there.</p>
+
+    <div class="scenario-card">
+      <div class="sc-title">Scenario A — common name, mismatched identifiers (expect: likely false positive)</div>
+      <div class="sc-desc">Customer "Michael J. Chen," a U.S. national born 1988, matched against an SDN entry for "Michael Chen" with a listed DOB range of 1948–1953 and no country specified. Common name, decades-off DOB.</div>
+      <button class="run-btn secondary" onclick="loadScenario('A')">Load Scenario A</button>
+    </div>
+
+    <div class="scenario-card">
+      <div class="sc-title">Scenario B — exact name and country match, missing DOB (expect: requires review)</div>
+      <div class="sc-desc">Customer "Anastasia Volkova," Russian national, DOB not on file, matched against an SDN entry for "Anastasia Volkova" (exact name and country match) with a listed DOB range the customer's own DOB can't be compared against. The gap is the missing DOB, not the match itself.</div>
+      <button class="run-btn secondary" onclick="loadScenario('B')">Load Scenario B</button>
+    </div>
+
+    <div class="scenario-card">
+      <div class="sc-title">Scenario C — name, DOB, country, and ID all match (expect: likely true positive)</div>
+      <div class="sc-desc">Customer "Dmitri Aleksandrovich Rusakov," Russian national, DOB and passport number matched against an SDN entry with the same DOB, country, and passport number listed. This is the pattern the 10-business-day blocking clock exists for.</div>
+      <button class="run-btn secondary" onclick="loadScenario('C')">Load Scenario C</button>
+    </div>
+  </section>
+
+  <!-- TAB 3: AUDIT LOG -->
+  <section class="panel" id="panel-audit">
+    <h2 class="section-title">Audit Log</h2>
+    <p class="section-note">Every triage run this session, logged with timestamp, decision, and which mode (fallback or live, with model version) produced it — per Layer 4's audit-logging requirement. In-memory for this session only; a production deployment would persist this.</p>
+    <div class="audit-log" id="audit-log"><div class="audit-empty">Log entries appear here as triage runs execute.</div></div>
+  </section>
+
+</div>
+
+<script>
+const AGENT_VERSION = 'v1.0.0';
+const MODEL_ID = 'claude-sonnet-4-6';
+let auditEntries = [];
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+document.getElementById('api-key').addEventListener('input', function(){
+  const badge = document.getElementById('mode-badge');
+  if(this.value.trim()){
+    badge.textContent = 'LIVE MODE READY';
+    badge.classList.add('live');
+  } else {
+    badge.textContent = 'FALLBACK MODE';
+    badge.classList.remove('live');
+  }
+});
+
+const SCENARIOS = {
+  A: { custName:'Michael J. Chen', custDOB:'1988-03-22', custCountry:'United States', custID:'',
+       entName:'Michael Chen', entDOB:'1948 to 1953', entCountry:'', entID:'', entProgram:'SDN', aliasHit:false },
+  B: { custName:'Anastasia Volkova', custDOB:'', custCountry:'Russia', custID:'',
+       entName:'Anastasia Volkova', entDOB:'1975 to 1980', entCountry:'Russia', entID:'', entProgram:'SDN', aliasHit:false },
+  C: { custName:'Dmitri Aleksandrovich Rusakov', custDOB:'1972-11-05', custCountry:'Russia', custID:'45 0019283',
+       entName:'Dmitri A. Rusakov', entDOB:'05 Nov 1972', entCountry:'Russia', entID:'45 0019283', entProgram:'SDN', aliasHit:false }
+};
+
+function loadScenario(key){
+  const s = SCENARIOS[key];
+  document.getElementById('custName').value = s.custName;
+  document.getElementById('custDOB').value = s.custDOB;
+  document.getElementById('custCountry').value = s.custCountry;
+  document.getElementById('custID').value = s.custID;
+  document.getElementById('entName').value = s.entName;
+  document.getElementById('entDOB').value = s.entDOB;
+  document.getElementById('entCountry').value = s.entCountry;
+  document.getElementById('entID').value = s.entID;
+  document.getElementById('entProgram').value = s.entProgram;
+  document.getElementById('aliasHit').checked = s.aliasHit;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="triage"]').classList.add('active');
+  document.getElementById('panel-triage').classList.add('active');
+  document.getElementById('triage-result').classList.remove('show');
+  document.getElementById('ai-output').classList.remove('show');
+}
+
+function normalizeName(n){
+  return (n||'').toLowerCase().replace(/[.,]/g,'').split(/\s+/).filter(Boolean);
+}
+
+// Deterministic token-overlap (Dice coefficient) name similarity. Simple and
+// auditable by design — not a substitute for a real fuzzy-matching library,
+// but transparent about exactly what it's comparing.
+function nameSimilarity(a, b){
+  const ta = normalizeName(a), tb = normalizeName(b);
+  if(ta.length===0 || tb.length===0) return 0;
+  const setA = new Set(ta), setB = new Set(tb);
+  let overlap = 0;
+  setA.forEach(t => { if(setB.has(t)) overlap++; });
+  return (2*overlap) / (ta.length + tb.length);
+}
+
+function parseYear(dateStr){
+  if(!dateStr) return null;
+  const isoMatch = dateStr.match(/^(\d{4})-\d{2}-\d{2}$/);
+  if(isoMatch) return parseInt(isoMatch[1]);
+  const yearMatch = dateStr.match(/\b(19|20)\d{2}\b/);
+  return yearMatch ? parseInt(yearMatch[0]) : null;
+}
+
+function compareDOB(custDOB, entDOB){
+  if(!custDOB || !entDOB) return 'not_available';
+  const custYear = parseYear(custDOB);
+  // entDOB may be a single date, a range "1965 to 1970", or a specific listed date like "05 Nov 1972"
+  const rangeMatch = entDOB.match(/(\d{4}).*?(?:to|-|–).*?(\d{4})/);
+  if(rangeMatch){
+    const lo = parseInt(rangeMatch[1]), hi = parseInt(rangeMatch[2]);
+    if(custYear===null) return 'not_available';
+    return (custYear>=lo && custYear<=hi) ? 'match' : 'mismatch';
+  }
+  const entYear = parseYear(entDOB);
+  if(custYear===null || entYear===null) return 'not_available';
+  return custYear===entYear ? 'match' : 'mismatch';
+}
+
+function compareText(a, b){
+  if(!a || !b) return 'not_available';
+  return a.trim().toLowerCase()===b.trim().toLowerCase() ? 'match' : 'mismatch';
+}
+
+function evaluateTriage(input){
+  const sim = nameSimilarity(input.custName, input.entName);
+  const dobResult = compareDOB(input.custDOB, input.entDOB);
+  const countryResult = compareText(input.custCountry, input.entCountry);
+  const idResult = compareText(input.custID, input.entID);
+
+  // A confirmed mismatch on a strong identifier (DOB or ID) is disqualifying
+  // on its own, regardless of how similar the name looks — in fact the
+  // classic false-positive pattern IS a high-similarity name (that's why it
+  // was flagged) ruled out by a mismatching identifier. Name similarity
+  // alone should never drive the false-positive call.
+  const strongMismatch = (dobResult==='mismatch' || idResult==='mismatch');
+  const strongMatch = (dobResult==='match' || idResult==='match');
+  const anyAvailable = [dobResult, countryResult, idResult].some(r=>r!=='not_available');
+
+  let decision, label;
+  if(strongMismatch){
+    decision = 'likely_false_positive';
+    label = 'LIKELY FALSE POSITIVE';
+  } else if(sim >= 0.6 && strongMatch){
+    decision = 'likely_true_positive';
+    label = 'LIKELY TRUE POSITIVE — ESCALATE';
+  } else {
+    decision = 'requires_review';
+    label = 'REQUIRES ANALYST REVIEW';
+  }
+
+  return { sim, dobResult, countryResult, idResult, decision, label, anyAvailable };
+}
+
+function markFor(result){
+  if(result==='match') return {cls:'pass', text:'MATCH'};
+  if(result==='mismatch') return {cls:'fail', text:'MISMATCH'};
+  return {cls:'flag', text:'N/A'};
+}
+
+function stampFor(decision){
+  if(decision==='likely_false_positive') return {cls:'pass', text:'LIKELY FALSE POSITIVE', small:'Recommend clearing — BSA Officer sign-off required'};
+  if(decision==='likely_true_positive') return {cls:'', text:'LIKELY TRUE POSITIVE', small:'Escalate now — 10-business-day clock'};
+  return {cls:'amber', text:'REQUIRES REVIEW', small:'Mixed or insufficient signal'};
+}
+
+function appendAudit(entry){
+  auditEntries.unshift(entry);
+  renderAudit();
+}
+
+function renderAudit(){
+  const el = document.getElementById('audit-log');
+  if(auditEntries.length===0){
+    el.innerHTML = '<div class="audit-empty">Log entries appear here as triage runs execute.</div>';
+    return;
+  }
+  const clsMap = {likely_false_positive:'fp', requires_review:'rv', likely_true_positive:'tp'};
+  el.innerHTML = auditEntries.map(e =>
+    '<div class="audit-row"><span class="a-time">'+e.ts+'</span><span class="a-decision '+clsMap[e.decision]+'">'+e.label+'</span><span>'+e.name+' · '+e.mode+'</span></div>'
+  ).join('');
+}
+
+function fallbackNarrative(input, result){
+  let html = '<span class="ai-tag">Fallback mode — deterministic identifier comparison only</span>';
+  html += '<h4>Assessment</h4>';
+  if(result.decision==='likely_false_positive'){
+    html += '<p>Name similarity is low-to-moderate and at least one available secondary identifier mismatches. This is the classic false-positive pattern: a common or partially-overlapping name with no corroborating identifier. Recommend clearing, subject to BSA Officer sign-off — fallback mode cannot see beyond the fields entered above.</p>';
+  } else if(result.decision==='likely_true_positive'){
+    html += '<p>Name similarity is high and at least one strong secondary identifier (date of birth or ID number) also matches. Treat as a probable confirmed match: escalate immediately, do not process the transaction, and route to the BSA Officer to start the 10-business-day OFAC blocking-report clock if confirmed.</p>';
+  } else {
+    html += '<p>Signal is mixed: '+(result.anyAvailable ? 'the identifiers available don\u2019t clearly confirm or rule out the match' : 'no secondary identifiers were available to compare, so name similarity alone can\u2019t resolve this')+'. Recommend requesting the missing identifier(s) from the source system before this can be triaged further, and route to an analyst in the meantime.</p>';
+  }
+  html += '<h4>What fallback mode cannot do</h4><p>It cannot assess transliteration variants, cultural naming-order differences, or whether an alias hit changes the analysis. It cannot check internal transaction history or prior dispositions for this same customer. Treat this as a starting point for the analyst\'s own review, not a conclusion.</p>';
+  return html;
+}
+
+async function liveTriage(input, result, apiKey){
+  const systemPrompt = `You are an OFAC sanctions-screening triage assistant helping a BSA analyst assess a name-match alert. You are given a customer's identifying details and a matched SDN/sanctions-list entry's details, plus a deterministic pre-check (name similarity score, and match/mismatch/not-available status for DOB, country, and ID number). Your job: give a reasoned assessment of whether this is likely a false positive, requires further review, or is likely a true positive — considering things the deterministic check cannot, such as common transliteration variants of names, cultural name-ordering differences, whether an alias (AKA) hit changes the analysis, and how much weight a missing identifier should carry. You are not authorized to clear or confirm a match — always state the BSA Officer must sign off. If you believe this may be a true positive, note the 10-business-day OFAC blocking/reporting requirement under 31 C.F.R. Part 501. Respond in concise HTML using <h4> section headers and <ul><li> lists only, no markdown, no preamble. Sections: "Assessment", "Reasoning", "Recommended next step". Do not invent facts not given to you.`;
+
+  const userContent = `Customer: ${input.custName}, DOB ${input.custDOB||'not provided'}, country ${input.custCountry||'not provided'}, ID ${input.custID||'not provided'}.
+Matched entry: ${input.entName}, DOB ${input.entDOB||'not listed'}, country ${input.entCountry||'not listed'}, ID ${input.entID||'not listed'}, list ${input.entProgram}, alias match: ${input.aliasHit}.
+Deterministic pre-check: name similarity ${(result.sim*100).toFixed(0)}%, DOB ${result.dobResult}, country ${result.countryResult}, ID ${result.idResult}.`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: MODEL_ID,
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userContent }]
+    })
+  });
+
+  if(!response.ok){ throw new Error('API request failed: ' + response.status); }
+  const data = await response.json();
+  const textBlock = data.content.find(b => b.type === 'text');
+  return textBlock ? textBlock.text : '<p>No response text returned.</p>';
+}
+
+async function runTriage(){
+  const input = {
+    custName: document.getElementById('custName').value.trim(),
+    custDOB: document.getElementById('custDOB').value,
+    custCountry: document.getElementById('custCountry').value.trim(),
+    custID: document.getElementById('custID').value.trim(),
+    entName: document.getElementById('entName').value.trim(),
+    entDOB: document.getElementById('entDOB').value.trim(),
+    entCountry: document.getElementById('entCountry').value.trim(),
+    entID: document.getElementById('entID').value.trim(),
+    entProgram: document.getElementById('entProgram').value,
+    aliasHit: document.getElementById('aliasHit').checked
+  };
+
+  if(!input.custName || !input.entName){
+    alert('Enter at least a customer name and the matched entry\'s name.');
+    return;
+  }
+
+  const result = evaluateTriage(input);
+  const stamp = stampFor(result.decision);
+  document.getElementById('triage-stamp').className = 'stamp ' + stamp.cls;
+  document.getElementById('triage-stamp').innerHTML = stamp.text + '<small>' + stamp.small + '</small>';
+  document.getElementById('triage-result').classList.add('show');
+
+  const dobMark = markFor(result.dobResult), countryMark = markFor(result.countryResult), idMark = markFor(result.idResult);
+  document.getElementById('triage-trail').innerHTML =
+    '<div class="trail-item"><span class="mark '+ (result.sim>=0.6?'pass':result.sim>=0.3?'flag':'fail') +'">'+(result.sim*100).toFixed(0)+'%</span><span class="trail-text">Name token-overlap similarity between "<b>'+input.custName+'</b>" and "<b>'+input.entName+'</b>"'+(input.aliasHit?' (matched against a listed alias, not the primary name)':'')+'</span></div>' +
+    '<div class="trail-item"><span class="mark '+dobMark.cls+'">'+dobMark.text+'</span><span class="trail-text">Date of birth comparison</span></div>' +
+    '<div class="trail-item"><span class="mark '+countryMark.cls+'">'+countryMark.text+'</span><span class="trail-text">Nationality / country comparison</span></div>' +
+    '<div class="trail-item"><span class="mark '+idMark.cls+'">'+idMark.text+'</span><span class="trail-text">ID number comparison</span></div>';
+
+  const apiKey = document.getElementById('api-key').value.trim();
+  const output = document.getElementById('ai-output');
+  output.classList.add('show');
+  let mode = 'fallback';
+
+  if(!apiKey){
+    output.innerHTML = fallbackNarrative(input, result);
+  } else {
+    const btn = document.getElementById('run-btn');
+    btn.disabled = true; btn.textContent = 'Triaging...';
+    output.innerHTML = '<span class="ai-tag">Live AI mode — contacting Claude</span><p>Analyzing match...</p>';
+    try{
+      const narrative = await liveTriage(input, result, apiKey);
+      output.innerHTML = '<span class="ai-tag">Live AI mode — '+MODEL_ID+'</span>' + narrative;
+      mode = 'live · ' + MODEL_ID;
+    } catch(err){
+      output.innerHTML = '<span class="ai-tag">Live AI mode failed — falling back</span><p>Live request failed ('+err.message+'). Showing fallback analysis instead:</p>' + fallbackNarrative(input, result);
+      mode = 'fallback (live failed)';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Run Triage';
+    }
+  }
+
+  appendAudit({
+    ts: new Date().toISOString().replace('T',' ').slice(0,19) + ' UTC',
+    name: input.custName,
+    decision: result.decision,
+    label: stamp.text,
+    mode: mode
+  });
+}
+</script>
+
+<footer>
+  <span>RMAS — Risk Management Agent System</span>
+  <span>Agent version v1.0.0 · Layer 2 control: docs/layer2-aml-kyc.md · no data persistence beyond this session</span>
+</footer>
+
+</body>
+</html>
