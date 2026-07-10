@@ -372,10 +372,13 @@ SCRA is an open item, not a design decision to leave as-is indefinitely.
 
 SCRA was chosen as the template domain because its requirements are discrete and its process touchpoints are bounded — it's a good domain to build the methodology in. The same four-layer approach, and the same Track A/Track B judgment about which controls need AI, applies to:
 
-- AML/KYC/Sanctions — [Layer 1](docs/layer1-aml-kyc.md) and [Layer 2](docs/layer2-aml-kyc.md) committed; covered by the cross-domain [Regulatory Change Monitor](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html) agent (Track A)
-- Fair Lending / HMDA (Reg B / Reg C) — [Layer 1](docs/layer1-fair-lending.md) and [Layer 2](docs/layer2-fair-lending.md) committed; two dedicated Track A agents (HMDA Reportability Calculator, Adverse Action Notice Validator), eval suites specified but not yet executed
-- Anti-Bribery/Corruption & Conflicts of Interest — Layer 1 and Layer 2 committed; first Track B artifact in the project (Pre-Clearance Determination System) — the domain where the "not everything should be an agent" argument is made concretely, since most of its controls are deterministic threshold checks rather than language tasks
-- Healthcare privacy (HIPAA, 42 CFR Part 2)
+- AML/KYC/Sanctions — [Layer 1](docs/layer1-aml-kyc.md) and [Layer 2](docs/layer2-aml-kyc.md) committed; covered by the cross-domain [Regulatory Change Monitor](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html) agent (Track A). Layer 2's own analysis already named the domain's actual Layer 3: an OFAC screening/false-positive triage agent ("the clearest agent use case" — see [Layer 2](docs/layer2-aml-kyc.md)). 🚧 **Committed, not yet built** — this is the domain's current gap and the next deepening action, not a new scope decision.
+- Fair Lending / HMDA (Reg B / Reg C) — [Layer 1](docs/layer1-fair-lending.md) and [Layer 2](docs/layer2-fair-lending.md) committed; two dedicated Track A agents (HMDA Reportability Calculator, Adverse Action Notice Validator) are the domain's Layer 3, eval suites specified but not yet executed
+- Anti-Bribery/Corruption & Conflicts of Interest — Layer 1 and Layer 2 committed; the Pre-Clearance Determination System and Reg O tool are the domain's Layer 3 (Track B, not agents) — the domain where the "not everything should be an agent" argument is made concretely, since most of its controls are deterministic threshold checks rather than language tasks. Its Layer 4 is deliberately **not** modeled on SR 11-7 / the Model Risk Register, since there's no AI model to govern here — it's EUCT-appropriate governance instead: version pinning (done, in both tools), governance-ownership framing (done, in both gap registers), and a [rules-engine test suite](docs/rules-engine-test-suite-anti-bribery-coi.md) proving the code matches the regulation — ✅ **done**: 35/35 cases passing, executed against the real tool code (not just specified), with the runnable [test harness committed](tests/anti-bribery-coi).
+
+**Scope, as of this review:** frozen at these four domains. No fifth domain is planned right now — Vendor/Third-Party Risk Management stays explicitly deprioritized rather than quietly dropped (see status table). Of the two deepening commitments for this phase, one is done — see the status table. The commitment was never documentation-depth parity with SCRA's four-file structure; SCRA remains the intentionally deepest build as the template domain.
+
+The same four-layer *approach* — regulatory map, control matrix, an actual working artifact as Layer 3, and appropriately-scoped Layer 4 governance (model risk for Track A, EUCT for Track B) — extends conceptually to:
 - Insurance regulatory compliance
 - Energy market compliance (FERC, NERC)
 - Government contracting (FAR, DFARS)
@@ -403,6 +406,7 @@ The methodology transfers, including the judgment about when *not* to reach for 
 | Regulatory Change Monitor — Production Architecture view (Fed Register API, OFAC SDN diff, scheduler, persistence) | ✅ Code present, intentionally inactive on static hosting |
 | Regulatory Change Monitor — Eval suite (18 cases, 14 real / 4 constructed) | ✅ v0.1 complete |
 | AML/KYC/Sanctions — Layer 1 & Layer 2 | ✅ Committed |
+| AML/KYC — OFAC Screening Triage Agent (domain's Layer 3, per its own Layer 2 analysis) | 🚧 Committed for this phase, not yet built |
 | Fair Lending / HMDA — Layer 1 & Layer 2 | ✅ Committed |
 | Fair Lending Agent — HMDA Reportability Calculator (Type 3) | ✅ Working demo · fallback mode |
 | Fair Lending Agent — Adverse Action Notice Validator (Type 1 + 4) | ✅ Working demo · fallback mode |
@@ -410,11 +414,13 @@ The methodology transfers, including the judgment about when *not* to reach for 
 | Anti-Bribery/Corruption & COI — Layer 1 & Layer 2 | ✅ Committed |
 | Anti-Bribery/COI Tool — Pre-Clearance Determination System (Track B, no AI at runtime) | ✅ Working demo · rules-engine v1.1.0 |
 | Anti-Bribery/COI Tool — Regulation O Insider Credit Threshold Tool (Track B, no AI at runtime) | ✅ Working demo · rules-engine v1.0.0 |
+| Anti-Bribery/COI — Rules-engine test suite (Layer 4, EUCT-appropriate — not model governance) | ✅ **35/35 passed**, executed against real tool code — [results](docs/rules-engine-test-suite-anti-bribery-coi.md) · [runnable tests](tests/anti-bribery-coi) |
 | Reg O Tool — Demo-to-production gap register (14 gaps, 5 blocking) | ✅ Complete |
+| Pre-Clearance Tool — Demo-to-production gap register (14 gaps, 5 blocking) | ✅ Complete |
 | Layer 1/2 Anti-Bribery/COI docs — Reg O-specific threshold detail | ✅ Written back into the docs, verified against eCFR primary text (2026-07-09) |
 | Model Risk Register (cross-domain, SR 11-7-inspired, 5 models / 4 agents) | ✅ v0.1 — added MRM-005 (Adverse Action Validator) after an audit found it missing |
 | All AI agents — BYOK live AI (bring-your-own Anthropic API key) | ✅ Implemented; fallback-by-default outside Claude.ai's runtime |
-| Vendor / Third-Party Risk Management | 🚧 Planned, not started |
+| Vendor / Third-Party Risk Management | 🚧 Explicitly deprioritized — scope frozen at four domains this phase, not a fifth (see Transferability) |
 
 ---
 
@@ -425,7 +431,5 @@ Built independently by Sadiq as a hands-on exploration of applied AI governance 
 The goal was to go deep enough on a real compliance domain to demonstrate working judgment — not to produce a polished demo that stops at the automation.
 
 ---
-
-*Regulatory content verified against OCC Comptroller's Handbook v1.1 (November 2025) and 50 U.S.C. statutory text. DMDC API is mocked in the demonstration agents. See the gap register for full production readiness assessment.*
 
 *Regulatory content verified against OCC Comptroller's Handbook v1.1 (November 2025) and 50 U.S.C. statutory text. DMDC API is mocked in the demonstration agents. See the gap register for full production readiness assessment.*
