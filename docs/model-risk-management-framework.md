@@ -2,11 +2,16 @@
 
 ## Why this exists
 
-Every agent built so far in RMAS (SCRA DMDC, SCRA Calculations, Regulatory
-Change Monitor) contains one or more AI components making judgment calls —
-generating compliance narratives, classifying regulatory updates, recognizing
-SCRA triggers in customer language. Each of those agents was built and
-governed individually. What's been missing is the step a real bank's
+Every agent built so far in RMAS that actually contains an AI component
+(SCRA DMDC, SCRA Calculations, Regulatory Change Monitor, and the Fair
+Lending Adverse Action Notice Validator) makes judgment calls — generating
+compliance narratives, classifying regulatory updates, recognizing SCRA
+triggers in customer language, or reviewing adverse action notices for
+stale legal language. The HMDA Reportability Calculator, by contrast, is
+fully deterministic and contains no AI component at all — it's inventoried
+here as an explicit non-model, the same way the Track B tools are, rather
+than silently omitted. Each AI-containing agent was built and governed
+individually. What's been missing is the step a real bank's
 second-line function would take next: **treat the AI components themselves
 as models under formal inventory and governance, not just features inside
 an application.**
@@ -83,9 +88,16 @@ Each model is rated **High / Medium / Low** based on three factors:
 
 ## D. Current model inventory and findings
 
-> **Status as of this review: 4 models identified across 3 agents. 1 is
-> fully validated, 1 is partially validated, and 2 remain unvalidated.**
+> **Status as of this review: 6 models identified across 5 agents. 1 is
+> fully validated, 1 is partially validated, and 4 remain unvalidated.**
 > See `model-risk-register.html` for the live register; summary below.
+>
+> MRM-005 was added on 2026-07-09, after it was found missing — it should
+> have been added when the Adverse Action Notice Validator was first
+> built, and sat outside this register, ungoverned, until this review
+> caught the gap. MRM-006 (OFAC Screening Triage Agent) was added the same
+> day, but at build time rather than retroactively — the fix from MRM-005
+> applied going forward, not just documented.
 
 | ID | Model | Agent | Tier | Validation status |
 |---|---|---|---|---|
@@ -93,6 +105,8 @@ Each model is rated **High / Medium / Low** based on three factors:
 | MRM-002 | SCRA notice trigger recognition | SCRA DMDC Agent (Notice Intake tab) | High | **Not validated** — zero eval coverage; the six pre-loaded scenarios in the UI are demo content, not a labeled eval set |
 | MRM-003 | AI edge case review | SCRA Calculations Agent (all 4 tabs) | Low | **Partially validated** — 8-case eval suite built: statutory citation accuracy (§3937, §3936, §3953 depending on tab) and rubric-based issue-spotting are auto-graded across 7 of 8 cases; one deliberate "clean" decoy case tests for fabricated risk but is flagged for manual review rather than auto-scored, since reliably detecting fabrication by keyword match isn't realistic |
 | MRM-004 | Regulatory update classification | Regulatory Change Monitor | High | **Validated** — 18-case eval suite (14 real, dated items; 4 constructed edge cases), evenly split across domains, with human-set expected classification and materiality |
+| MRM-005 | Adverse action notice stale-language review | Fair Lending — Adverse Action Notice Validator | High | **Not validated** — zero eval coverage; a 6-case rubric-based sub-suite is specified (FL-EVAL-02, sub-suite 5c) but not yet run, and one case needs a second human opinion on the correct answer before it can be graded |
+| MRM-006 | OFAC screening match triage narrative | AML/KYC — OFAC Screening Triage Agent | High | **Not validated** — zero eval coverage; a 6-case rubric-based sub-suite is specified (AML-EVAL-01, docs/eval-ofac-triage-agent.md) but not yet run. This agent's deterministic pre-check (name-similarity scoring, identifier comparison) is separately tested and executed — see tests/aml-kyc — 8/8 passing |
 
 **Why MRM-002 is rated High despite human review existing:** notice/trigger
 recognition is the entry point to the entire SCRA workflow — if the model
@@ -118,11 +132,24 @@ independent of what the model says about it.
    otherwise unrelated complaint). This is the highest remaining priority:
    highest tier, currently zero coverage, and the raw material for a
    first-pass eval set already exists in the agent's own demo content.
-2. **MRM-001 (Medium, unvalidated)** — extend the existing 6-case eval suite
+2. **MRM-005 (High, unvalidated)** — run the 6-case rubric-based sub-suite
+   already specified for this model (FL-EVAL-02, sub-suite 5c in the Fair
+   Lending eval suite doc): 5 of 6 cases can be graded in fallback mode
+   today with no API key; the sixth needs a second human opinion on the
+   correct answer before it's graded against live mode. Comparably urgent
+   to MRM-002 — same tier, same zero-coverage status, and the spec already
+   exists, so the remaining lift is execution, not design.
+3. **MRM-006 (High, unvalidated)** — run the 6-case rubric-based sub-suite
+   specified for this model (AML-EVAL-01, docs/eval-ofac-triage-agent.md).
+   Case 5, a name with an obvious transliteration variant, is the one that
+   matters most — it directly tests whether live mode adds anything over
+   the deterministic pre-check, the same design principle behind MRM-005's
+   case 6.
+4. **MRM-001 (Medium, unvalidated)** — extend the existing 6-case eval suite
    (or add a parallel one) with assertions on the generated narrative text
    itself — e.g., does the active-duty clearance note actually state the
    safe-harbor scope and residual obligations, not just that the gate held.
-3. ~~**MRM-003 (Low, unvalidated)**~~ — **done.** An 8-case eval suite now
+5. ~~**MRM-003 (Low, unvalidated)**~~ — **done.** An 8-case eval suite now
    covers all 4 calculation tabs: a primary check on statutory citation
    accuracy (regex-matched against a pre-verified correct citation per
    case — §3937 for rate cap, §3936 for tolling, §3937/§3953 for tail
@@ -156,9 +183,14 @@ independent of what the model says about it.
 ## Next steps for this document
 
 - [ ] Build the MRM-002 eval set (highest priority per remediation roadmap)
+- [ ] Run MRM-005's already-specified sub-suite (FL-EVAL-02, sub-suite 5c) —
+      execution only, no design work remaining
 - [ ] Extend MRM-001's eval suite to cover generated-text assertions
-- [ ] Add an MRM entry the moment any new agent (OFAC triage, Fair Lending
-      agents, etc.) introduces a new AI-powered component
+- [x] Add an MRM entry the moment any new agent introduces a new AI-powered
+      component — process gap identified 2026-07-09 (Fair Lending's
+      Adverse Action Validator went unregistered from build until this
+      review); MRM-005 added to close it. Still applies going forward to
+      OFAC triage or any future agent.
 - [ ] Consider whether a lightweight drift-monitoring mechanism (Layer 4
       pillar 5) is feasible to simulate in a static-hosting demo, or whether
       this stays a documented-but-not-implemented capability like the

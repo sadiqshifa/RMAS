@@ -4,9 +4,20 @@ Companion to `docs/layer2-fair-lending.md`. Two agents, two very different eval
 problems — worth stating that difference up front rather than treating "eval
 suite" as one uniform thing across both.
 
+**Note on IDs:** these suites are labeled `FL-EVAL-01` / `FL-EVAL-02` — a
+test-suite naming scheme, not the Model Risk Register's `MRM-NNN` model
+IDs. The two are not interchangeable: `FL-EVAL-01` is a unit-test suite for
+deterministic code (the HMDA Calculator has no AI component at all), and
+`FL-EVAL-02` only partially maps to a model — its sub-suites 5a/5b are also
+deterministic-logic tests, and only sub-suite 5c exercises an actual AI
+model, tracked separately in the register as **MRM-005**. Earlier drafts of
+this doc reused `MRM-004`/`MRM-005` for these suite names, which collided
+with the register's own ID for an unrelated model (Regulatory Change
+Monitor); renamed here to remove that collision.
+
 ---
 
-## MRM-004: HMDA Reportability Calculator
+## FL-EVAL-01: HMDA Reportability Calculator
 
 **What this eval suite actually validates:** there is no AI in this agent —
 every determination is deterministic JavaScript implementing 12 CFR
@@ -48,7 +59,7 @@ for a deterministic rule implementation.
 
 ---
 
-## MRM-005: Adverse Action Notice Validator
+## FL-EVAL-02: Adverse Action Notice Validator
 
 Three sub-suites, increasing in difficulty and decreasing in how confidently
 they can be graded.
@@ -77,9 +88,12 @@ they can be graded.
 
 **Pass threshold:** 5/5.
 
-### 5c. AI-assisted draft review (rubric-based — the hard case)
+### 5c. AI-assisted draft review (rubric-based — the hard case) — tracked as MRM-005
 
-This sub-suite tests the one part of either agent that involves real
+This is the only sub-suite of either Fair Lending agent's eval spec that
+exercises an actual AI model rather than deterministic logic; it's tracked
+as **MRM-005** in the Model Risk Register (`governance/model-risk-register.html`).
+It tests the one part of either agent that involves real
 judgment: distinguishing a notice that *asserts* the old disparate-impact
 standard as current law from one that merely *references* it in a
 compliant, historical, or explanatory way. Fallback mode (keyword
@@ -114,10 +128,10 @@ it.
 
 | Agent | Sub-suite | Auto-gradable | Status |
 |---|---|---|---|
-| HMDA Calculator | Full logic (MRM-004) | Yes | Designed, not yet executed |
+| HMDA Calculator | Full logic (FL-EVAL-01) | Yes | Designed, not yet executed |
 | Notice Validator | Timing (5a) | Yes | Designed, not yet executed |
 | Notice Validator | SPCP screen (5b) | Yes | Designed, not yet executed |
-| Notice Validator | AI draft review (5c) | Partial — 5 of 6 cases; A-04 requires human judgment call | Designed, zero cases run, **not validated** |
+| Notice Validator | AI draft review (5c → MRM-005 in the Model Risk Register) | Partial — 5 of 6 cases; A-04 requires human judgment call | Designed, zero cases run, **not validated** |
 
 Recommend the same three-state badge pattern used for the Calculations
 agent: these land as **"Designed — not yet executed"** rather than
@@ -127,7 +141,7 @@ different state than no spec existing at all — but neither should read as
 
 ## Next steps
 
-- [ ] Manually execute MRM-004 against the built calculator (14 cases, no AI, fast)
+- [ ] Manually execute FL-EVAL-01 against the built calculator (14 cases, no AI, fast)
 - [ ] Manually execute 5a/5b against the built validator (10 cases, no AI, fast)
 - [ ] Run 5c fallback-mode cases (5 of 6, no API key needed)
 - [ ] Get a second opinion on the "correct" column for A-04 before running it live
