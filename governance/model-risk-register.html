@@ -115,13 +115,13 @@
   <section>
     <div class="panel">
       <h2>Portfolio summary</h2>
-      <div class="desc">4 AI models identified across 3 agents, as of this review.</div>
+      <div class="desc">6 AI models identified across 5 agents, as of this review.</div>
       <div class="summary-row">
-        <div class="stat"><div class="stat-num">4</div><div class="stat-label">Models tracked</div></div>
+        <div class="stat"><div class="stat-num">6</div><div class="stat-label">Models tracked</div></div>
         <div class="stat"><div class="stat-num" style="color:var(--green);">1</div><div class="stat-label">Validated</div></div>
         <div class="stat"><div class="stat-num" style="color:var(--amber);">1</div><div class="stat-label">Partially validated</div></div>
-        <div class="stat"><div class="stat-num" style="color:var(--oxblood-bright);">2</div><div class="stat-label">Not validated</div></div>
-        <div class="stat"><div class="stat-num" style="color:var(--oxblood-bright);">2</div><div class="stat-label">High tier</div></div>
+        <div class="stat"><div class="stat-num" style="color:var(--oxblood-bright);">4</div><div class="stat-label">Not validated</div></div>
+        <div class="stat"><div class="stat-num" style="color:var(--oxblood-bright);">4</div><div class="stat-label">High tier</div></div>
         <div class="stat"><div class="stat-num" style="color:var(--amber);">1</div><div class="stat-label">Medium tier</div></div>
         <div class="stat"><div class="stat-num">1</div><div class="stat-label">Low tier</div></div>
       </div>
@@ -131,7 +131,7 @@
   <section>
     <div class="panel">
       <div class="finding-banner">
-        <b>Updated finding:</b> of 4 models in this portfolio, 1 is fully validated (Regulatory Change Monitor's 18-case classification suite), 1 is now partially validated (the Calculations agent's new 8-case suite — statutory citation checks and most rubric items are auto-graded; one deliberate "fabrication" decoy case is flagged for manual review rather than auto-scored), and 2 remain unvalidated: the DMDC agent's existing eval suite tests deterministic routing/gate/certificate logic only, never the AI-generated narrative text, and the Notice Intake trigger-recognition model has zero eval coverage. See the remediation roadmap below.
+        <b>Updated finding:</b> of 6 models in this portfolio, 1 is fully validated (Regulatory Change Monitor's 18-case classification suite), 1 is now partially validated (the Calculations agent's new 8-case suite — statutory citation checks and most rubric items are auto-graded; one deliberate "fabrication" decoy case is flagged for manual review rather than auto-scored), and 4 remain unvalidated: the DMDC agent's existing eval suite tests deterministic routing/gate/certificate logic only, never the AI-generated narrative text; the Notice Intake trigger-recognition model has zero eval coverage; the Adverse Action Notice Validator's stale-language review model has zero eval coverage; and the OFAC Screening Triage Agent's match-narrative model has zero eval coverage. See the remediation roadmap below.
       </div>
 
       <h2>Model inventory</h2>
@@ -151,7 +151,9 @@
       <div class="desc">Ordered by tier, then by ease of closing the gap.</div>
       <div class="roadmap-item" style="border-left-color:var(--green);"><b>✅ MRM-003 (Low, was unvalidated)</b> — done. An 8-case eval suite now covers statutory citation accuracy and rubric-based issue-spotting across all 4 calculation tabs, with one fabrication-check decoy case flagged for manual review.</div>
       <div class="roadmap-item"><b>1. MRM-002 (High, unvalidated)</b> — build a labeled eval set from the six existing Notice Intake demo scenarios plus additional edge cases (ambiguous language, non-English phrasing, a trigger embedded in an unrelated complaint). Highest remaining priority: highest tier, zero current coverage.</div>
-      <div class="roadmap-item"><b>2. MRM-001 (Medium, unvalidated)</b> — extend the existing 6-case eval suite with assertions on the generated narrative text itself, not just whether the gate held.</div>
+      <div class="roadmap-item"><b>2. MRM-005 (High, unvalidated)</b> — run the 6-case rubric-based sub-suite already specified for this model (FL-EVAL-02, sub-suite 5c): 5 cases can be graded in fallback mode with no API key today; the sixth (the historical-reference case) needs a second human opinion on the correct answer before it's graded against live mode.</div>
+      <div class="roadmap-item"><b>3. MRM-006 (High, unvalidated)</b> — run the 6-case rubric-based sub-suite specified for this model (AML-EVAL-01, in docs/eval-ofac-triage-agent.md). Case 5 (a transliteration-variant name) is the one that matters most: it directly tests whether live mode earns its keep over the deterministic pre-check, the same design principle used for MRM-005's case 6.</div>
+      <div class="roadmap-item"><b>4. MRM-001 (Medium, unvalidated)</b> — extend the existing 6-case eval suite with assertions on the generated narrative text itself, not just whether the gate held.</div>
     </div>
   </section>
 
@@ -188,7 +190,15 @@ const MODELS = [
   { id:'MRM-004', name:'Regulatory update classification', agent:'Regulatory Change Monitor', agentLink:'reg-change-monitor.html',
     tier:'high', validated:true,
     rationale:'Directly shapes what a compliance team believes requires action across three regulatory domains. Miss a relevant change and it may go unaddressed until the next manual review; over-flag routine items and the tool loses credibility.',
-    validationNote:'18-case eval suite (14 real, dated regulatory items verified via search; 4 clearly-marked constructed edge cases), evenly split across the three domains, each with a human-set expected classification and materiality. This is the only model in the portfolio with genuine output validation.' }
+    validationNote:'18-case eval suite (14 real, dated regulatory items verified via search; 4 clearly-marked constructed edge cases), evenly split across the three domains, each with a human-set expected classification and materiality. This is the only model in the portfolio with genuine output validation.' },
+  { id:'MRM-005', name:'Adverse action notice stale-language review', agent:'Fair Lending — Adverse Action Notice Validator', agentLink:'adverse-action-validator.html',
+    tier:'high', validated:false,
+    rationale:'This model\'s entire job is to catch what a human reviewer already looking at the notice is likely to miss: language that asserts the pre-July-2026 disparate-impact standard as current law, versus language that merely references it in a compliant, historical, or explanatory way. Deterministic checks (timing, SPCP screen) cover the rest of the notice, so this is the one place in the agent where a miss isn\'t caught by any other layer — the same reasoning that puts MRM-002 at High.',
+    validationNote:'Zero eval coverage. A 6-case rubric-based sub-suite exists in spec form (see FL-EVAL-02, sub-suite 5c, in the Fair Lending eval suite doc) but has not been run. One case (a compliant historical reference to the old standard) specifically tests whether live mode earns its keep over fallback\'s conservative keyword-match behavior, and needs a second human opinion on the "correct" answer before it can be graded at all. The HMDA Reportability Calculator, the other Fair Lending agent, was checked and contains no AI component — it is fully deterministic and correctly has no entry here.' },
+  { id:'MRM-006', name:'OFAC screening match triage narrative', agent:'AML/KYC — OFAC Screening Triage Agent', agentLink:'ofac-triage-agent.html',
+    tier:'high', validated:false,
+    rationale:'This model\'s job is exactly the judgment the deterministic pre-check can\'t do: transliteration variants, cultural name-ordering differences, how much weight an alias (AKA) hit or a missing identifier should carry. The deterministic pre-check (name-similarity score, DOB/country/ID comparison) covers the mechanical part and is separately tested — see tests/aml-kyc — but the live narrative\'s judgment calls have no check on them, and a wrong read in either direction is costly: OFAC sanctions liability carries no materiality threshold, so a false "likely false positive" read that a rushed analyst defers to is as dangerous as a missed true positive.',
+    validationNote:'Zero eval coverage. A 6-case rubric-based sub-suite is specified (AML-EVAL-01, in docs/eval-ofac-triage-agent.md) but not yet run. This entry was added at the same time the agent was built, not after — the exact gap that MRM-005 was added retroactively to close for the Adverse Action Validator. Notably, unlike the other four agents in this register, this agent has no demo-to-production gap register yet; that is itself a known, stated gap.' }
 ];
 
 const tierLabel = {high:'High', medium:'Medium', low:'Low'};
