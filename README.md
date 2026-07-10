@@ -2,7 +2,7 @@
 
 **A methodology for connecting regulatory requirements to compliance controls — built with AI, applied as AI agents where the control needs one and as deterministic software where it doesn't — with governance as a first-class concern either way.**
 
-[**→ Try the SCRA DMDC Agent (live)**](https://sadiqshifa.github.io/RMAS/agents/scra-dmdc-agent.html) · [**→ Try the SCRA Calculations Agent (live)**](https://sadiqshifa.github.io/RMAS/agents/scra-calculations-agent.html) · [**→ Try the Regulatory Change Monitor (live)**](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html) · [**→ Try the Pre-Clearance Determination System (live, no AI)**](https://sadiqshifa.github.io/RMAS/tools/pre-clearance-tool.html) · [**→ Try the Regulation O Insider Credit Threshold Tool (live, no AI)**](https://sadiqshifa.github.io/RMAS/tools/reg-o-insider-credit-tool.html)
+[**→ Try the SCRA DMDC Agent (live)**](https://sadiqshifa.github.io/RMAS/agents/scra-dmdc-agent.html) · [**→ Try the SCRA Calculations Agent (live)**](https://sadiqshifa.github.io/RMAS/agents/scra-calculations-agent.html) · [**→ Try the Regulatory Change Monitor (live)**](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html) · [**→ Try the HMDA Reportability Calculator (live, no AI)**](https://sadiqshifa.github.io/RMAS/agents/hmda-calculator.html) · [**→ Try the Adverse Action Notice Validator (live)**](https://sadiqshifa.github.io/RMAS/agents/adverse-action-validator.html) · [**→ Try the OFAC Screening Triage Agent (live)**](https://sadiqshifa.github.io/RMAS/agents/ofac-triage-agent.html) · [**→ Try the Pre-Clearance Determination System (live, no AI)**](https://sadiqshifa.github.io/RMAS/tools/pre-clearance-tool.html) · [**→ Try the Regulation O Insider Credit Threshold Tool (live, no AI)**](https://sadiqshifa.github.io/RMAS/tools/reg-o-insider-credit-tool.html)
 
 ---
 
@@ -54,7 +54,7 @@ should this control have used AI at all?**
 
 ## The live agents
 
-Five working AI-powered compliance agents, running in a browser with no installation required.
+Six working compliance agents, running in a browser with no installation required — five genuinely AI-powered; the sixth (the HMDA Reportability Calculator) is fully deterministic and correctly has no AI in it at all, the same as the Track B tools below.
 
 ### Agent 1 — SCRA DMDC Integration (Type 1 + Type 4)
 
@@ -140,6 +140,16 @@ Four calculation tabs implementing Regulation C (HMDA) reportability logic — s
 Validates a drafted adverse action notice against Regulation B's requirements — timing (30/90-day windows depending on application status), required content (action taken, creditor identity, ECOA notice provision, regulator identity), and, where AI is available, flags notices that read as boilerplate or omit a specific reason for denial. Deterministic fallback mode covers the structural/timing checks regardless of AI availability; the language-quality check is the part that genuinely needs a model, and is clearly labeled as such when running without an API key.
 
 **Eval suites for both Fair Lending agents (FL-EVAL-01, FL-EVAL-02)** are specified — 14 and 16 cases respectively, split between deterministic checks and rubric-based AI-output review — but not yet executed. That status is stated as such rather than rounded up; see [Fair Lending eval suite spec](docs/eval-suites-fair-lending-agents.md). The one sub-suite that exercises an actual AI model (FL-EVAL-02's 5c) is also tracked as **MRM-005** in the [Model Risk Register](governance/model-risk-register.html).
+
+### Agent 6 — AML/KYC: OFAC Screening Triage Agent (Type 1 + Type 4)
+
+[**→ Open agent**](https://sadiqshifa.github.io/RMAS/agents/ofac-triage-agent.html)
+
+This is AML/KYC's own [Layer 2 control-matrix analysis](docs/layer2-aml-kyc.md) built out — that document named OFAC false-positive triage as "the clearest agent use case" in the domain, and this agent is that recommendation fulfilled rather than a new scope decision. It takes a sanctions-screening name match (customer vs. an SDN or Consolidated Sanctions List entry) and triages it into one of three buckets — likely false positive, requires analyst review, or likely true positive — with reasoning, not just a score. It never clears or blocks a match itself; every determination routes to a BSA Officer for sign-off, and a likely-true-positive determination explicitly surfaces the 10-business-day OFAC blocking/reporting clock under 31 C.F.R. Part 501.
+
+The deterministic pre-check (name-similarity scoring plus DOB/country/ID comparison) is genuinely tested, not just described — **8/8 cases passing**, executed against the real agent code; see [`tests/aml-kyc/`](tests/aml-kyc). That test suite caught a real logic bug before this agent shipped: the first version of the decision rule required *low* name similarity to reach a false-positive determination, which is backwards — the classic OFAC false positive is a *high*-similarity name (that's why it got flagged) ruled out by a mismatching identifier, not a dissimilar one. The fix, and why, are documented in the agent's own source comments.
+
+The live-mode narrative — the judgment a deterministic score can't make (transliteration variants, cultural name-ordering, how much an alias hit or a missing identifier should weigh) — is tracked as **MRM-006** in the [Model Risk Register](governance/model-risk-register.html), added at build time rather than found missing afterward. Its rubric-based eval suite (AML-EVAL-01, 6 cases) is specified but not yet executed; see [eval suite doc](docs/eval-ofac-triage-agent.md). Unlike the other four agents in this project, this one doesn't yet have a demo-to-production gap register — a known, stated gap rather than an oversight.
 
 ---
 
@@ -306,12 +316,20 @@ RMAS/
 │   ├── scra-dmdc-agent.html             # DMDC + Notice Intake agent (Type 1 + 4)
 │   ├── scra-calculations-agent.html     # SCRA deterministic calculations agent (Type 3)
 │   ├── reg-change-monitor.html          # Cross-domain reg-change agent (AML/KYC, Fair Lending, SCRA)
-│   ├── hmda-calculator.html             # Fair Lending — HMDA reportability agent (Type 3)
-│   └── adverse-action-validator.html    # Fair Lending — adverse action notice validator (Type 1 + 4)
+│   ├── hmda-calculator.html             # Fair Lending — HMDA reportability agent (Type 3, no AI)
+│   ├── adverse-action-validator.html    # Fair Lending — adverse action notice validator (Type 1 + 4)
+│   └── ofac-triage-agent.html           # AML/KYC — OFAC screening triage agent (Type 1 + 4)
 │
 ├── tools/                               # Track B — deterministic workflow tools, no AI at runtime
 │   ├── pre-clearance-tool.html          # Gifts/entertainment/anti-bribery pre-clearance rules engine
 │   └── reg-o-insider-credit-tool.html   # Regulation O insider credit threshold calculator
+│
+├── tests/                               # Executable test suites — real code, not specs
+│   ├── anti-bribery-coi/                # Rules-engine tests for both Track B tools (35/35 passing)
+│   │   ├── pc_engine.js · pc_tests.js       # Pre-Clearance — extracted engine + 20-case suite
+│   │   └── rego_engine.js · rego_tests.js   # Reg O — extracted engine + 15-case suite
+│   └── aml-kyc/                         # OFAC agent's deterministic pre-check (8/8 passing)
+│       └── ofac_engine.js · ofac_tests.js
 │
 ├── governance/                          # Layer 4 artifacts (cross-domain, not agent- or tool-specific)
 │   └── model-risk-register.html         # SR 11-7-inspired inventory of every AI component as a model
@@ -325,11 +343,14 @@ RMAS/
 │   ├── scra-demo-to-production-gap-register.md  # SCRA — demo → production gap register
 │   ├── layer1-aml-kyc.md                # AML/KYC/Sanctions — regulatory map
 │   ├── layer2-aml-kyc.md                # AML/KYC/Sanctions — control matrix
+│   ├── eval-ofac-triage-agent.md        # AML/KYC — OFAC agent eval: executed pre-check + AML-EVAL-01 spec
 │   ├── layer1-fair-lending.md           # Fair Lending (Reg B/HMDA) — regulatory map
 │   ├── layer2-fair-lending.md           # Fair Lending (Reg B/HMDA) — control matrix
 │   ├── eval-suites-fair-lending-agents.md  # Fair Lending — FL-EVAL-01/FL-EVAL-02 eval suite specs
 │   ├── layer1-anti-bribery-coi.md       # Anti-Bribery/Corruption & COI — regulatory map
 │   ├── layer2-anti-bribery-coi.md       # Anti-Bribery/Corruption & COI — control matrix
+│   ├── rules-engine-test-suite-anti-bribery-coi.md  # ABC/COI — executed Layer 4 test results (35/35)
+│   ├── pre-clearance-tool-demo-to-production-gap-register.md  # Pre-Clearance — demo → production gap register
 │   ├── reg-o-tool-demo-to-production-gap-register.md  # Reg O tool — demo → production gap register
 │   └── model-risk-management-framework.md  # Cross-domain model risk management framework
 │
@@ -372,11 +393,11 @@ SCRA is an open item, not a design decision to leave as-is indefinitely.
 
 SCRA was chosen as the template domain because its requirements are discrete and its process touchpoints are bounded — it's a good domain to build the methodology in. The same four-layer approach, and the same Track A/Track B judgment about which controls need AI, applies to:
 
-- AML/KYC/Sanctions — [Layer 1](docs/layer1-aml-kyc.md) and [Layer 2](docs/layer2-aml-kyc.md) committed; covered by the cross-domain [Regulatory Change Monitor](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html) agent (Track A). Layer 2's own analysis already named the domain's actual Layer 3: an OFAC screening/false-positive triage agent ("the clearest agent use case" — see [Layer 2](docs/layer2-aml-kyc.md)). 🚧 **Committed, not yet built** — this is the domain's current gap and the next deepening action, not a new scope decision.
+- AML/KYC/Sanctions — [Layer 1](docs/layer1-aml-kyc.md) and [Layer 2](docs/layer2-aml-kyc.md) committed; covered by the cross-domain [Regulatory Change Monitor](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html) agent (Track A). Layer 2's own analysis also named the domain's actual Layer 3 — an OFAC screening/false-positive triage agent ("the clearest agent use case") — and that's ✅ **built**: the [OFAC Screening Triage Agent](https://sadiqshifa.github.io/RMAS/agents/ofac-triage-agent.html), with its deterministic pre-check executed (8/8 passing, [tests/aml-kyc](tests/aml-kyc)) and its live-mode model tracked as MRM-006 in the Model Risk Register from the day it was built, not added retroactively.
 - Fair Lending / HMDA (Reg B / Reg C) — [Layer 1](docs/layer1-fair-lending.md) and [Layer 2](docs/layer2-fair-lending.md) committed; two dedicated Track A agents (HMDA Reportability Calculator, Adverse Action Notice Validator) are the domain's Layer 3, eval suites specified but not yet executed
 - Anti-Bribery/Corruption & Conflicts of Interest — Layer 1 and Layer 2 committed; the Pre-Clearance Determination System and Reg O tool are the domain's Layer 3 (Track B, not agents) — the domain where the "not everything should be an agent" argument is made concretely, since most of its controls are deterministic threshold checks rather than language tasks. Its Layer 4 is deliberately **not** modeled on SR 11-7 / the Model Risk Register, since there's no AI model to govern here — it's EUCT-appropriate governance instead: version pinning (done, in both tools), governance-ownership framing (done, in both gap registers), and a [rules-engine test suite](docs/rules-engine-test-suite-anti-bribery-coi.md) proving the code matches the regulation — ✅ **done**: 35/35 cases passing, executed against the real tool code (not just specified), with the runnable [test harness committed](tests/anti-bribery-coi).
 
-**Scope, as of this review:** frozen at these four domains. No fifth domain is planned right now — Vendor/Third-Party Risk Management stays explicitly deprioritized rather than quietly dropped (see status table). Of the two deepening commitments for this phase, one is done — see the status table. The commitment was never documentation-depth parity with SCRA's four-file structure; SCRA remains the intentionally deepest build as the template domain.
+**Scope, as of this review:** frozen at these four domains. No fifth domain is planned right now — Vendor/Third-Party Risk Management stays explicitly deprioritized rather than quietly dropped (see status table). Both deepening commitments for this phase are now done — see the status table. The commitment was never documentation-depth parity with SCRA's four-file structure; SCRA remains the intentionally deepest build as the template domain.
 
 The same four-layer *approach* — regulatory map, control matrix, an actual working artifact as Layer 3, and appropriately-scoped Layer 4 governance (model risk for Track A, EUCT for Track B) — extends conceptually to:
 - Insurance regulatory compliance
@@ -406,7 +427,8 @@ The methodology transfers, including the judgment about when *not* to reach for 
 | Regulatory Change Monitor — Production Architecture view (Fed Register API, OFAC SDN diff, scheduler, persistence) | ✅ Code present, intentionally inactive on static hosting |
 | Regulatory Change Monitor — Eval suite (18 cases, 14 real / 4 constructed) | ✅ v0.1 complete |
 | AML/KYC/Sanctions — Layer 1 & Layer 2 | ✅ Committed |
-| AML/KYC — OFAC Screening Triage Agent (domain's Layer 3, per its own Layer 2 analysis) | 🚧 Committed for this phase, not yet built |
+| AML/KYC — OFAC Screening Triage Agent (domain's Layer 3, per its own Layer 2 analysis) | ✅ Working demo · fallback + live mode · [deterministic pre-check 8/8 passed](tests/aml-kyc) |
+| AML/KYC — OFAC agent live-mode eval (AML-EVAL-01, 6 cases, rubric-based) | 🚧 Designed — not yet executed |
 | Fair Lending / HMDA — Layer 1 & Layer 2 | ✅ Committed |
 | Fair Lending Agent — HMDA Reportability Calculator (Type 3) | ✅ Working demo · fallback mode |
 | Fair Lending Agent — Adverse Action Notice Validator (Type 1 + 4) | ✅ Working demo · fallback mode |
@@ -418,7 +440,7 @@ The methodology transfers, including the judgment about when *not* to reach for 
 | Reg O Tool — Demo-to-production gap register (14 gaps, 5 blocking) | ✅ Complete |
 | Pre-Clearance Tool — Demo-to-production gap register (14 gaps, 5 blocking) | ✅ Complete |
 | Layer 1/2 Anti-Bribery/COI docs — Reg O-specific threshold detail | ✅ Written back into the docs, verified against eCFR primary text (2026-07-09) |
-| Model Risk Register (cross-domain, SR 11-7-inspired, 5 models / 4 agents) | ✅ v0.1 — added MRM-005 (Adverse Action Validator) after an audit found it missing |
+| Model Risk Register (cross-domain, SR 11-7-inspired, 6 models / 5 agents) | ✅ v0.2 — added MRM-006 (OFAC Screening Triage Agent) at build time, not retroactively |
 | All AI agents — BYOK live AI (bring-your-own Anthropic API key) | ✅ Implemented; fallback-by-default outside Claude.ai's runtime |
 | Vendor / Third-Party Risk Management | 🚧 Explicitly deprioritized — scope frozen at four domains this phase, not a fifth (see Transferability) |
 
