@@ -328,8 +328,14 @@ RMAS/
 │   ├── anti-bribery-coi/                # Rules-engine tests for both Track B tools (35/35 passing)
 │   │   ├── pc_engine.js · pc_tests.js       # Pre-Clearance — extracted engine + 20-case suite
 │   │   └── rego_engine.js · rego_tests.js   # Reg O — extracted engine + 15-case suite
-│   └── aml-kyc/                         # OFAC agent's deterministic pre-check (8/8 passing)
-│       └── ofac_engine.js · ofac_tests.js
+│   ├── aml-kyc/                         # OFAC agent's deterministic pre-check (8/8 passing)
+│   │   └── ofac_engine.js · ofac_tests.js
+│   ├── fair-lending/                    # FL-EVAL-01 (14/14) + FL-EVAL-02 5a/5b/5c-fallback (21/21)
+│   │   ├── hmda_engine.js · hmda_tests.js       # HMDA Calculator — full logic, 14 cases
+│   │   ├── aav_engine.js · aav_tests.js         # Adverse Action Validator — timing + SPCP, 11 checks
+│   │   └── fallback_engine.js · fallback_tests.js  # Adverse Action Validator — 5c fallback cases
+│   └── scra/                            # SCRA DMDC agent's existing eval suite, run externally (6/6)
+│       └── dmdc_engine.js · dmdc_tests.js
 │
 ├── governance/                          # Layer 4 artifacts (cross-domain, not agent- or tool-specific)
 │   └── model-risk-register.html         # SR 11-7-inspired inventory of every AI component as a model
@@ -377,7 +383,7 @@ SCRA is an open item, not a design decision to leave as-is indefinitely.
 
 **Honest control assessment.** Identifying where automation genuinely helps vs. where data availability or human accountability dependencies constrain agent opportunity — and rating them differently rather than rounding up.
 
-**Working agent execution.** Five live AI-powered agents across three domains: Type 1 (DMDC integration) and Type 4 (language recognition) in the SCRA DMDC agent; Type 3 (deterministic calculations) in the SCRA Calculations agent and the HMDA Reportability Calculator; Type 1 + 4 in the Adverse Action Notice Validator; and a cross-domain classification agent in the Regulatory Change Monitor — with real compliance logic, AI analysis available live via your own API key (fallback mode by default), and working or specified eval suites.
+**Working agent execution.** Six agents across four domains, five of them genuinely AI-powered: Type 1 (DMDC integration) and Type 4 (language recognition) in the SCRA DMDC agent; Type 3 (deterministic calculations) in the SCRA Calculations agent; Type 3 with zero AI in the HMDA Reportability Calculator; Type 1 + 4 in the Adverse Action Notice Validator and the OFAC Screening Triage Agent; and a cross-domain classification agent in the Regulatory Change Monitor — with real compliance logic, AI analysis available live via your own API key (fallback mode by default), and a mix of executed and specified eval suites, stated accurately per agent rather than rounded up to one number.
 
 **Working non-AI execution.** Two deterministic workflow tools — the Pre-Clearance Determination System and the Regulation O Insider Credit Threshold Tool — built the same way (AI-assisted engineering) but running with zero AI at runtime, demonstrating that the engineering process on display here isn't specific to building AI systems. The second tool also demonstrates the harder case: percentage-of-capital thresholds computed from a bank-level configuration, and a real distinction between an escalation a board can approve past and a statutory prohibition it cannot.
 
@@ -432,7 +438,7 @@ The methodology transfers, including the judgment about when *not* to reach for 
 | Fair Lending / HMDA — Layer 1 & Layer 2 | ✅ Committed |
 | Fair Lending Agent — HMDA Reportability Calculator (Type 3) | ✅ Working demo · fallback mode |
 | Fair Lending Agent — Adverse Action Notice Validator (Type 1 + 4) | ✅ Working demo · fallback mode |
-| Fair Lending Eval Suites (FL-EVAL-01: 14 cases, FL-EVAL-02: 16 cases) | 🚧 Designed — not yet executed |
+| Fair Lending Eval Suites (FL-EVAL-01: 14 cases, FL-EVAL-02: 16 cases) | ✅ FL-EVAL-01 14/14, FL-EVAL-02 5a/5b/5c-fallback 21/21 — [`tests/fair-lending`](tests/fair-lending). 🚧 One case (A-04) blocked on an API key + human judgment call |
 | Anti-Bribery/Corruption & COI — Layer 1 & Layer 2 | ✅ Committed |
 | Anti-Bribery/COI Tool — Pre-Clearance Determination System (Track B, no AI at runtime) | ✅ Working demo · rules-engine v1.1.0 |
 | Anti-Bribery/COI Tool — Regulation O Insider Credit Threshold Tool (Track B, no AI at runtime) | ✅ Working demo · rules-engine v1.0.0 |
