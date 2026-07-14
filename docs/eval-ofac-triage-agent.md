@@ -59,6 +59,15 @@ Case 5 is the one that matters most: it's a direct test of whether live
 mode earns its keep over fallback, the same design principle used in
 FL-EVAL-02's sub-suite 5c for the Adverse Action Validator.
 
+**A manual reasoning pass exists** — see
+[`docs/aml-eval-01-manual-reasoning-pass.md`](aml-eval-01-manual-reasoning-pass.md).
+It is explicitly **not** an executed eval: no API call was made, and the
+same reasoning that produced each response also graded it, which is a real
+limitation stated plainly in that document, not a technicality. It's
+useful as a sanity check on whether the system prompt itself elicits the
+right kind of reasoning before spending a real API call on it — it is not
+evidence toward validating MRM-006.
+
 ## What this eval does not cover
 
 Input validation, the UI's field-to-function wiring (the pre-check tests
@@ -70,4 +79,6 @@ would be treated as more than a portfolio demonstration.
 ## Status
 
 ✅ Part 1 executed, 8/8 passing, 2026-07-09. 🚧 Part 2 (AML-EVAL-01)
-specified above, zero cases run — same status as MRM-002 and MRM-005.
+specified above, zero cases run against a real API — same status as
+MRM-002 and MRM-005. A manual reasoning pass (not an eval execution, see
+above) exists as of 2026-07-10.
