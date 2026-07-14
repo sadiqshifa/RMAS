@@ -180,17 +180,46 @@ independent of what the model says about it.
 
 ---
 
+---
+
+## G. Status as of this review — a deliberate pause, not an oversight
+
+As of 2026-07-10, active eval-suite work on this project paused with four
+of six models still unvalidated (MRM-001, 002, 005, 006 — three of them
+High tier). That's a decision, not a gap that was missed:
+
+- Every deterministic and fallback-mode component across all four domains
+  is now executed and passing — 79 test cases, committed and independently
+  re-runnable (`tests/anti-bribery-coi`, `tests/aml-kyc`,
+  `tests/fair-lending`, `tests/scra`). That was the achievable half of
+  this phase, and it's done.
+- Validating the remaining four models requires an actual Anthropic API
+  key run through each agent's live mode, plus independent human grading
+  — not something achievable through further code extraction and testing.
+  A manual reasoning pass exists for MRM-006
+  (`docs/aml-eval-01-manual-reasoning-pass.md`) but is explicitly
+  documented as *not* an eval execution, precisely because the same
+  reasoning that produced the responses also graded them.
+- Rather than let that residual sit unstated, it's recorded here: **four
+  models remain not validated, three of them High tier, as a known and
+  accepted position at this stage of the project** — not resolved by
+  further engineering effort in this environment, and requiring a live
+  API run to close.
+
 ## Next steps for this document
 
-- [ ] Build the MRM-002 eval set (highest priority per remediation roadmap)
-- [ ] Run MRM-005's already-specified sub-suite (FL-EVAL-02, sub-suite 5c) —
-      execution only, no design work remaining
-- [ ] Extend MRM-001's eval suite to cover generated-text assertions
+- [ ] Run MRM-001, MRM-002, MRM-005 (case A-04), and MRM-006 (AML-EVAL-01)
+      against a real Anthropic API key, with independent human grading —
+      the actual remaining work, blocked on live API access, not design
+- [x] Run MRM-005's already-specified sub-suite (FL-EVAL-02, sub-suite 5c)
+      — 5 of 6 cases executed 2026-07-10, all passing (fallback mode,
+      deterministic). Case A-04 remains blocked per above — it's the one
+      case that specifically requires live mode by design.
 - [x] Add an MRM entry the moment any new agent introduces a new AI-powered
       component — process gap identified 2026-07-09 (Fair Lending's
       Adverse Action Validator went unregistered from build until this
-      review); MRM-005 added to close it. Still applies going forward to
-      OFAC triage or any future agent.
+      review); MRM-005 added to close it. Applied correctly going forward
+      when MRM-006 was added the same day the OFAC agent was built.
 - [ ] Consider whether a lightweight drift-monitoring mechanism (Layer 4
       pillar 5) is feasible to simulate in a static-hosting demo, or whether
       this stays a documented-but-not-implemented capability like the
