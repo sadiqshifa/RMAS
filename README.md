@@ -406,6 +406,8 @@ SCRA was chosen as the template domain because its requirements are discrete and
 
 **Scope, as of this review:** frozen at these four domains. No fifth domain is planned right now — Vendor/Third-Party Risk Management stays explicitly deprioritized rather than quietly dropped (see status table). Both deepening commitments for this phase are now done — see the status table. The commitment was never documentation-depth parity with SCRA's four-file structure; SCRA remains the intentionally deepest build as the template domain.
 
+**Model validation, as of this review:** paused with 4 of 6 models in the Model Risk Register still unvalidated (3 of them High tier) — a deliberate decision, not an oversight, recorded in full in [`model-risk-management-framework.md`, section G](docs/model-risk-management-framework.md). Every deterministic and fallback-mode component across all four domains is executed and passing (79 test cases, see the `tests/` folders below); what remains requires a live Anthropic API key and independent human grading, not further engineering in this environment.
+
 The same four-layer *approach* — regulatory map, control matrix, an actual working artifact as Layer 3, and appropriately-scoped Layer 4 governance (model risk for Track A, EUCT for Track B) — extends conceptually to:
 - Insurance regulatory compliance
 - Energy market compliance (FERC, NERC)
