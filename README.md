@@ -149,7 +149,7 @@ This is AML/KYC's own [Layer 2 control-matrix analysis](docs/layer2-aml-kyc.md) 
 
 The deterministic pre-check (name-similarity scoring plus DOB/country/ID comparison) is genuinely tested, not just described — **8/8 cases passing**, executed against the real agent code; see [`tests/aml-kyc/`](tests/aml-kyc). That test suite caught a real logic bug before this agent shipped: the first version of the decision rule required *low* name similarity to reach a false-positive determination, which is backwards — the classic OFAC false positive is a *high*-similarity name (that's why it got flagged) ruled out by a mismatching identifier, not a dissimilar one. The fix, and why, are documented in the agent's own source comments.
 
-The live-mode narrative — the judgment a deterministic score can't make (transliteration variants, cultural name-ordering, how much an alias hit or a missing identifier should weigh) — is tracked as **MRM-006** in the [Model Risk Register](governance/model-risk-register.html), added at build time rather than found missing afterward. Its rubric-based eval suite (AML-EVAL-01, 6 cases) is specified but not yet executed; see [eval suite doc](docs/eval-ofac-triage-agent.md). Unlike the other four agents in this project, this one doesn't yet have a demo-to-production gap register — a known, stated gap rather than an oversight.
+The live-mode narrative — the judgment a deterministic score can't make (transliteration variants, cultural name-ordering, how much an alias hit or a missing identifier should weigh) — is tracked as **MRM-006** in the [Model Risk Register](governance/model-risk-register.html), added at build time rather than found missing afterward. Its rubric-based eval suite (AML-EVAL-01, 6 cases) is specified but not yet executed against a real API; see [eval suite doc](docs/eval-ofac-triage-agent.md). A [manual reasoning pass](docs/aml-eval-01-manual-reasoning-pass.md) exists as preparatory material — explicitly not an eval execution, since the same reasoning that produced each response also graded it, a limitation the document states rather than glosses over. Unlike the other four agents in this project, this one doesn't yet have a demo-to-production gap register — a known, stated gap rather than an oversight.
 
 ---
 
@@ -350,6 +350,7 @@ RMAS/
 │   ├── layer1-aml-kyc.md                # AML/KYC/Sanctions — regulatory map
 │   ├── layer2-aml-kyc.md                # AML/KYC/Sanctions — control matrix
 │   ├── eval-ofac-triage-agent.md        # AML/KYC — OFAC agent eval: executed pre-check + AML-EVAL-01 spec
+│   ├── aml-eval-01-manual-reasoning-pass.md  # AML-EVAL-01 manual pass — not an eval execution, self-graded
 │   ├── layer1-fair-lending.md           # Fair Lending (Reg B/HMDA) — regulatory map
 │   ├── layer2-fair-lending.md           # Fair Lending (Reg B/HMDA) — control matrix
 │   ├── eval-suites-fair-lending-agents.md  # Fair Lending — FL-EVAL-01/FL-EVAL-02 eval suite specs
