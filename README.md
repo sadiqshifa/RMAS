@@ -1,310 +1,194 @@
-# RMAS — Risk Management Agent System
+# Sadiq Shifa | Building with LLMs
 
-**A methodology for connecting regulatory requirements to compliance controls — built with AI, applied as AI agents where the control needs one and as deterministic software where it doesn't — with governance as a first-class concern either way.**
+I use LLMs to build working tools, not just talk about what they could
+theoretically do. This repo's featured project, the **Risk Management LLM
+Toolkit**, takes real regulatory obligations and builds the right system
+for each control — an AI agent where judgment is genuinely needed,
+deterministic software where it isn't — governed either way.
 
-[**→ Try the SCRA DMDC Agent (live)**](https://sadiqshifa.github.io/RMAS/agents/scra-dmdc-agent.html) · [**→ Try the SCRA Calculations Agent (live)**](https://sadiqshifa.github.io/RMAS/agents/scra-calculations-agent.html) · [**→ Try the Regulatory Change Monitor (live)**](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html) · [**→ Try the HMDA Reportability Calculator (live, no AI)**](https://sadiqshifa.github.io/RMAS/agents/hmda-calculator.html) · [**→ Try the Adverse Action Notice Validator (live)**](https://sadiqshifa.github.io/RMAS/agents/adverse-action-validator.html) · [**→ Try the OFAC Screening Triage Agent (live)**](https://sadiqshifa.github.io/RMAS/agents/ofac-triage-agent.html) · [**→ Try the Pre-Clearance Determination System (live, no AI)**](https://sadiqshifa.github.io/RMAS/tools/pre-clearance-tool.html) · [**→ Try the Regulation O Insider Credit Threshold Tool (live, no AI)**](https://sadiqshifa.github.io/RMAS/tools/reg-o-insider-credit-tool.html)
+[**→ Try the SCRA DMDC Agent**](https://sadiqshifa.github.io/RMAS/agents/scra-dmdc-agent.html) · [**→ SCRA Calculations**](https://sadiqshifa.github.io/RMAS/agents/scra-calculations-agent.html) · [**→ Regulatory Change Monitor**](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html) · [**→ HMDA Calculator**](https://sadiqshifa.github.io/RMAS/agents/hmda-calculator.html) · [**→ Adverse Action Validator**](https://sadiqshifa.github.io/RMAS/agents/adverse-action-validator.html) · [**→ OFAC Triage Agent**](https://sadiqshifa.github.io/RMAS/agents/ofac-triage-agent.html) · [**→ Pre-Clearance Tool**](https://sadiqshifa.github.io/RMAS/tools/pre-clearance-tool.html) · [**→ Reg O Tool**](https://sadiqshifa.github.io/RMAS/tools/reg-o-insider-credit-tool.html)
 
----
-
-## What this is
-
-RMAS is an independent project demonstrating how to take a complex
-regulatory obligation, decompose it into specific compliance processes and
-controls, and build the right kind of system for each one — governed so it
-stays trustworthy over time.
-
-"The right kind of system" is doing real work in that sentence. Some
-controls are genuinely language and judgment tasks — interpreting a
-regulatory update, triaging a fuzzy sanctions-list match, drafting a
-narrative summary — and those are built as **AI agents**. Other controls are
-structured, threshold-based, and auditable by design — a dollar limit, a
-recipient-type routing rule, an approval gate — and those are built as
-ordinary **deterministic software**, with no model anywhere in the decision
-path. RMAS builds both, on purpose, and treats correctly identifying which
-is which as a risk-management skill in its own right, not a footnote to the
-AI work.
-
-A related point worth being explicit about: **every artifact in this repo —
-AI-powered or not — was engineered using an LLM as the build tool.** That's
-true of the agents (unsurprising) and just as true of the fully
-deterministic rules engines under [`tools/`](tools) (less obvious, and the
-more interesting claim). Using an AI coding assistant to produce working
-software isn't itself the differentiator here — plenty of software gets
-built that way now. What the deterministic tools demonstrate is that the
-same engineering process, pointed at a problem that shouldn't use AI at
-*runtime* at all, produces a system that doesn't. The skill on display is
-knowing the difference and building accordingly, not defaulting to AI
-because it's the tool in hand.
-
-The domain is financial services compliance, but the four-layer methodology
-— regulatory requirements → process map → control matrix → governance — and
-the Track A/Track B judgment it enables are not. The same approach applies
-anywhere regulatory or operational complexity creates risk: healthcare,
-insurance, energy, legal, government contracting, or any industry with
-compliance obligations that exceed what manual processes can reliably
-handle.
-
-This is not a demo that stops at the automation. Three questions are
-treated as first-class parts of every build: **how do you know an agent is
-still working correctly after the model changes? What is the business
-continuity plan if the AI doesn't work? And — before either of those —
-should this control have used AI at all?**
+**Jump to:** [🤖 Agent Tools](#agent-tools) &nbsp;|&nbsp; [⚙️ Non-Agent Tools](#non-agent-tools) &nbsp;|&nbsp; [📋 Status](#status)
 
 ---
 
+## The four things this proves
+
+1. **I know when to use AI and when not to.** Some controls are language
+   and judgment problems — those get an AI agent. Some are fixed
+   thresholds and routing logic — those get ordinary deterministic code,
+   with zero AI in the decision path, engineered with an AI coding
+   assistant but not dependent on one at runtime. Getting that split right
+   is the actual skill on display here, not the AI usage itself.
+2. **The AI parts are governed like a bank governs models.** Every AI
+   component is inventoried in a [Model Risk Register](governance/model-risk-register.html)
+   modeled on SR 11-7 — risk-tiered, validation status tracked, gaps
+   documented, not just described as "in place."
+3. **What's proven and what isn't are stated plainly, not blurred.**
+   79 test cases are genuinely executed against real code. 4 of 6 AI
+   models are honestly marked unvalidated, with the specific reason why.
+   Neither gets rounded up.
+4. **It's working code, not slides.** Eight live agents and tools, run
+   them yourself — links above.
+
+Three questions get asked of every build here, not just the interesting
+ones: **How do you know an agent still works after the model changes?
+What's the fallback if the AI is unavailable? And — before either
+question — should this control have used AI at all?**
+
+The domain is financial services compliance, but the method — regulatory
+map → process map → control matrix → governance, plus the judgment about
+which controls need AI — isn't domain-specific. See
+[Transferability](#transferability) for how it extends.
+
+---
+
+<a id="agent-tools"></a>
 ## The live agents
 
-Six working compliance agents, running in a browser with no installation required — five genuinely AI-powered; the sixth (the HMDA Reportability Calculator) is fully deterministic and correctly has no AI in it at all, the same as the Track B tools below.
+Six agents, running in your browser, no install. Five are genuinely
+AI-powered — HMDA Calculator is deliberately not, same as the Track B
+tools below. **Every AI agent runs the same way by default:** open it with
+no API key and it runs in fallback mode — full deterministic logic (gates,
+routing, audit trail), pre-written guidance standing in for live AI
+analysis, clearly labeled as such. Add your own Anthropic API key in the
+agent itself to see live model output. The key stays in your browser
+session; nothing is stored or logged.
 
-### Agent 1 — SCRA DMDC Integration (Type 1 + Type 4)
+### 1 — SCRA DMDC Integration (Type 1 + 4)
+[**Open**](https://sadiqshifa.github.io/RMAS/agents/scra-dmdc-agent.html) — Four-scenario military status verification workflow: active duty (gate holds, institution-wide sweep), not active (gate clears, safe-harbor note), no record (escalates, never clears), API timeout (fails closed). Also includes **Notice Intake**, which reads free-text customer communication for indirect SCRA triggers a rules engine would miss (six pre-loaded scenarios), and a **one-click 6-case eval suite** with zero-tolerance cases baked in (timeout must fail closed; no-record must escalate).
 
-[**→ Open agent**](https://sadiqshifa.github.io/RMAS/agents/scra-dmdc-agent.html)
+### 2 — SCRA Deterministic Calculations (Type 3)
+[**Open**](https://sadiqshifa.github.io/RMAS/agents/scra-calculations-agent.html) — Four fully-auditable calculation tabs: **interest rate cap** (50 U.S.C. §3937, excess interest per account), **tail period** (§3937(d)(2), post-service foreclosure timing), **tolling** (§3936, statute-of-limitations adjustment across 10 pre-loaded states), and a **full account summary** combining all three. AI only touches an optional edge-case review layer on top — every calculation itself is plain deterministic JavaScript.
 
-**DMDC Agent Run** — executes a military status verification workflow across four scenarios. When run inside Claude.ai, or with your own Anthropic API key entered in the agent, a live Claude model generates the compliance analysis, gate hold explanation, and required actions in real time. Without a key — the default for any visitor opening the page directly — the agent runs in fallback mode: the same deterministic routing, gates, and audit logging execute normally, with pre-written compliance guidance in place of live AI analysis, clearly labeled as such.
+### 3 — Regulatory Change Monitor (cross-domain)
+[**Open**](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html) — A second-line GRC function watching AML/KYC, Fair Lending, and SCRA for regulatory change, searching the correct primary source per domain and classifying each finding as relevant / not relevant / ambiguous. **18-case eval suite**, 14 real dated items + 4 constructed edge cases. A toggle also shows a Production Architecture view — real, tested integration code (Federal Register poller, OFAC SDN differ, scheduler, persistence schema) that's intentionally inactive here since static hosting can't run it, explained rather than left ambiguous.
 
-- **Active duty:** Gate holds, institution-wide account sweep across four accounts, AI generates required actions with statutory basis
-- **Not active:** Gate cleared, AI generates safe harbor scope note with residual obligation language  
-- **No record:** Escalated — not cleared — AI explains Reserve/Guard accuracy lag and required reviewer actions
-- **API timeout:** Gate fails closed — AI explains why timeout ≠ clearance and what reviewer must do
+### 4 — Fair Lending: HMDA Reportability Calculator (Type 3, no AI)
+[**Open**](https://sadiqshifa.github.io/RMAS/agents/hmda-calculator.html) — Same deterministic-calculation pattern as Agent 2, no AI anywhere. Walks a loan through HMDA's five coverage tests and the current inflation-adjusted asset-size exemption to determine reportability.
 
-**Notice Intake (AI-powered)** — paste any customer communication and the AI identifies SCRA triggers, including indirect language a rules engine would miss. Six pre-loaded scenarios:
+### 5 — Fair Lending: Adverse Action Notice Validator (Type 1 + 4)
+[**Open**](https://sadiqshifa.github.io/RMAS/agents/adverse-action-validator.html) — Checks a drafted notice against Reg B: timing windows, required content, and — where AI is available — whether the language reads as boilerplate or omits a specific denial reason. Structural/timing checks are deterministic regardless of AI availability.
 
-- A customer mentioning deployment on a collections call
-- A formal SCRA invocation letter  
-- A spouse calling about a billing issue, mentioning "he's been stationed overseas"
-- A post-service retroactive request within the 180-day window
-- A power of attorney submission
-- A non-SCRA communication (correctly identified as no trigger)
+### 6 — AML/KYC: OFAC Screening Triage Agent (Type 1 + 4)
+[**Open**](https://sadiqshifa.github.io/RMAS/agents/ofac-triage-agent.html) — Takes a sanctions-list name match and triages it — likely false positive, needs review, or likely true positive — with reasoning, not just a score. Never clears a match itself; every result routes to a BSA Officer, and a true-positive read surfaces the 10-business-day OFAC reporting clock. This is AML/KYC's own [Layer 2 analysis](docs/layer2-aml-kyc.md) built out — that doc named this "the clearest agent use case" in the domain before any code existed.
 
-**Eval Suite** — six test cases with defined pass/fail criteria, runnable in one click. Includes zero-tolerance cases (API timeout must fail closed; no-record must escalate, never clear) reflecting the strict liability exposure in the underlying regulation.
+**Fair Lending eval suites** ([FL-EVAL-01, FL-EVAL-02](docs/eval-suites-fair-lending-agents.md)): 14 + 16 cases, split
+between deterministic checks and AI-output review. **FL-EVAL-02's live-mode
+model is MRM-005** in the Model Risk Register. See
+[status table](#status) for exact execution results — most of this is
+genuinely run, not just specified.
 
-**Fallback mode:** If no API key is provided (or the AI model is otherwise unavailable), all deterministic functions continue — routing decisions, gate holds, certificate generation, and audit logging. Pre-written compliance guidance substitutes for AI-generated analysis, clearly labeled as fallback. The agent does not silently fail. Enter your own Anthropic API key in the agent to see the live AI analysis this design is built to produce — the key is used only in your browser session and is never stored or logged.
-
----
-
-### Agent 2 — SCRA Deterministic Calculations (Type 3)
-
-[**→ Open agent**](https://sadiqshifa.github.io/RMAS/agents/scra-calculations-agent.html)
-
-Four calculation tabs, each implementing controls identified in Layer 3 and derived from statutory requirements in Layer 1. Every calculation shows its methodology — inputs, formula, statutory basis, output — so it is fully auditable.
-
-**Interest Rate Cap** — calculates excess interest per account, per period, across all eligible pre-service accounts. Implements controls P2-C2 and P3 from Layer 3. Derived from 50 U.S.C. §3937.
-
-- Account-by-account excess interest calculation retroactive to active duty start date
-- Forgiven vs. deferred treatment enforced in the output
-- Payment reduction calculated and displayed
-- AI edge case review at completion
-
-**Tail Period** — calculates the one-year mortgage post-service tail period and flags whether rate restoration or foreclosure actions are blocked. Implements control P7-C2. Derived from 50 U.S.C. §3937(d)(2).
-
-- Tail period expiry date and days remaining
-- Rate restoration gate — blocked or cleared
-- Foreclosure timing conflict detection with strict liability flag
-
-**Tolling Calculator** — calculates adjusted statute of limitations expiry with military service periods excluded. Implements control P9-C2. Derived from 50 U.S.C. §3936.
-
-- Ten states pre-loaded with correct limitations periods
-- Standard expiry vs. adjusted expiry comparison
-- Critical flag when tolling changes the outcome — action appears time-barred without tolling but is viable with it applied
-
-**Full Account Summary** — runs all three calculations simultaneously and produces a complete servicemember remediation package with total amounts owed, tail period status, and required actions checklist.
-
-**Fallback mode:** All calculations are deterministic JavaScript — they execute completely regardless of AI availability. Only the AI edge case review sections use the model; these display pre-written compliance guidance by default and require your own Anthropic API key (entered in the agent) to run live, same as Agent 1.
+**OFAC agent's deterministic pre-check (name similarity + DOB/country/ID
+comparison) is executed — 8/8 passing**, [`tests/aml-kyc/`](tests/aml-kyc).
+That test suite caught a real logic bug before shipping: the first version
+required *low* name similarity for a false-positive read, which is
+backwards — the classic false positive is a *high*-similarity name ruled
+out by a mismatching identifier. Fixed, and documented in the source. Its
+live-mode model is **MRM-006**, registered the day the agent was built —
+not found missing afterward the way MRM-005 was. [Eval suite doc](docs/eval-ofac-triage-agent.md) covers AML-EVAL-01 (specified, not yet
+run against a real API) and a [manual reasoning pass](docs/aml-eval-01-manual-reasoning-pass.md) — explicitly not an eval execution, since the same reasoning
+that produced each response also graded it.
 
 ---
 
-### Agent 3 — Regulatory Change Monitor (cross-domain, Layer 3/second-line)
-
-[**→ Open agent**](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html)
-
-Unlike Agents 1 and 2, this agent isn't domain-specific — it's a second-line-of-defense GRC function that watches for regulatory change across all three domains in this project: **AML/KYC/Sanctions**, **Fair Lending (Reg B/HMDA)**, and **SCRA**. Pick any combination of domains and run a live check; the agent searches the correct primary source per domain (FinCEN/OFAC for AML, CFPB for Fair Lending, DOJ/Federal Register/Congress.gov for SCRA — DMDC is deliberately excluded as a source here, since it's a data source, not a rule-change source), then classifies each item found: relevant / not relevant / ambiguous, plus materiality and primary-vs-secondary sourcing.
-
-**Demo Mode vs. Production Architecture** — a toggle switches between the working live-search demo and a Production Architecture view showing real, verified integration code (a live-tested Federal Register API poller, an OFAC SDN list differ, a scheduler config, and a persistence schema) that a production deployment would run on a schedule. That code is present but intentionally inactive here, since static GitHub Pages hosting can't run scheduled server-side jobs or persist state between runs — the notice explains exactly why, rather than leaving "live" ambiguous.
-
-**Eval suite — 18 pre-labeled cases** (14 real, dated regulatory items verified via search; 4 clearly-marked constructed edge cases), evenly split across the three domains, each with a human-set correct classification and materiality. This is the concrete Layer 4 regression gate: before adopting any model or prompt change, re-run the suite and compare against the last known pass rate.
-
-**Fallback mode / BYOK:** By default — including for any visitor on this GitHub Pages site — the agent runs in fallback mode: no live API calls, no cost, nothing required, with direct links to primary sources if a check can't complete. Enter your own Anthropic API key in the agent to trigger genuine live search-and-classify runs and to actually score the eval suite instead of seeing "pending."
-
----
-
-### Agent 4 — Fair Lending: HMDA Reportability Calculator (Type 3)
-
-[**→ Open agent**](https://sadiqshifa.github.io/RMAS/agents/hmda-calculator.html)
-
-Four calculation tabs implementing Regulation C (HMDA) reportability logic — same deterministic-calculation pattern as Agent 2, applied to a different domain. Determines whether a given loan transaction is HMDA-reportable, walks through the five coverage tests (asset-size, location, loan-activity, federally-related, loan-volume thresholds), and applies the current inflation-adjusted asset-size exemption threshold. Every calculation shows inputs, formula, and statutory basis, consistent with the audit-first design used throughout this project.
-
-### Agent 5 — Fair Lending: Adverse Action Notice Validator (Type 1 + Type 4)
-
-[**→ Open agent**](https://sadiqshifa.github.io/RMAS/agents/adverse-action-validator.html)
-
-Validates a drafted adverse action notice against Regulation B's requirements — timing (30/90-day windows depending on application status), required content (action taken, creditor identity, ECOA notice provision, regulator identity), and, where AI is available, flags notices that read as boilerplate or omit a specific reason for denial. Deterministic fallback mode covers the structural/timing checks regardless of AI availability; the language-quality check is the part that genuinely needs a model, and is clearly labeled as such when running without an API key.
-
-**Eval suites for both Fair Lending agents (FL-EVAL-01, FL-EVAL-02)** are specified — 14 and 16 cases respectively, split between deterministic checks and rubric-based AI-output review — but not yet executed. That status is stated as such rather than rounded up; see [Fair Lending eval suite spec](docs/eval-suites-fair-lending-agents.md). The one sub-suite that exercises an actual AI model (FL-EVAL-02's 5c) is also tracked as **MRM-005** in the [Model Risk Register](governance/model-risk-register.html).
-
-### Agent 6 — AML/KYC: OFAC Screening Triage Agent (Type 1 + Type 4)
-
-[**→ Open agent**](https://sadiqshifa.github.io/RMAS/agents/ofac-triage-agent.html)
-
-This is AML/KYC's own [Layer 2 control-matrix analysis](docs/layer2-aml-kyc.md) built out — that document named OFAC false-positive triage as "the clearest agent use case" in the domain, and this agent is that recommendation fulfilled rather than a new scope decision. It takes a sanctions-screening name match (customer vs. an SDN or Consolidated Sanctions List entry) and triages it into one of three buckets — likely false positive, requires analyst review, or likely true positive — with reasoning, not just a score. It never clears or blocks a match itself; every determination routes to a BSA Officer for sign-off, and a likely-true-positive determination explicitly surfaces the 10-business-day OFAC blocking/reporting clock under 31 C.F.R. Part 501.
-
-The deterministic pre-check (name-similarity scoring plus DOB/country/ID comparison) is genuinely tested, not just described — **8/8 cases passing**, executed against the real agent code; see [`tests/aml-kyc/`](tests/aml-kyc). That test suite caught a real logic bug before this agent shipped: the first version of the decision rule required *low* name similarity to reach a false-positive determination, which is backwards — the classic OFAC false positive is a *high*-similarity name (that's why it got flagged) ruled out by a mismatching identifier, not a dissimilar one. The fix, and why, are documented in the agent's own source comments.
-
-The live-mode narrative — the judgment a deterministic score can't make (transliteration variants, cultural name-ordering, how much an alias hit or a missing identifier should weigh) — is tracked as **MRM-006** in the [Model Risk Register](governance/model-risk-register.html), added at build time rather than found missing afterward. Its rubric-based eval suite (AML-EVAL-01, 6 cases) is specified but not yet executed against a real API; see [eval suite doc](docs/eval-ofac-triage-agent.md). A [manual reasoning pass](docs/aml-eval-01-manual-reasoning-pass.md) exists as preparatory material — explicitly not an eval execution, since the same reasoning that produced each response also graded it, a limitation the document states rather than glosses over. Unlike the other four agents in this project, this one doesn't yet have a demo-to-production gap register — a known, stated gap rather than an oversight.
-
----
-
+<a id="non-agent-tools"></a>
 ## The workflow tools — engineered with AI, running without it
 
-Not every control in this project is a good fit for an AI agent. Where a
-control is genuinely a fixed threshold-and-routing problem, RMAS builds it
-as ordinary deterministic software instead — using an AI coding assistant to
-build it, but with no model anywhere in the tool's actual decision path.
-Layer 2 (the control matrix) is where that call gets made per control; this
-section documents what's been built as a result.
+Not every control fits an AI agent. Where a control is genuinely a fixed
+threshold and routing decision, it's built as ordinary deterministic
+software — using an AI coding assistant to build it, with zero AI in the
+decision path. **This is the harder, more interesting claim**: the same
+engineering process, pointed at a problem that shouldn't use AI at
+runtime, produces a system that doesn't.
 
-### Tool 1 — Pre-Clearance Determination System (Anti-Bribery/Corruption & Conflicts of Interest)
+### Pre-Clearance Determination System (Anti-Bribery/COI)
+**[Open Tool →](https://sadiqshifa.github.io/RMAS/tools/pre-clearance-tool.html)** &nbsp;|&nbsp; [Layer 1](docs/layer1-anti-bribery-coi.md) &nbsp;|&nbsp; [Layer 2](docs/layer2-anti-bribery-coi.md) &nbsp;|&nbsp; [Gap Register — 14 gaps, 5 blocking](docs/pre-clearance-tool-demo-to-production-gap-register.md)
 
-[**→ Open tool**](https://sadiqshifa.github.io/RMAS/tools/pre-clearance-tool.html)
+Gifts, entertainment, and hospitality pre-clearance against the Bank Bribery Act, FCPA, FINRA/MSRB gift limits, Reg O, and federal gift-acceptance rules. Fixed if/then logic, no model call. Two-line review (manager gate, then an independent deterministic second-line engine), recipient-category-aware intake, and version-pinned like an AI agent would be — a threshold change is a new version, re-validated before adoption.
 
-A gifts, entertainment, and hospitality pre-clearance workflow covering the
-Bank Bribery Act (18 U.S.C. § 215), the FCPA, FINRA Rule 3220 / MSRB Rule
-G-20 gift limits, Regulation O insider rules, and federal-employee
-gift-acceptance limits (5 C.F.R. § 2635.204). Every determination is
-produced by fixed if/then logic — no model call, no inference, nothing
-non-deterministic.
+### Regulation O Insider Credit Threshold Tool
+**[Open Tool →](https://sadiqshifa.github.io/RMAS/tools/reg-o-insider-credit-tool.html)** &nbsp;|&nbsp; [Gap Register — 14 gaps, 5 blocking](docs/reg-o-tool-demo-to-production-gap-register.md)
 
-- **Two-line review.** A requestor's manager is a first-line approval gate;
-  only approved requests reach an independent, deterministic second-line
-  rules engine. A manager's rejection is terminal and never reaches
-  Compliance/Legal.
-- **Recipient-category-aware.** The form asks for different information
-  depending on who the recipient is — country and agency for a foreign
-  official, government level and branch for a U.S. official, employer and
-  relationship type for a FINRA-scoped contact — because a single generic
-  form can't actually support a defensible determination across all of
-  these.
-- **Knows what it doesn't know.** Where the deterministic rule set doesn't
-  actually cover a case — e.g. a state or local government official, who
-  isn't subject to the federal executive-branch gift rule this engine
-  encodes — it escalates for manual review rather than silently applying
-  the wrong threshold.
-- **Version-pinned like an AI agent would be.** Every determination is
-  tagged with a rules-engine version number and logged to an audit trail
-  alongside the manager's and Compliance's decisions. A change to any
-  threshold is a new version, re-validated before adoption — the same
-  governance discipline Layer 4 requires of AI agents, applied to code that
-  has none.
+Same no-AI-at-runtime design, applied to 12 C.F.R. Part 215's percentage-of-capital math instead of fixed dollar limits. Every threshold derives from a bank's own configured capital. Correctly distinguishes an `ESCALATED` board-approvable trigger from an absolute statutory `PROHIBITED` ceiling — not every breach treated the same. Identity resolves against a 12-person roster, not free text — closing a real bug Tool 1's free-text version had, where two spellings of one name would track as two people. Gap register includes an honest finding that Reg O itself specifies no record-retention period at all.
 
-[→ Layer 1 (Anti-Bribery/COI)](docs/layer1-anti-bribery-coi.md) · [→ Layer 2 (Control Matrix)](docs/layer2-anti-bribery-coi.md)
-
-[→ Demo-to-production gap register](docs/pre-clearance-tool-demo-to-production-gap-register.md) — 14 gaps (5 blocking) between this demo and anything that could touch a real gift, entertainment, or anti-bribery pre-clearance request, including the free-text recipient-identity gap that Tool 2's roster design was built to avoid repeating.
-
----
-
-### Tool 2 — Regulation O Insider Credit Threshold Tool
-
-[**→ Open tool**](https://sadiqshifa.github.io/RMAS/tools/reg-o-insider-credit-tool.html)
-
-A deterministic threshold calculator for extensions of credit and overdrafts to bank insiders (executive officers, directors, principal shareholders) under 12 C.F.R. Part 215. Same no-AI-at-runtime design as Tool 1, applied to a domain with real percentage-of-capital math rather than fixed dollar limits.
-
-- **Bank-level configuration drives every threshold.** Unlike Tool 1's fixed dollar limits, every Reg O threshold is a function of the bank's own unimpaired capital and surplus — set it once in § 1, and the board-approval trigger, the executive-officer sub-cap, and the bank-wide aggregate ceiling are all computed from it and shown before you run a single request.
-- **Distinguishes an escalation from a prohibition.** The general board-approval trigger (§ 215.4(b)) can be approved past by the board. The executive-officer "other purpose" sub-cap (§ 215.5(c)(4)) cannot — it's an absolute statutory ceiling. The tool produces a different outcome (`ESCALATED` vs. `PROHIBITED`) for each, rather than treating every threshold breach the same way.
-- **Insider category changes which rules even apply.** A director or principal shareholder can never hit the executive-officer sub-cap, because Reg O itself doesn't apply that provision to them — the tool reflects that by category, not by writing one blanket rule for every insider type.
-- **Identity resolves against a 12-person roster, not free text.** Selecting a known insider auto-fills their Reg O category and shows their current standing before you submit — closing a real bug the free-text version of Tool 1 originally had, where two slightly different spellings of the same name would have been tracked as two different people.
-- **Seeded with a demo baseline**, not just an empty ledger, so the interesting cases (someone already close to a threshold, someone already over a sub-cap) are visible immediately rather than requiring several manual submissions to build up history first.
-
-[→ Demo-to-production gap register](docs/reg-o-tool-demo-to-production-gap-register.md) — 14 gaps (5 blocking) between this demo and anything that could touch a real insider's real credit file, including an honest finding that Reg O itself specifies no record-retention period at all.
-
-> **Open item:** the specific Reg O thresholds this tool implements — the
-> $25,000-or-5%-of-capital board-approval trigger, the $100,000
-> executive-officer sub-cap, the bank-wide aggregate ceiling — were
-> researched and verified against eCFR primary text, but that detail has
-> not yet been written back into
-> [`docs/layer1-anti-bribery-coi.md`](docs/layer1-anti-bribery-coi.md) or
-> [`docs/layer2-anti-bribery-coi.md`](docs/layer2-anti-bribery-coi.md).
-> Those two docs still describe Regulation O only at the general level they
-> were originally drafted at. The tool is ahead of its own Layer 1/2
-> documentation right now — flagged here rather than left for someone to
-> notice the mismatch later.
+> **Open item:** this tool's specific thresholds were verified against eCFR
+> primary text, but that detail hasn't been written back into
+> [Layer 1](docs/layer1-anti-bribery-coi.md) / [Layer 2](docs/layer2-anti-bribery-coi.md)
+> yet — the tool is ahead of its own documentation, flagged here rather
+> than left for someone else to notice.
 
 ---
 
 ## The methodology
 
-Four layers, each a prerequisite for the next. The agents are only as good as the control identification they're built from, which is only as good as the process map, which is only as good as the regulatory requirements it's derived from.
+Four layers, each a prerequisite for the next — an agent is only as good
+as the control it's built from, which is only as good as the process map
+and the regulatory requirements underneath it.
 
-### Layer 1 — Regulatory Requirements
-
-Enumerates specific obligations from the source statute and exam guidance — not summaries, but testable requirements. For SCRA: twelve obligation clusters covering interest rate caps, foreclosure protections, repossession protections, default judgments, stay of proceedings, tolling, lease termination, and vendor responsibility — each with statutory citation, trigger conditions, timing rules, documentation requirements, enforcement authority, and penalties.
-
-This layer is where most compliance technology projects start too late. Starting here means agent behavior is grounded in what the regulation actually requires, not what someone remembers it requiring.
-
-[→ SCRA Layer 1](docs/layer1-scra.md)
-
-### Layer 2 — Process Map
-
-Maps each regulatory requirement to the compliance processes where it lives operationally. Nine processes for SCRA: loan origination, ongoing servicing, notice intake, collections, foreclosure, repossession, return from service, lease termination, and civil litigation. Each process has step-by-step workflows, data inputs, and a precise statement of what control is needed at each step.
-
-This is the layer most often skipped. Skipping it means building controls that are disconnected from how the work actually happens.
-
-[→ SCRA Layer 2](docs/layer2-scra-process-map.md)
-
-### Layer 3 — Control Matrix
-
-Maps each process step to a specific, testable control. For each control: what it does, how it's currently executed, what the failure mode looks like in practice, and where an agent can genuinely help.
-
-Agent opportunity is rated on a four-tier scale — High, Medium, Low-Medium, and Low. The Low-Medium tier exists because some controls were initially rated Medium but are more honestly characterized as constrained by data availability or human accountability dependencies. Rounding up would have been misleading. The 22 High-rated controls are the agent build targets.
-
-[→ SCRA Layer 3](docs/layer3-scra-control-matrix.md)
-
-### Layer 4 — Agent Characterization and Governance
-
-Organizes the 22 High-rated controls into four capability types (DMDC integration, mandatory gate enforcement, deterministic calculations, language recognition) and specifies the governance required for each — version pinning, eval suite design, human-in-the-loop boundaries, audit logging, drift monitoring, and incident response.
-
-The human-in-the-loop map is precise: specific agent actions are classified as autonomous or human-confirmed, with the rationale for each. The distinction between "agent executes" and "human confirms" is enforced at the system level, not left to policy.
-
-[→ SCRA Layer 4](docs/layer4-scra-governance.md)
+| Layer | What it does | SCRA example |
+|---|---|---|
+| **1 — Regulatory Requirements** | Enumerates testable obligations from source statute and exam guidance, not summaries | 12 obligation clusters, each with citation, triggers, timing, penalties — [doc](docs/layer1-scra.md) |
+| **2 — Process Map** | Maps each requirement to where it lives operationally | 9 processes, step-by-step — [doc](docs/layer2-scra-process-map.md) |
+| **3 — Control Matrix** | Maps each process step to a specific, testable control, rated for agent opportunity | 47 controls, 4-tier rating (High/Medium/Low-Medium/Low — no rounding up); 22 High-rated are the build targets — [doc](docs/layer3-scra-control-matrix.md) |
+| **4 — Governance** | Specifies what each agent type needs: versioning, evals, human-in-the-loop boundaries, audit, drift, incident response | 4 capability types, enforced at the system level — [doc](docs/layer4-scra-governance.md) |
 
 ---
 
 ## Governance and risk management
 
-A dedicated governance framework covers eight operational domains:
+A dedicated framework covers **8 operational domains**: model/prompt
+versioning, eval suite execution, drift monitoring, human-in-the-loop
+execution, incident response, regulatory currency, DMDC data-dependency
+risk, and AI business continuity. Domain 8 directly answers the question
+any serious reviewer asks first — *what's the plan if the AI doesn't
+work* — with a two-tier operating model, defined fallbacks, tested manual
+procedures, and RTO/RPO targets. [Full framework](docs/scra-agent-governance-risk.md).
 
-1. **Model and prompt versioning** — version pinning, controlled upgrades, changelog
-2. **Eval suite execution** — pass thresholds, zero-tolerance cases, regression gates
-3. **Production drift monitoring** — specific signals, alert thresholds, cadence
-4. **Human-in-the-loop execution** — what genuine review actually requires (not rubber-stamping)
-5. **Incident response** — P1/P2/P3/P4 classification, gap period assessment, rollback
-6. **Regulatory currency** — keeping Layer 1 current as SCRA evolves through the NDAA cycle
-7. **DMDC data dependency** — classifying DMDC correctly as a government data source, not a vendor; four dependency risks with compensating controls
-8. **AI system availability and business continuity** — what happens when the AI doesn't work; two-tier operating model; manual procedure requirements; RTO/RPO targets; BCP testing schedule
-
-Domain 8 directly answers the question any serious reviewer will ask: *what is your business continuity plan if the AI systems don't work?* The answer: compliance-critical functions are deterministic and don't depend on the AI; AI-dependent functions have defined fallbacks clearly labeled as such; notice intake routes to manual human review; manual procedures exist and are tested; recovery objectives are formally adopted; the audit log records everything including fallback activation.
-
-[→ Governance Framework](docs/scra-agent-governance-risk.md)
-
-This framework was built SCRA-first, but its core disciplines — version
-pinning, eval gates, audit logging — are domain-agnostic and already extend
-beyond SCRA: the [Model Risk Register](governance/model-risk-register.html)
-under [`governance/`](governance) inventories every AI component across all
-domains as a model under an SR 11-7-inspired framework (see the
-[framework doc](docs/model-risk-management-framework.md) for the reasoning
-behind what counts as a model here and what doesn't), and the rules-engine
-versioning built into the Pre-Clearance Determination System (see above,
-and its own [demo-to-production gap register](docs/pre-clearance-tool-demo-to-production-gap-register.md))
-applies the same discipline to a Track B tool that has no model to version
-at all.
+Built SCRA-first, but the core disciplines are domain-agnostic: the
+[Model Risk Register](governance/model-risk-register.html) inventories
+every AI component across all four domains under an SR 11-7-inspired
+framework ([reasoning here](docs/model-risk-management-framework.md)), and
+the same version-pinning discipline applies to the Track B tools that have
+no model to version at all.
 
 ---
 
 ## Honesty about what this is
 
-Every document in this project carries a **Demonstration Scope Notice** specifying exactly what gaps exist between the showcase and a production deployment. A gap register consolidates all gaps across layers — 19 P1 blocking gaps, 15 P2 required gaps — categorized by type, priority, and sequenced into a phased production readiness roadmap.
+Every layer carries a Demonstration Scope Notice stating exactly what
+separates it from a production deployment. A consolidated
+[gap register](docs/scra-demo-to-production-gap-register.md) tracks
+**19 P1 blocking gaps and 15 P2 required gaps**, sequenced into a phased
+roadmap. Being specific about the gaps isn't a caveat bolted on at the
+end — it's a demonstration of judgment in its own right: the difference
+between understanding a methodology and understanding what it takes to
+actually operationalize one.
 
-This matters for two reasons. First, it's accurate — the agents use a mocked DMDC API, are stateless, and handle one trigger context at a time. Second, being specific about the gaps is itself a demonstration of judgment. It shows the difference between understanding a methodology and understanding what it would take to operationalize one.
+---
 
-[→ Gap Register](docs/scra-demo-to-production-gap-register.md)
+## Transferability
+
+SCRA was the template domain — discrete requirements, bounded process
+touchpoints, a good place to build the methodology first. The same
+four-layer approach and Track A/Track B judgment now covers four domains,
+scope deliberately frozen there (Vendor/Third-Party Risk Management stays
+named and deprioritized, not silently dropped):
+
+- **AML/KYC/Sanctions** — [Layer 1](docs/layer1-aml-kyc.md)/[Layer 2](docs/layer2-aml-kyc.md) committed. Layer 3 is the [OFAC Triage Agent](https://sadiqshifa.github.io/RMAS/agents/ofac-triage-agent.html) — the domain's own analysis called this the clearest agent use case, and it's built.
+- **Fair Lending (Reg B/HMDA)** — [Layer 1](docs/layer1-fair-lending.md)/[Layer 2](docs/layer2-fair-lending.md) committed. Two Track A agents are Layer 3; eval suites mostly executed (see [Status](#status)).
+- **Anti-Bribery/COI** — Layer 1/2 committed. Two Track B tools are Layer 3 — the domain that makes the "not everything should be an agent" case concretely. Layer 4 here is EUCT-appropriate governance, not model governance, since there's no AI to govern: version pinning, ownership framing, and a [rules-engine test suite](docs/rules-engine-test-suite-anti-bribery-coi.md) at **35/35 passing**.
+
+**Model validation is paused, on purpose:** 4 of 6 models remain
+unvalidated (3 High-tier) — [reasoning here](docs/model-risk-management-framework.md),
+section G. Everything deterministic or fallback-mode is executed:
+**79 test cases**, real code, independently re-runnable. What's left needs
+a live API key and independent grading, not more engineering.
+
+The approach — not the domain knowledge — extends to insurance,
+energy (FERC/NERC), government contracting (FAR/DFARS), or anywhere
+regulatory complexity outpaces manual process. The judgment about when
+*not* to use AI transfers with it.
 
 ---
 
@@ -364,57 +248,12 @@ RMAS/
 └── README.md
 ```
 
-Note the layer-numbering convention differs slightly by domain: SCRA's docs
-use a four-file Layer 1–4 split (requirements, process map, control matrix,
-governance) because it was the template domain and got the deepest build.
-AML/KYC, Fair Lending, and Anti-Bribery/COI currently use a two-file Layer
-1–2 split (regulatory map, control matrix) — Layer 3 for those domains is
-the actual agent/tool sitting in `agents/` or `tools/`, and Layer 4 governance
-is currently covered by the cross-domain documents rather than a dedicated
-per-domain file. Bringing all domains to the same documentation depth as
-SCRA is an open item, not a design decision to leave as-is indefinitely.
-
----
-
-## What this demonstrates
-
-**Regulatory decomposition.** Taking a complex statute (SCRA: 50 U.S.C. §§ 3901–4043, verified against OCC Comptroller's Handbook v1.1) and producing enumerable, testable requirements — not summaries.
-
-**Process mapping.** Connecting regulatory obligations to the operational processes where compliance actually happens, at the level of specificity required to design controls.
-
-**Honest control assessment.** Identifying where automation genuinely helps vs. where data availability or human accountability dependencies constrain agent opportunity — and rating them differently rather than rounding up.
-
-**Working agent execution.** Six agents across four domains, five of them genuinely AI-powered: Type 1 (DMDC integration) and Type 4 (language recognition) in the SCRA DMDC agent; Type 3 (deterministic calculations) in the SCRA Calculations agent; Type 3 with zero AI in the HMDA Reportability Calculator; Type 1 + 4 in the Adverse Action Notice Validator and the OFAC Screening Triage Agent; and a cross-domain classification agent in the Regulatory Change Monitor — with real compliance logic, AI analysis available live via your own API key (fallback mode by default), and a mix of executed and specified eval suites, stated accurately per agent rather than rounded up to one number.
-
-**Working non-AI execution.** Two deterministic workflow tools — the Pre-Clearance Determination System and the Regulation O Insider Credit Threshold Tool — built the same way (AI-assisted engineering) but running with zero AI at runtime, demonstrating that the engineering process on display here isn't specific to building AI systems. The second tool also demonstrates the harder case: percentage-of-capital thresholds computed from a bank-level configuration, and a real distinction between an escalation a board can approve past and a statutory prohibition it cannot.
-
-**Production governance thinking.** Eval suite design, version pinning, human-in-the-loop boundaries, drift monitoring, incident response, data dependency governance, and business continuity — specified at operational precision, not policy-document level.
-
-**Business continuity design.** A two-tier operating model where compliance-critical functions run deterministically regardless of AI availability, with defined fallback behavior, manual procedure requirements, RTO/RPO targets, and a testing schedule.
-
-**Intellectual honesty.** A gap register that says clearly what this is and what it isn't, and a phased roadmap for what production deployment would require.
-
----
-
-## Transferability
-
-SCRA was chosen as the template domain because its requirements are discrete and its process touchpoints are bounded — it's a good domain to build the methodology in. The same four-layer approach, and the same Track A/Track B judgment about which controls need AI, applies to:
-
-- AML/KYC/Sanctions — [Layer 1](docs/layer1-aml-kyc.md) and [Layer 2](docs/layer2-aml-kyc.md) committed; covered by the cross-domain [Regulatory Change Monitor](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html) agent (Track A). Layer 2's own analysis also named the domain's actual Layer 3 — an OFAC screening/false-positive triage agent ("the clearest agent use case") — and that's ✅ **built**: the [OFAC Screening Triage Agent](https://sadiqshifa.github.io/RMAS/agents/ofac-triage-agent.html), with its deterministic pre-check executed (8/8 passing, [tests/aml-kyc](tests/aml-kyc)) and its live-mode model tracked as MRM-006 in the Model Risk Register from the day it was built, not added retroactively.
-- Fair Lending / HMDA (Reg B / Reg C) — [Layer 1](docs/layer1-fair-lending.md) and [Layer 2](docs/layer2-fair-lending.md) committed; two dedicated Track A agents (HMDA Reportability Calculator, Adverse Action Notice Validator) are the domain's Layer 3, eval suites specified but not yet executed
-- Anti-Bribery/Corruption & Conflicts of Interest — Layer 1 and Layer 2 committed; the Pre-Clearance Determination System and Reg O tool are the domain's Layer 3 (Track B, not agents) — the domain where the "not everything should be an agent" argument is made concretely, since most of its controls are deterministic threshold checks rather than language tasks. Its Layer 4 is deliberately **not** modeled on SR 11-7 / the Model Risk Register, since there's no AI model to govern here — it's EUCT-appropriate governance instead: version pinning (done, in both tools), governance-ownership framing (done, in both gap registers), and a [rules-engine test suite](docs/rules-engine-test-suite-anti-bribery-coi.md) proving the code matches the regulation — ✅ **done**: 35/35 cases passing, executed against the real tool code (not just specified), with the runnable [test harness committed](tests/anti-bribery-coi).
-
-**Scope, as of this review:** frozen at these four domains. No fifth domain is planned right now — Vendor/Third-Party Risk Management stays explicitly deprioritized rather than quietly dropped (see status table). Both deepening commitments for this phase are now done — see the status table. The commitment was never documentation-depth parity with SCRA's four-file structure; SCRA remains the intentionally deepest build as the template domain.
-
-**Model validation, as of this review:** paused with 4 of 6 models in the Model Risk Register still unvalidated (3 of them High tier) — a deliberate decision, not an oversight, recorded in full in [`model-risk-management-framework.md`, section G](docs/model-risk-management-framework.md). Every deterministic and fallback-mode component across all four domains is executed and passing (79 test cases, see the `tests/` folders below); what remains requires a live Anthropic API key and independent human grading, not further engineering in this environment.
-
-The same four-layer *approach* — regulatory map, control matrix, an actual working artifact as Layer 3, and appropriately-scoped Layer 4 governance (model risk for Track A, EUCT for Track B) — extends conceptually to:
-- Insurance regulatory compliance
-- Energy market compliance (FERC, NERC)
-- Government contracting (FAR, DFARS)
-- Any domain where regulatory complexity creates operational risk that exceeds what manual processes reliably handle
-
-The methodology transfers, including the judgment about when *not* to reach for AI. The domain knowledge is specific to the domain.
+SCRA's docs use a four-file Layer 1–4 split since it was the template
+domain and got the deepest build; the other three domains use a two-file
+Layer 1–2 split, with Layer 3 being the actual agent/tool and Layer 4
+governance covered by the cross-domain documents. Bringing every domain to
+SCRA's documentation depth is an open item, not a decision to leave as-is
+indefinitely.
 
 ---
 
@@ -457,9 +296,10 @@ The methodology transfers, including the judgment about when *not* to reach for 
 
 ## About
 
-Built independently by Sadiq as a hands-on exploration of applied AI governance in regulated industries. Not affiliated with any employer or client.
-
-The goal was to go deep enough on a real compliance domain to demonstrate working judgment — not to produce a polished demo that stops at the automation.
+Built independently by Sadiq Shifa as a hands-on exploration of applied AI
+governance in regulated industries — not affiliated with any employer or
+client. The goal was depth on a real compliance domain that demonstrates
+working judgment, not a polished demo that stops at the automation.
 
 ---
 
