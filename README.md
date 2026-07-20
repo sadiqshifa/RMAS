@@ -21,7 +21,7 @@ deterministic software where it isn't — governed either way.
    assistant but not dependent on one at runtime. Getting that split right
    is the actual skill on display here, not the AI usage itself.
 2. **The AI parts are governed like a bank governs models.** Every AI
-   component is inventoried in a [Model Risk Register](governance/model-risk-register.html)
+   component is inventoried in a [Model Risk Register](https://sadiqshifa.github.io/RMAS/governance/model-risk-register.html)
    modeled on SR 11-7 — risk-tiered, validation status tracked, gaps
    documented, not just described as "in place."
 3. **What's proven and what isn't are stated plainly, not blurred.**
@@ -54,6 +54,8 @@ routing, audit trail), pre-written guidance standing in for live AI
 analysis, clearly labeled as such. Add your own Anthropic API key in the
 agent itself to see live model output. The key stays in your browser
 session; nothing is stored or logged.
+
+**Capability types, referenced below:** **Type 1** — API integration & scheduled execution &nbsp;·&nbsp; **Type 2** — mandatory gate enforcement &nbsp;·&nbsp; **Type 3** — deterministic calculations &nbsp;·&nbsp; **Type 4** — unstructured language recognition. [Full definitions](docs/layer4-scra-governance.md).
 
 ### 1 — SCRA DMDC Integration (Type 1 + 4)
 [**Open**](https://sadiqshifa.github.io/RMAS/agents/scra-dmdc-agent.html) — Four-scenario military status verification workflow: active duty (gate holds, institution-wide sweep), not active (gate clears, safe-harbor note), no record (escalates, never clears), API timeout (fails closed). Also includes **Notice Intake**, which reads free-text customer communication for indirect SCRA triggers a rules engine would miss (six pre-loaded scenarios), and a **one-click 6-case eval suite** with zero-tolerance cases baked in (timeout must fail closed; no-record must escalate).
@@ -146,7 +148,7 @@ work* — with a two-tier operating model, defined fallbacks, tested manual
 procedures, and RTO/RPO targets. [Full framework](docs/scra-agent-governance-risk.md).
 
 Built SCRA-first, but the core disciplines are domain-agnostic: the
-[Model Risk Register](governance/model-risk-register.html) inventories
+[Model Risk Register](https://sadiqshifa.github.io/RMAS/governance/model-risk-register.html) inventories
 every AI component across all four domains under an SR 11-7-inspired
 framework ([reasoning here](docs/model-risk-management-framework.md)), and
 the same version-pinning discipline applies to the Track B tools that have
