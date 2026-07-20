@@ -14,7 +14,12 @@ deterministic software where it isn't — governed either way.
 
 ## What this is solving for
 
-Financial services risk management has three problems tangled together.
+Any regulated, judgment-heavy domain hits the same three problems when
+AI enters the picture. I built the proof of this in **financial services
+risk management** — SCRA, AML/KYC, Fair Lending, Anti-Bribery/COI —
+because that's where my own experience is deep. None of the three
+problems below are specific to banking; see
+[Transferability](#transferability) for where else this applies.
 
 **Execution is manual where it doesn't need to be — but not everywhere.**
 Reading a message for an indirect SCRA trigger, or triaging a sanctions
@@ -27,27 +32,23 @@ skill this project proves.
 **"Regulation to working system" isn't a prompting exercise.** It's
 decomposition: obligation → process → testable control → the right
 build for that control. [The methodology](#the-methodology) is that
-decomposition, and it holds whether or not AI ends up in the final
-system.
+decomposition, and it holds regardless of domain or whether AI ends up
+in the final system.
 
-**An LLM-built system has a maintenance problem no one's release notes
-cover.** Models update. Prompts drift. An agent quietly gets worse at
-one edge case. "Does this still work" isn't a question ordinary
-software maintenance answers, because the thing that built it and the
-thing running it can both shift under you. That's why governance here —
-model risk registers, eval suites, honest validation status — isn't an
-appendix. It's load-bearing.
+**AI is already inside financial institutions, governed or not.** Vendors
+embed it in SaaS platforms, staff use it informally, some teams build
+with it deliberately — governance is catching up everywhere at once.
+Models update. Prompts drift. An agent quietly gets worse at one edge
+case. "Does this still work" isn't a question ordinary software
+maintenance answers, because the thing that built it and the thing
+running it can both shift under you. The governance in this project —
+model risk registers, eval suites, honest validation status — is a
+worked answer to that question, not an appendix to the interesting part.
 
 Three questions get asked of every build in this repo: **should this
 control have used AI at all? Does it still work after the model changes?
 What's the fallback if AI is unavailable?** Everything below is the
 answer to those three, in practice.
-
-The deep domain focus is **financial services risk management** — SCRA,
-AML/KYC, Fair Lending, Anti-Bribery/COI — because that's where my own
-experience is. The method underneath, and the judgment about when *not*
-to use AI, isn't specific to banking. See
-[Transferability](#transferability) for where else it applies.
 
 ---
 
@@ -314,3 +315,4 @@ working judgment, not a polished demo that stops at the automation.
 ---
 
 *Regulatory content verified against OCC Comptroller's Handbook v1.1 (November 2025) and 50 U.S.C. statutory text. DMDC API is mocked in the demonstration agents. See the gap register for full production readiness assessment.*
+
