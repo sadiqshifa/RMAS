@@ -21,7 +21,7 @@ change.
 
 > **⚠ Demonstration Scope Notice**
 >
-> This document is part of the RMAS showcase methodology. The following gaps
+> This document is part of the Risk Management LLM Toolkit showcase methodology. The following gaps
 > exist between this demonstration and production use:
 >
 > **1. Architecture is intentionally not prescribed.**

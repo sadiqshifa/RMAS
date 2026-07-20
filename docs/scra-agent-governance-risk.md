@@ -14,7 +14,7 @@ at each checkpoint — not just that it is required.
 
 > **⚠ Demonstration Scope Notice**
 >
-> This document is part of the RMAS showcase methodology. The following gaps
+> This document is part of the Risk Management LLM Toolkit showcase methodology. The following gaps
 > exist between this demonstration and production use:
 >
 > **1. Roles are defined but not assigned.**
@@ -587,7 +587,7 @@ than relying on API health signals alone.
 
 ### 8C — Fallback operating mode
 
-The RMAS agents implement a two-tier operating model:
+This project's agents implement a two-tier operating model:
 
 **Tier 1 — Full operation (AI available):**
 - All deterministic logic executes — routing, calculations, gate

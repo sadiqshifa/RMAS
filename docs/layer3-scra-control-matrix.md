@@ -12,7 +12,7 @@ not yet how the agent is built. Architecture comes in Layer 4.
 
 > **⚠ Demonstration Scope Notice**
 >
-> This document is part of the RMAS showcase methodology. The following gaps
+> This document is part of the Risk Management LLM Toolkit showcase methodology. The following gaps
 > exist between this demonstration and production use:
 >
 > **1. "Current execution" assessments are industry-derived, not institution-specific.**

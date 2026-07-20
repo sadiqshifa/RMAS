@@ -4,7 +4,7 @@ Scope: gifts, entertainment, and hospitality involving customers, vendors,
 and government officials; anti-bribery/corruption obligations (domestic and
 foreign); and conflicts-of-interest management. This is the regulatory
 foundation for the pre-clearance workflow tool — the first Layer 3 artifact
-in RMAS that is **not** an AI agent. That distinction matters enough to flag
+in this project that is **not** an AI agent. That distinction matters enough to flag
 here at Layer 1: this domain is a strong candidate precisely because most of
 its controls are rule-based threshold checks, not judgment calls requiring
 language understanding.
@@ -12,7 +12,7 @@ language understanding.
 > Status: v0, verified via web search on 2026-07-08. Primary-source links
 > included where found. This domain has an unusually sharp split in its
 > drift profile — see Section B — which is itself a useful data point for
-> RMAS's broader "different domains drift differently" thesis.
+> the project's broader "different domains drift differently" thesis.
 
 ---
 

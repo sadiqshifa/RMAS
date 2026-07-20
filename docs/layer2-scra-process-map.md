@@ -14,7 +14,7 @@ tool-assisted, or agent-executed.
 
 > **⚠ Demonstration Scope Notice**
 >
-> This document is part of the RMAS showcase methodology. The following gaps
+> This document is part of the Risk Management LLM Toolkit showcase methodology. The following gaps
 > exist between this demonstration and production use:
 >
 > **1. Process flows are derived from regulatory guidance, not observed practice.**

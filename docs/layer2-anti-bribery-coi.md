@@ -5,7 +5,7 @@ to the control(s) firms actually use to satisfy it today, who/what executes
 the control, and what an agent — or, in this domain's case, a rules-based
 workflow tool — would actually replace or assist.
 
-**A note on this domain specifically:** every other Layer 2 matrix in RMAS so
+**A note on this domain specifically:** every other Layer 2 matrix in this project so
 far has used "automation potential" to point toward an AI agent. This domain
 breaks that pattern on purpose. Several of the rows below are automation
 candidates that should explicitly **not** be AI — they're threshold-and-
@@ -34,7 +34,7 @@ Looking at the automation-potential column, four of six rows are marked
 **deterministic** rather than AI-assisted — a sharp contrast with AML/KYC's
 matrix, where the strongest case (OFAC false-positive triage) was
 specifically an LLM-suited *language and judgment* task. That contrast is
-the point: this domain is where RMAS can show it knows the difference.
+the point: this domain is where the project can show it knows the difference.
 
 The gifts/entertainment pre-clearance workflow (Bank Bribery Act + FINRA
 3220/MSRB G-20 + government-official-recipient rows) is the strongest first

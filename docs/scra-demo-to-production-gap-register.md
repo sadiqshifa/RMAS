@@ -1,6 +1,6 @@
-# RMAS SCRA — Demonstration to Production Gap Register
+# Risk Management LLM Toolkit — SCRA Demonstration to Production Gap Register
 
-This document consolidates every identified gap between the RMAS SCRA
+This document consolidates every identified gap between this project's SCRA
 showcase methodology and a production deployment. It answers the question
 any sophisticated reviewer will ask: "This is compelling — but what would
 it actually take to deploy this?"
@@ -135,8 +135,8 @@ exist in surrounding institutional infrastructure.
 | BPG-01 | SCRA compliance program governance — written policies, training program, independent testing, management reporting, exam readiness | Institutional infrastructure assumed to exist; showcase demonstrates agent methodology within this program, not the program itself | Institutional assumption |
 | BPG-02 | Loan origination process that captures and records military status, origination date, and loan type as queryable fields (P1-C4) | Prerequisite data architecture; showcase assumes it exists or identifies it as a blocking gap (CMG-02) | P1 — Blocking if absent |
 | BPG-03 | Staff training on SCRA requirements and on the agent's role in the compliance program | Institutional responsibility; showcased governance framework specifies reviewer qualifications but does not build the training program | Institutional assumption |
-| BPG-04 | Independent testing of SCRA controls | Required by OCC examination standards; not within RMAS scope | Institutional assumption |
-| BPG-05 | Broader vendor / third-party risk management program governing foreclosure counsel, repossession vendors, and collection agencies | RMAS identifies SCRA-specific vendor requirements (Layer 1, Section J; Layer 3 vendor controls) but assumes this is integrated into an existing TPRM program | Institutional assumption |
+| BPG-04 | Independent testing of SCRA controls | Required by OCC examination standards; not within this project's scope | Institutional assumption |
+| BPG-05 | Broader vendor / third-party risk management program governing foreclosure counsel, repossession vendors, and collection agencies | This project identifies SCRA-specific vendor requirements (Layer 1, Section J; Layer 3 vendor controls) but assumes this is integrated into an existing TPRM program | Institutional assumption |
 
 ---
 

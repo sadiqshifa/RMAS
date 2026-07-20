@@ -1,8 +1,8 @@
-# Model Risk Management Framework — RMAS Agent Portfolio
+# Model Risk Management Framework — Risk Management LLM Toolkit Agent Portfolio
 
 ## Why this exists
 
-Every agent built so far in RMAS that actually contains an AI component
+Every agent built so far in this toolkit that actually contains an AI component
 (SCRA DMDC, SCRA Calculations, Regulatory Change Monitor, and the Fair
 Lending Adverse Action Notice Validator) makes judgment calls — generating
 compliance narratives, classifying regulatory updates, recognizing SCRA
@@ -27,7 +27,7 @@ governance — map directly onto what an AI agent portfolio needs, arguably
 more urgently, since LLM behavior can drift in ways traditional statistical
 models don't.
 
-This document, together with `model-risk-register.html`, is RMAS's answer
+This document, together with `model-risk-register.html`, is this toolkit's answer
 to the question a Model Risk Management function would ask on day one:
 **"What models do you have, and how do you know each one still works?"**
 
@@ -44,7 +44,7 @@ Not every line of code. A component is inventoried as a model if it:
 Deterministic calculations (interest rate cap math, tolling date arithmetic)
 are explicitly **not** modeled here — they're software, not models, and
 their correctness doesn't depend on what Claude does on any given day.
-This distinction matters: it's the same line RMAS already draws in its
+This distinction matters: it's the same line this toolkit already draws in its
 fallback-mode design (deterministic functions keep working regardless of
 AI availability), just applied to governance instead of uptime.
 
@@ -56,7 +56,7 @@ Each model is rated **High / Medium / Low** based on three factors:
 
 1. **Autonomy** — does the model's output get acted on directly, or does a
    human review it first? (Per Layer 4's human-in-the-loop pillar — none of
-   RMAS's agents currently act autonomously, which caps every model's tier
+   This toolkit's agents currently act autonomously, which caps every model's tier
    below what it would be in a fully automated deployment.)
 2. **Materiality** — could a wrong output cause a compliance failure,
    financial harm to a servicemember/consumer, or a missed regulatory
@@ -168,7 +168,7 @@ independent of what the model says about it.
 ## F. Governance cadence
 
 - **Model inventory review:** every time a new agent or AI-powered feature
-  is added to RMAS, it gets an entry here before being marked "built" in
+  is added to the toolkit, it gets an entry here before being marked "built" in
   the main README's status table — not after.
 - **Re-validation trigger:** any model version pin change (e.g., moving off
   `claude-sonnet-4-6`) requires re-running every High and Medium tier

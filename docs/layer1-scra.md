@@ -7,7 +7,7 @@
 
 > **⚠ Demonstration Scope Notice**
 >
-> This document is part of the RMAS showcase methodology. The following gaps
+> This document is part of the Risk Management LLM Toolkit showcase methodology. The following gaps
 > exist between this demonstration and production use:
 >
 > **1. NDAA cycle not yet verified for 2025–2026.**
@@ -40,7 +40,7 @@
 > framework as of the verification date. These gaps represent scope decisions
 > appropriate for a showcase, not errors in the documented content.
 
-> **Why SCRA is in scope for RMAS:** SCRA compliance is operationally complex
+> **Why SCRA is in scope for this project:** SCRA compliance is operationally complex
 > because it touches multiple bank processes (loan origination, servicing,
 > collections, foreclosure, repossession) with different triggers, timing rules,
 > and documentation requirements for each. It is also an active enforcement

@@ -38,7 +38,7 @@ On May 1, 2026, the CFPB issued a final rule revising Regulation B Subpart B (wh
 
 ### AI-specific regulatory hook (directly relevant to Layer 4 governance)
 
-CFPB guidance reminds financial institutions that ECOA compliance obligations apply regardless of whether AI is used in the credit decision, and institutions must confirm with AI vendors that their systems can produce fully compliant adverse action notices. The CFPB has issued Circulars 2022-03 and 2023-03 specifically addressing AI/complex-algorithm use in credit decisions. This is a direct, citable regulatory basis for why RMAS's governance layer (model versioning, eval gates) isn't theoretical — a bank using AI in adverse-action-notice generation has an existing regulatory obligation to prove the system still works correctly after changes.
+CFPB guidance reminds financial institutions that ECOA compliance obligations apply regardless of whether AI is used in the credit decision, and institutions must confirm with AI vendors that their systems can produce fully compliant adverse action notices. The CFPB has issued Circulars 2022-03 and 2023-03 specifically addressing AI/complex-algorithm use in credit decisions. This is a direct, citable regulatory basis for why this project's governance layer (model versioning, eval gates) isn't theoretical — a bank using AI in adverse-action-notice generation has an existing regulatory obligation to prove the system still works correctly after changes.
 
 ---
 
@@ -54,7 +54,7 @@ For 2026, the asset-size exemption threshold for depository institutions is $59 
 
 **Operational deadline:** the HMDA Loan Application Register (LAR) must be submitted to the CFPB by March 1 each year.
 
-**Stability note:** unlike Reg B, the core HMDA rule has remained relatively unchanged since the last major revision in 2018 — the main recurring change is the annual threshold adjustment, not substantive rule changes. This is a useful contrast for the RMAS narrative: Reg B is in active doctrinal flux right now; HMDA's main "change risk" is a predictable annual index adjustment. Different domains have different drift profiles, which has implications for how aggressively each needs to be monitored.
+**Stability note:** unlike Reg B, the core HMDA rule has remained relatively unchanged since the last major revision in 2018 — the main recurring change is the annual threshold adjustment, not substantive rule changes. This is a useful contrast for the project's narrative: Reg B is in active doctrinal flux right now; HMDA's main "change risk" is a predictable annual index adjustment. Different domains have different drift profiles, which has implications for how aggressively each needs to be monitored.
 
 ---
 
