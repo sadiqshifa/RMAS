@@ -12,34 +12,42 @@ deterministic software where it isn't — governed either way.
 
 ---
 
-## The four things this proves
+## What this is solving for
 
-1. **I know when to use AI and when not to.** Some controls are language
-   and judgment problems — those get an AI agent. Some are fixed
-   thresholds and routing logic — those get ordinary deterministic code,
-   with zero AI in the decision path, engineered with an AI coding
-   assistant but not dependent on one at runtime. Getting that split right
-   is the actual skill on display here, not the AI usage itself.
-2. **The AI parts are governed like a bank governs models.** Every AI
-   component is inventoried in a [Model Risk Register](https://sadiqshifa.github.io/RMAS/governance/model-risk-register.html)
-   modeled on SR 11-7 — risk-tiered, validation status tracked, gaps
-   documented, not just described as "in place."
-3. **What's proven and what isn't are stated plainly, not blurred.**
-   79 test cases are genuinely executed against real code. 4 of 6 AI
-   models are honestly marked unvalidated, with the specific reason why.
-   Neither gets rounded up.
-4. **It's working code, not slides.** Eight live agents and tools, run
-   them yourself — links above.
+Financial services risk management has three problems tangled together.
 
-Three questions get asked of every build here, not just the interesting
-ones: **How do you know an agent still works after the model changes?
-What's the fallback if the AI is unavailable? And — before either
-question — should this control have used AI at all?**
+**Execution is manual where it doesn't need to be — but not everywhere.**
+Reading a message for an indirect SCRA trigger, or triaging a sanctions
+match, is a language problem. AI helps. A dollar limit or a
+capital-based threshold is not a language problem — it's a routing
+decision. Forcing AI onto that doesn't speed it up. It makes it less
+auditable. Knowing the difference, control by control, is the first
+skill this project proves.
 
-The domain is financial services compliance, but the method — regulatory
-map → process map → control matrix → governance, plus the judgment about
-which controls need AI — isn't domain-specific. See
-[Transferability](#transferability) for how it extends.
+**"Regulation to working system" isn't a prompting exercise.** It's
+decomposition: obligation → process → testable control → the right
+build for that control. [The methodology](#the-methodology) is that
+decomposition, and it holds whether or not AI ends up in the final
+system.
+
+**An LLM-built system has a maintenance problem no one's release notes
+cover.** Models update. Prompts drift. An agent quietly gets worse at
+one edge case. "Does this still work" isn't a question ordinary
+software maintenance answers, because the thing that built it and the
+thing running it can both shift under you. That's why governance here —
+model risk registers, eval suites, honest validation status — isn't an
+appendix. It's load-bearing.
+
+Three questions get asked of every build in this repo: **should this
+control have used AI at all? Does it still work after the model changes?
+What's the fallback if AI is unavailable?** Everything below is the
+answer to those three, in practice.
+
+The deep domain focus is **financial services risk management** — SCRA,
+AML/KYC, Fair Lending, Anti-Bribery/COI — because that's where my own
+experience is. The method underneath, and the judgment about when *not*
+to use AI, isn't specific to banking. See
+[Transferability](#transferability) for where else it applies.
 
 ---
 
