@@ -71,9 +71,53 @@ regulatory fact in this project.
 
 ---
 
+## C. From tool output to closed loop
+
+Both Track B tools in this domain are deterministic, but "deterministic"
+only covers the calculation — neither tool completes a transaction or
+event on its own. This section makes each tool's actual handoff explicit,
+matching the same section added to every other domain in this project (see
+[Regulation W's Layer 2, Section D](layer2-regw.md) for the fullest version
+of this pattern, since it was the first domain where this gap was
+identified and fixed).
+
+**Pre-Clearance Determination System**
+
+| Tool output | Routes to | Required action | How the loop closes |
+|---|---|---|---|
+| Manager rejects (first-line) | Nobody further | None — request never proceeds | Terminal. The tool's own doc states this plainly: "A manager's rejection is terminal — the request never reaches second-line review." |
+| Manager approves (first-line) | Second-line independent rules engine | None — the manager's approval only clears the request to reach the second-line check; it does not decide the outcome | Loop continues, doesn't close yet |
+| Second-line: APPROVE | Requestor (register only) | None | Closed — the gift/entertainment/hospitality may proceed as disclosed |
+| Second-line: ESCALATE | Compliance / Legal | Independent review before the event may proceed | Closes when Compliance/Legal makes the call — the tool's determination is a routing decision, not a final one |
+| Second-line: DENY | Requestor | None — may not proceed as structured | Terminal |
+
+The tool's UI simulates this entire chain live (a Manager Approval Queue
+with real Approve/Reject actions, feeding into the second-line engine) —
+this table exists so the same logic is legible to a reader of the docs, not
+only a user clicking through the demo.
+
+**Regulation O Insider Credit Threshold Tool**
+
+| Tool output | Routes to | Required action | How the loop closes |
+|---|---|---|---|
+| Approved (within all thresholds) | Compliance (register only) | None | Closed at logging; counted toward the running insider-exposure ledger for future determinations |
+| ESCALATED — board approval required (§ 215.4(b)) | Board of Directors, insider abstaining from the vote | A board vote | Closes when the board's approval is recorded — noted in the tool's own gap register (item #7) as not yet tracked as real workflow state; today the tool logs the determination and stops, it does not confirm the vote happened |
+| ESCALATED — terms comparison unconfirmed (§ 215.4(a)) | Compliance Officer / Legal | Confirm the extension is on substantially the same terms as a comparable non-insider transaction | Closes when that confirmation is documented — this is the one genuine judgment call in Reg O, and the tool is explicit that it doesn't attempt to resolve it |
+| PROHIBITED — executive-officer sub-cap breach (§ 215.5(c)(4)) or overdraft without a qualifying plan/exception (§ 215.4(e)) | Compliance Officer | Cannot proceed as structured — no board override exists for this ceiling, unlike the general board-approval trigger | Terminal as structured; only closes by not proceeding, restructuring, or (for the aggregate ceiling) the bank-wide small-institution exception where applicable |
+
+The distinction between "ESCALATED" (a process a board or reviewer can
+complete) and "PROHIBITED" (an absolute ceiling nothing in the regulation
+lets anyone approve past) is deliberate in the tool's own design — the same
+distinction Regulation W's tool draws between its board-level escalations
+and its hard 10%/20% statutory caps, which have no board-level override at
+all (see Regulation W's Layer 2, Section D).
+
+---
+
 ## Next steps for this document
 
 - [ ] Confirm current FINRA 3220 valuation methodology detail (cost vs. face value for event tickets) is reflected accurately once the tool's entertainment-valuation logic is built
 - [ ] Add a row for FCPA third-party due diligence (intermediary/agent vetting) if the tool's scope expands beyond gifts/entertainment
 - [ ] Cross-link each control row back to its Layer 1 citation
+- [x] Document the tool-output-to-closed-loop handoff for both Track B tools — see Section C
 - [ ] Once the pre-clearance tool is built, add an "automation status" column (planned / built / deployed) matching the pattern used in other domains

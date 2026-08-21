@@ -77,10 +77,49 @@ suite, not before.
 
 ---
 
+## D. From tool output to closed loop
+
+Neither Layer 3 tool in this domain makes a final decision on its own —
+each hands off to a specific downstream process. Stated explicitly here for
+the same reason it's now stated for every other domain in this project (see
+[Regulation W's Layer 2, Section D](layer2-regw.md) and
+[AML/KYC's Layer 2, Section C](layer2-aml-kyc.md) for the sibling versions
+of this section).
+
+**HMDA Reportability Calculator**
+
+| Tool output | Routes to | Required action | How the loop closes |
+|---|---|---|---|
+| REPORTABLE | LAR data collection/submission workflow (already tool-assisted per Section B above) | Compile the required data points for every covered application throughout the collection year | Closes annually when the LAR is submitted to the CFPB's HMDA Platform by March 1 |
+| EXEMPT | Compliance / exam-file documentation | Retain the specific basis for exemption (which of the five tests failed, and the asset-size figure used) | Closes when that basis is documented and available for the next exam cycle — an examiner asking "why didn't this institution report" needs an answer on file, not just a calculator screenshot |
+
+The calculator's own UI states it plainly: "Not a substitute for legal or
+compliance review." A REPORTABLE or EXEMPT output is the start of a
+downstream workflow, not the end of one.
+
+**Adverse Action Notice Validator**
+
+| Tool output | Routes to | Required action | How the loop closes |
+|---|---|---|---|
+| Required-elements check fails (action taken, creditor ID, ECOA notice, or regulator ID missing) | Whoever drafted the notice | Correct the notice before it goes out | Closes when the corrected notice passes the check and is sent within the applicable timing window |
+| Stale-standard language flagged (disparate-impact/"effects test" phrasing, post-July 21, 2026) | Legal / Compliance | Determine whether the language is a live policy statement (must be fixed) or a compliant historical reference (e.g., explaining what changed) | Closes when a human makes that read — the tool explicitly cannot, since it's a keyword match, not a context judgment |
+| SPCP eligibility flag (for-profit program using a now-prohibited common eligibility characteristic) | Legal / Compliance, program owner | Program redesign — not a notice fix | Closes when the redesigned program is confirmed compliant; this is named in the tool's own code comment as "not a task to automate a fix for" |
+| AI-assisted review flags (live mode only) | Legal review | Confirm or dismiss each flag | Closes only on human confirmation — the tool's own business-continuity note says fallback and live mode both "flag phrases for review rather than assert a conclusion," and live mode "is not a substitute for legal review of the final notice" |
+
+Across both tools, the pattern is consistent with the domain's own framing
+in Section C above: the deterministic checks (timing, required elements,
+threshold math) are trusted outright, and everything that requires
+judgment — is this language actually stale in context, does this program
+need a redesign — stops and hands off rather than being resolved by the
+tool.
+
+---
+
 ## Next steps for this document
 
 - [x] Map Reg B and HMDA obligations to controls and automation potential
 - [x] Identify and justify the two starting agents (calculator + validator)
+- [x] Document the tool-output-to-closed-loop handoff for both Layer 3 tools — see Section D
 - [ ] Cross-reference each control row back to its Layer 1 citation
 - [ ] Build HMDA Reportability Calculator (Layer 3)
 - [ ] Build Adverse Action Notice Validator (Layer 3)

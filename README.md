@@ -6,7 +6,7 @@ Toolkit**, takes real regulatory obligations and builds the right system
 for each control — an AI agent where judgment is genuinely needed,
 deterministic software where it isn't — governed either way.
 
-[**→ Try the SCRA DMDC Agent**](https://sadiqshifa.github.io/RMAS/agents/scra-dmdc-agent.html) · [**→ SCRA Calculations**](https://sadiqshifa.github.io/RMAS/agents/scra-calculations-agent.html) · [**→ Regulatory Change Monitor**](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html) · [**→ HMDA Calculator**](https://sadiqshifa.github.io/RMAS/agents/hmda-calculator.html) · [**→ Adverse Action Validator**](https://sadiqshifa.github.io/RMAS/agents/adverse-action-validator.html) · [**→ OFAC Triage Agent**](https://sadiqshifa.github.io/RMAS/agents/ofac-triage-agent.html) · [**→ Pre-Clearance Tool**](https://sadiqshifa.github.io/RMAS/tools/pre-clearance-tool.html) · [**→ Reg O Tool**](https://sadiqshifa.github.io/RMAS/tools/reg-o-insider-credit-tool.html)
+[**→ Try the SCRA DMDC Agent**](https://sadiqshifa.github.io/RMAS/agents/scra-dmdc-agent.html) · [**→ SCRA Calculations**](https://sadiqshifa.github.io/RMAS/agents/scra-calculations-agent.html) · [**→ Regulatory Change Monitor**](https://sadiqshifa.github.io/RMAS/agents/reg-change-monitor.html) · [**→ HMDA Calculator**](https://sadiqshifa.github.io/RMAS/agents/hmda-calculator.html) · [**→ Adverse Action Validator**](https://sadiqshifa.github.io/RMAS/agents/adverse-action-validator.html) · [**→ OFAC Triage Agent**](https://sadiqshifa.github.io/RMAS/agents/ofac-triage-agent.html) · [**→ Pre-Clearance Tool**](https://sadiqshifa.github.io/RMAS/tools/pre-clearance-tool.html) · [**→ Reg O Tool**](https://sadiqshifa.github.io/RMAS/tools/reg-o-insider-credit-tool.html) · [**→ Reg W Tool**](https://sadiqshifa.github.io/RMAS/tools/reg-w-affiliate-transaction-tool.html)
 
 **Jump to:** [🤖 Agent Tools](#agent-tools) &nbsp;|&nbsp; [⚙️ Non-Agent Tools](#non-agent-tools) &nbsp;|&nbsp; [📋 Status](#status)
 
@@ -129,6 +129,31 @@ Same no-AI-at-runtime design, applied to 12 C.F.R. Part 215's percentage-of-capi
 > yet — the tool is ahead of its own documentation, flagged here rather
 > than left for someone else to notice.
 
+### Regulation W Affiliate Transaction Compliance Tool
+**[Open Tool →](https://sadiqshifa.github.io/RMAS/tools/reg-w-affiliate-transaction-tool.html)** &nbsp;|&nbsp; [Layer 1](docs/layer1-regw.md) &nbsp;|&nbsp; [Layer 2](docs/layer2-regw.md) &nbsp;|&nbsp; [Gap Register — 16 gaps, 6 blocking](docs/reg-w-tool-demo-to-production-gap-register.md)
+
+Same no-AI-at-runtime design, applied to Sections 23A/23B of the Federal
+Reserve Act (12 CFR Part 223) — the regulation governing transactions
+between a bank and its affiliates. Encodes the § 223.11/223.12
+single-affiliate (10%) and aggregate (20%) quantitative limits, the §
+223.14 collateral-haircut schedule (100/110/120/130% by collateral type,
+with affiliate-issued securities correctly treated as ineligible at any
+value), the § 23B market-terms gate, and the sister-bank/cash-Treasury/
+intraday exemption paths. Unlike Reg O's board-approval trigger — a
+*process* a board can complete — Reg W's quantitative limits are hard
+statutory caps with no board-level override; a breach routes to a
+regulator-granted individual exemption instead, an actual live example of
+which (OCC Interpretive Letter #1191, June 2026) is cited in Layer 1.
+Models the process at two altitudes, not one: an LOB view where a
+transaction is actually classified and logged, and a top-of-house view
+that aggregates every affiliate's exposure against the bank-wide ceiling —
+reflecting how this control genuinely runs inside a commercial bank's
+line-of-business compliance function versus its consolidated Reg W
+program. The one true judgment call in the regulation — whether the
+attribution rule pulls in an ostensibly third-party transaction — is
+deliberately not resolved by the engine; it's flagged for human review and
+named in Layer 2 as a future Track A candidate rather than guessed at here.
+
 ---
 
 ## The methodology
@@ -182,18 +207,19 @@ actually operationalize one.
 
 SCRA was the template domain — discrete requirements, bounded process
 touchpoints, a good place to build the methodology first. The same
-four-layer approach and Track A/Track B judgment now covers four domains,
+four-layer approach and Track A/Track B judgment now covers five domains,
 scope deliberately frozen there (Vendor/Third-Party Risk Management stays
 named and deprioritized, not silently dropped):
 
 - **AML/KYC/Sanctions** — [Layer 1](docs/layer1-aml-kyc.md)/[Layer 2](docs/layer2-aml-kyc.md) committed. Layer 3 is the [OFAC Triage Agent](https://sadiqshifa.github.io/RMAS/agents/ofac-triage-agent.html) — the domain's own analysis called this the clearest agent use case, and it's built.
 - **Fair Lending (Reg B/HMDA)** — [Layer 1](docs/layer1-fair-lending.md)/[Layer 2](docs/layer2-fair-lending.md) committed. Two Track A agents are Layer 3; eval suites mostly executed (see [Status](#status)).
 - **Anti-Bribery/COI** — Layer 1/2 committed. Two Track B tools are Layer 3 — the domain that makes the "not everything should be an agent" case concretely. Layer 4 here is EUCT-appropriate governance, not model governance, since there's no AI to govern: version pinning, ownership framing, and a [rules-engine test suite](docs/rules-engine-test-suite-anti-bribery-coi.md) at **35/35 passing**.
+- **Affiliate Transactions (Regulation W)** — [Layer 1](docs/layer1-regw.md)/[Layer 2](docs/layer2-regw.md) committed. One Track B tool is Layer 3 — the [Reg W Affiliate Transaction Compliance Tool](https://sadiqshifa.github.io/RMAS/tools/reg-w-affiliate-transaction-tool.html) — with its own [test suite](tests/reg-w) at **20/20 passing**. Layer 2 names the domain's one genuine judgment call (the attribution rule) as a deferred Track A candidate rather than building it without the same governance rigor applied elsewhere in this repo.
 
 **Model validation is paused, on purpose:** 4 of 6 models remain
 unvalidated (3 High-tier) — [reasoning here](docs/model-risk-management-framework.md),
 section G. Everything deterministic or fallback-mode is executed:
-**79 test cases**, real code, independently re-runnable. What's left needs
+**99 test cases**, real code, independently re-runnable. What's left needs
 a live API key and independent grading, not more engineering.
 
 The approach — not the domain knowledge — extends to insurance,
@@ -217,12 +243,15 @@ RMAS/
 │
 ├── tools/                               # Track B — deterministic workflow tools, no AI at runtime
 │   ├── pre-clearance-tool.html          # Gifts/entertainment/anti-bribery pre-clearance rules engine
-│   └── reg-o-insider-credit-tool.html   # Regulation O insider credit threshold calculator
+│   ├── reg-o-insider-credit-tool.html   # Regulation O insider credit threshold calculator
+│   └── reg-w-affiliate-transaction-tool.html  # Regulation W affiliate-transaction compliance tool (LOB + top-of-house views)
 │
 ├── tests/                               # Executable test suites — real code, not specs
 │   ├── anti-bribery-coi/                # Rules-engine tests for both Track B tools (35/35 passing)
 │   │   ├── pc_engine.js · pc_tests.js       # Pre-Clearance — extracted engine + 20-case suite
 │   │   └── rego_engine.js · rego_tests.js   # Reg O — extracted engine + 15-case suite
+│   ├── reg-w/                           # Reg W affiliate-transaction engine tests (20/20 passing)
+│   │   └── regw_engine.js · regw_tests.js   # Affiliate-transaction rules engine + test suite
 │   ├── aml-kyc/                         # OFAC agent's deterministic pre-check (8/8 passing)
 │   │   └── ofac_engine.js · ofac_tests.js
 │   ├── fair-lending/                    # FL-EVAL-01 (14/14) + FL-EVAL-02 5a/5b/5c-fallback (21/21)
@@ -254,13 +283,16 @@ RMAS/
 │   ├── rules-engine-test-suite-anti-bribery-coi.md  # ABC/COI — executed Layer 4 test results (35/35)
 │   ├── pre-clearance-tool-demo-to-production-gap-register.md  # Pre-Clearance — demo → production gap register
 │   ├── reg-o-tool-demo-to-production-gap-register.md  # Reg O tool — demo → production gap register
+│   ├── layer1-regw.md                   # Regulation W (23A/23B) — regulatory map
+│   ├── layer2-regw.md                   # Regulation W — control matrix, LOB-to-top-of-house process
+│   ├── reg-w-tool-demo-to-production-gap-register.md  # Reg W tool — demo → production gap register
 │   └── model-risk-management-framework.md  # Cross-domain model risk management framework
 │
 └── README.md
 ```
 
 SCRA's docs use a four-file Layer 1–4 split since it was the template
-domain and got the deepest build; the other three domains use a two-file
+domain and got the deepest build; the other domains use a two-file
 Layer 1–2 split, with Layer 3 being the actual agent/tool and Layer 4
 governance covered by the cross-domain documents. Bringing every domain to
 SCRA's documentation depth is an open item, not a decision to leave as-is
@@ -299,9 +331,14 @@ indefinitely.
 | Reg O Tool — Demo-to-production gap register (14 gaps, 5 blocking) | ✅ Complete |
 | Pre-Clearance Tool — Demo-to-production gap register (14 gaps, 5 blocking) | ✅ Complete |
 | Layer 1/2 Anti-Bribery/COI docs — Reg O-specific threshold detail | ✅ Written back into the docs, verified against eCFR primary text (2026-07-09) |
+| Regulation W (23A/23B) — Layer 1 & Layer 2 | ✅ Committed, verified against eCFR primary text (2026-08-21) |
+| Reg W Tool — Affiliate Transaction Compliance Tool (Track B, no AI at runtime) | ✅ Working demo · rules-engine v1.1.0 · LOB + top-of-house views + market-terms evidence attachment |
+| Reg W Tool — Rules-engine test suite | ✅ **20/20 passed**, executed against real tool code — [`tests/reg-w`](tests/reg-w) |
+| Reg W Tool — Demo-to-production gap register (16 gaps, 6 blocking) | ✅ Complete |
+| Reg W — Attribution-rule Track A agent (deferred) | 🚧 Named and scoped in Layer 2, not yet built |
 | Model Risk Register (cross-domain, SR 11-7-inspired, 6 models / 5 agents) | ✅ v0.2 — added MRM-006 (OFAC Screening Triage Agent) at build time, not retroactively |
 | All AI agents — BYOK live AI (bring-your-own Anthropic API key) | ✅ Implemented; fallback-by-default outside Claude.ai's runtime |
-| Vendor / Third-Party Risk Management | 🚧 Explicitly deprioritized — scope frozen at four domains this phase, not a fifth (see Transferability) |
+| Vendor / Third-Party Risk Management | 🚧 Explicitly deprioritized — scope frozen this phase, not a fifth or sixth domain (see Transferability) |
 
 ---
 
@@ -314,5 +351,4 @@ working judgment, not a polished demo that stops at the automation.
 
 ---
 
-*Regulatory content verified against OCC Comptroller's Handbook v1.1 (November 2025) and 50 U.S.C. statutory text. DMDC API is mocked in the demonstration agents. See the gap register for full production readiness assessment.*
-
+*Regulatory content verified against OCC Comptroller's Handbook v1.1 (November 2025), eCFR primary text, and 50 U.S.C. statutory text. DMDC API is mocked in the demonstration agents. See the gap register for full production readiness assessment.*
