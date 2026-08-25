@@ -254,7 +254,7 @@ RMAS/
 │   │   └── regw_engine.js · regw_tests.js   # Affiliate-transaction rules engine + test suite
 │   ├── aml-kyc/                         # OFAC agent's deterministic pre-check (8/8 passing)
 │   │   └── ofac_engine.js · ofac_tests.js
-│   ├── fair-lending/                    # FL-EVAL-01 (14/14) + FL-EVAL-02 5a/5b/5c-fallback (21/21)
+│   ├── fair-lending/                    # FL-EVAL-01 (14/14) + FL-EVAL-02 5a/5b/5c-fallback (16/16)
 │   │   ├── hmda_engine.js · hmda_tests.js       # HMDA Calculator — full logic, 14 cases
 │   │   ├── aav_engine.js · aav_tests.js         # Adverse Action Validator — timing + SPCP, 11 checks
 │   │   └── fallback_engine.js · fallback_tests.js  # Adverse Action Validator — 5c fallback cases
@@ -323,7 +323,7 @@ indefinitely.
 | Fair Lending / HMDA — Layer 1 & Layer 2 | ✅ Committed |
 | Fair Lending Agent — HMDA Reportability Calculator (Type 3) | ✅ Working demo · fallback mode |
 | Fair Lending Agent — Adverse Action Notice Validator (Type 1 + 4) | ✅ Working demo · fallback mode |
-| Fair Lending Eval Suites (FL-EVAL-01: 14 cases, FL-EVAL-02: 16 cases) | ✅ FL-EVAL-01 14/14, FL-EVAL-02 5a/5b/5c-fallback 21/21 — [`tests/fair-lending`](tests/fair-lending). 🚧 One case (A-04) blocked on an API key + human judgment call |
+| Fair Lending Eval Suites (FL-EVAL-01: 14 cases, FL-EVAL-02: 16 cases) | ✅ FL-EVAL-01 14/14, FL-EVAL-02 5a/5b/5c-fallback 16/16 — [`tests/fair-lending`](tests/fair-lending). 🚧 One case (A-04) blocked on an API key + human judgment call |
 | Anti-Bribery/Corruption & COI — Layer 1 & Layer 2 | ✅ Committed |
 | Anti-Bribery/COI Tool — Pre-Clearance Determination System (Track B, no AI at runtime) | ✅ Working demo · rules-engine v1.1.0 |
 | Anti-Bribery/COI Tool — Regulation O Insider Credit Threshold Tool (Track B, no AI at runtime) | ✅ Working demo · rules-engine v1.0.0 |
