@@ -1,6 +1,6 @@
 # Layer 2 — Control Matrix: Anti-Bribery/Corruption & Conflicts of Interest
 
-Maps each regulatory obligation from [Layer 1](../../layer1-regulatory-map/anti-bribery-coi)
+Maps each regulatory obligation from [Layer 1](layer1-anti-bribery-coi.md)
 to the control(s) firms actually use to satisfy it today, who/what executes
 the control, and what an agent — or, in this domain's case, a rules-based
 workflow tool — would actually replace or assist.
