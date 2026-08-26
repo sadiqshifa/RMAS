@@ -1,4 +1,4 @@
-# Sadiq Shifa | Building with LLMs
+# Sadiq Shifa | Building Practical Systems with AI
 
 I use LLMs to build working tools, not just talk about what they could
 theoretically do. This repo's featured project, the **Risk Management LLM
