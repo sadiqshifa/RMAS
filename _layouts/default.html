@@ -5,10 +5,10 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<meta property="og:title" content="RMAS | Building Practical Systems with AI">
-<meta property="og:description" content="Applied AI, automation, and governance exploring how LLMs and deterministic tools can solve real-world business, risk, and regulatory challenges.">
-<meta property="og:image" content="https://sadiqshifa.github.io/RMAS/assets/images/RMAS-preview.png">
-<meta property="og:url" content="https://sadiqshifa.github.io/RMAS/">
+<meta property="og:title" content="{{ page.og_title | default: page.title | default: 'RMAS | Building Practical Systems with AI' }}">
+<meta property="og:description" content="{{ page.og_description | default: page.description | default: site.description }}">
+<meta property="og:image" content="{{ page.og_image | default: 'https://sadiqshifa.github.io/RMAS/assets/images/RMAS-preview.png' }}">
+<meta property="og:url" content="{{ page.url | absolute_url }}">
 <meta property="og:type" content="website">
     {% seo %}
 
